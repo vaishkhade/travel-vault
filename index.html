@@ -496,6 +496,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
 .form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
 @keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
+[data-eadd]::before,#flightHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
@@ -542,7 +545,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
       <div class="toolrow">
         <div class="seg" role="group" aria-label="Show"><button type="button" data-pmode="countries" aria-pressed="true">Countries</button><button type="button" data-pmode="cities" aria-pressed="false">Cities</button></div>
         <input type="search" id="placeSearch" class="grow" placeholder="Search countries or cities" aria-label="Search countries or cities">
-        <label class="select">Sort<select id="placeSort" aria-label="Sort places"></select></label>
+        <label class="select"><select id="placeSort" aria-label="Sort places"></select></label>
       </div>
       <div class="chips" id="regionChips"></div>
     </div>
@@ -554,7 +557,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
     <div class="toolbar">
       <div class="toolrow">
         <input type="search" id="passSearch" class="grow" placeholder="Search airports, cities or airlines" aria-label="Search flights">
-        <label class="select">Sort<select id="passSort" aria-label="Sort flights"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="far">Longest flight</option><option value="airline">Airline A–Z</option></select></label>
+        <label class="select"><select id="passSort" aria-label="Sort flights"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="far">Longest flight</option><option value="airline">Airline A–Z</option></select></label>
       </div>
       <div class="chips" id="cabinChips"></div>
     </div>
@@ -1369,9 +1372,9 @@ function renderPlace(cc){
 
     <div class="block">
       <div class="section-head"><h2>Cities &amp; folders</h2>
-        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form><button class="btn small" type="button" id="newFolder">+ New folder</button></div>
+        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form><button class="btn small" type="button" id="newFolder">New folder</button></div>
       </div>
-      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>Add a city you visited, or make a folder for things like visas or hotel bookings.</p><div class="eacts"><button class="btn primary" type="button" data-newfolder>+ New folder</button></div></div>`}</div>
+      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>Add a city you visited, or make a folder for things like visas or hotel bookings.</p><div class="eacts"><button class="btn primary" type="button" data-newfolder>New folder</button></div></div>`}</div>
     </div>
 
     <div class="block">
