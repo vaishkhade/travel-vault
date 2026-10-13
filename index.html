@@ -897,6 +897,18 @@ h1.hasicon .hicon svg{width:22px;height:22px;display:block}
 #dotgrid{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
 @media (max-width:719px){#dotgrid{display:none}}
 .rails{display:none}
+.gmnote{margin:0 0 12px;color:var(--ink-subtle);font-size:14px;line-height:21px}
+.modal.gmail{max-width:560px}
+.gmlist{max-height:52vh;overflow:auto;margin:0 -4px 8px;padding:0 4px}
+.gmrow{display:flex;gap:12px;align-items:flex-start;padding:10px 12px;border-radius:12px;cursor:pointer}
+.gmrow:hover{background:var(--soft)}
+.gmrow input{margin-top:3px;flex:none}
+.gmrow.dup{opacity:.55;cursor:default}
+.gmmain{display:flex;flex-direction:column;gap:2px;min-width:0}
+.gmcode{font-size:12px;color:var(--ink-subtle);letter-spacing:.04em}
+.gmsub{font-size:13px;color:var(--ink-subtle)}
+.gmsubj{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;opacity:.8}
+.gmplaces{border-top:1px solid var(--line);border-radius:0;margin-top:6px;padding-top:14px}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
@@ -910,7 +922,7 @@ h1.hasicon .hicon svg{width:22px;height:22px;display:block}
     </nav>
     <div class="actions">
       <button class="btn mode" id="modeBtn" type="button" aria-label="Switch to light mode"></button>
-      <div class="addwrap"><button class="btn primary" id="addBtn" type="button" data-addtoggle aria-haspopup="menu" aria-expanded="false">Add <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden><button type="button" role="menuitem" data-add="country">Country</button><button type="button" role="menuitem" data-add="city">City</button><button type="button" role="menuitem" data-add="flight">Flight</button></div></div>
+      <div class="addwrap"><button class="btn primary" id="addBtn" type="button" data-addtoggle aria-haspopup="menu" aria-expanded="false">Add <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden><button type="button" role="menuitem" data-add="country">Country</button><button type="button" role="menuitem" data-add="city">City</button><button type="button" role="menuitem" data-add="flight">Flight</button><button type="button" role="menuitem" data-add="gmail">From Gmail</button></div></div>
       <div class="profwrap" hidden><button class="avatar" id="profBtn" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Your account"></button><div class="vmenu profmenu" role="menu" hidden><div class="who"><span>Signed in as</span><b id="profEmail"></b></div><button type="button" role="menuitem" id="signOutBtn">Sign out</button></div></div>
     </div>
   </div>
@@ -2285,7 +2297,7 @@ document.addEventListener("click", e => {
   const tg = e.target.closest("[data-addtoggle]"), item = e.target.closest(".addmenu [data-add]");
   if (tg) { const w = tg.closest(".addwrap"), m = w.querySelector(".addmenu"); closeAdds(w); m.hidden = !m.hidden; tg.setAttribute("aria-expanded", !m.hidden); if (!m.hidden) m.querySelector("button").focus(); return; }
   closeAdds();
-  if (item) { const k = item.dataset.add; k === "flight" ? openFlightForm() : k === "city" ? openCityForm() : openPlaceForm(); }
+  if (item) { const k = item.dataset.add; k === "gmail" ? openGmailImport() : k === "flight" ? openFlightForm() : k === "city" ? openCityForm() : openPlaceForm(); }
 });
 document.addEventListener("click", e => { const b = e.target.closest("[data-editplace]"); if (b) openPlaceForm(b.dataset.editplace); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") { const open = $$(".addwrap").find(w => !w.querySelector(".addmenu").hidden); if (open) { closeAdds(); open.querySelector("[data-addtoggle]").focus(); } } });
@@ -2669,6 +2681,103 @@ let toastT;
 function toast(msg){
   let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
   t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200);
+}
+
+/* Import from Gmail: read-only, in the browser. The access token lives only in memory and email text is never saved. */
+const GOOGLE_CLIENT_ID = ""; // the public OAuth Client ID (…apps.googleusercontent.com)
+const GMAIL = "https://gmail.googleapis.com/gmail/v1/users/me/";
+const GMAIL_Q = 'subject:(flight OR "boarding pass" OR itinerary OR "e-ticket" OR eticket OR "booking confirmation" OR "trip confirmation" OR "your trip" OR "travel confirmation") -subject:(cancel OR cancelled OR cancellation OR refund OR offer OR sale OR deal)';
+function gmailToken(){
+  return new Promise(async (res, rej) => {
+    try { await loadLib("https://accounts.google.com/gsi/client", "google"); } catch (e) { return rej(new Error("Couldn't load Google sign-in.")); }
+    const tc = google.accounts.oauth2.initTokenClient({client_id: GOOGLE_CLIENT_ID, scope: "https://www.googleapis.com/auth/gmail.readonly",
+      callback: r => r && r.access_token ? res(r.access_token) : rej(new Error(r && r.error === "access_denied" ? "Gmail access wasn't allowed." : "Google sign-in didn't finish.")),
+      error_callback: e => rej(new Error(e && e.type === "popup_closed" ? "The Google window was closed before signing in." : "Google sign-in didn't finish."))});
+    tc.requestAccessToken();
+  });
+}
+async function gget(tok, path){
+  const r = await fetch(GMAIL + path, {headers: {Authorization: "Bearer " + tok}});
+  if (!r.ok) throw new Error(r.status === 401 || r.status === 403 ? "Gmail said no access. Try signing in again." : "Gmail didn't answer (" + r.status + ").");
+  return r.json();
+}
+const b64url = s => { try { return new TextDecoder().decode(Uint8Array.from(atob(s.replace(/-/g, "+").replace(/_/g, "/")), c => c.charCodeAt(0))); } catch (e) { return ""; } };
+function mailText(payload){
+  let plain = "", html = "";
+  (function walk(p){ if (!p) return; const d = p.body && p.body.data;
+    if (d && p.mimeType === "text/plain") plain += b64url(d) + "\n"; else if (d && p.mimeType === "text/html") html += b64url(d) + "\n";
+    (p.parts || []).forEach(walk); })(payload);
+  if (html) { const doc = new DOMParser().parseFromString(html.replace(/<(br|\/p|\/div|\/tr|\/td|\/li|\/h\d)[^>]*>/gi, "$& "), "text/html"); doc.querySelectorAll("style,script").forEach(x => x.remove()); return (doc.body ? doc.body.textContent : "") + " " + plain; }
+  return plain;
+}
+async function scanGmail(onStep){
+  const tok = await gmailToken();
+  try {
+    onStep("Searching your inbox for flight emails…");
+    let ids = [], page = "";
+    do { const r = await gget(tok, `messages?maxResults=100&q=${encodeURIComponent(GMAIL_Q)}${page ? "&pageToken=" + page : ""}`); ids.push(...(r.messages || []).map(m => m.id)); page = r.nextPageToken; } while (page && ids.length < 400);
+    const found = [], seen = new Set();
+    const have = new Set(flights().flatMap(f => [`${f.from}-${f.to}-${f.date}`, f.flightNo && f.date ? `${f.flightNo}@${f.date}` : ""]).filter(Boolean));
+    let done = 0;
+    const one = async id => {
+      const m = await gget(tok, `messages/${id}?format=full`);
+      const hdr = n => ((m.payload.headers || []).find(h => h.name.toLowerCase() === n) || {}).value || "";
+      const subject = hdr("subject"), sent = new Date(+m.internalDate || Date.now());
+      const d = parsePassText(subject + " \n " + mailText(m.payload));
+      const legs = d.from && d.to ? [d, ...(d.ret && d.ret.from && d.ret.to ? [{...d.ret, airline: d.ret.airline || d.airline, pnr: d.pnr, cabin: d.cabin}] : [])] : [];
+      for (const l of legs) {
+        if (!AIRPORT[l.from] || !AIRPORT[l.to] || l.from === l.to) continue;
+        const date = l.date || "", key = `${l.from}-${l.to}-${date}`, nk = l.flightNo && date ? `${l.flightNo}@${date}` : "";
+        if (seen.has(key) || (nk && seen.has(nk))) continue; seen.add(key); if (nk) seen.add(nk);
+        found.push({from: l.from, to: l.to, date, airline: l.airline || "", flightNo: l.flightNo || "", seat: l.seat || "", cabin: l.cabin || "Economy", pnr: l.pnr || "",
+          subject, sent: iso(sent), dup: have.has(key) || (nk && have.has(nk))});
+      }
+      onStep(`Reading flight emails… ${++done} of ${ids.length}`);
+    };
+    for (let i = 0; i < ids.length; i += 6) await Promise.all(ids.slice(i, i + 6).map(id => one(id).catch(() => { done++; })));
+    return found.sort((a, b) => (b.date || b.sent).localeCompare(a.date || a.sent));
+  } finally { try { google.accounts.oauth2.revoke(tok, () => {}); } catch (e) {} }
+}
+async function addDestination(rec){
+  const ap = AIRPORT[rec.to], cc = ap && ap.cc; if (!COUNTRY[cc]) return;
+  const p = state.places[cc] || newPlace(cc), cityName = ap.city || ap.name;
+  const has = (p.cities || []).some(c => c.name.toLowerCase() === cityName.toLowerCase());
+  const ym = rec.date ? rec.date.slice(0, 7) : "", cityRec = has ? null : cityRecord(cc, cityName);
+  const folders = p.folders || (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}));
+  await store.put("places", {...p, cities: has ? p.cities : [...(p.cities || []), cityRec], folders: has ? folders : [...folders, {id: uid(), name: cityRec.name, city: true, items: []}], firstVisit: !p.firstVisit || (ym && ym < p.firstVisit) ? (ym || p.firstVisit) : p.firstVisit});
+}
+function openGmailImport(){
+  if (!GOOGLE_CLIENT_ID) { modal(`<h2>Import from Gmail</h2><p class="gmnote">Gmail import isn't switched on yet. It needs a Google sign-in key for this site, and once that's added you'll be able to pull in flights from your booking emails here.</p><div class="foot"><button class="btn primary" type="button" data-close>OK</button></div>`); return; }
+  const ov = modal(`<h2>Import from Gmail</h2>
+    <p class="gmnote">Sign in with Google and Travel Vault looks through your inbox for airline bookings and boarding passes. Emails are read on this device only and never saved. You pick what to add.</p>
+    <div class="gmlist" id="gmList" hidden></div>
+    <div class="foot"><span class="err" id="gmErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="button" id="gmGo">Connect Gmail</button></div>`, "gmail");
+  const go = $("#gmGo"), list = $("#gmList"), err = $("#gmErr");
+  go.onclick = async () => {
+    go.disabled = true; err.textContent = ""; list.hidden = false; list.innerHTML = `<p class="gmnote" id="gmStep">Waiting for Google sign-in…</p>`;
+    let found;
+    try { found = await scanGmail(msg => { const s = $("#gmStep"); if (s) s.textContent = msg; }); }
+    catch (e) { go.disabled = false; list.hidden = true; err.textContent = e.message || "Something went wrong."; return; }
+    if (!$("#gmList")) return;
+    const fresh = found.filter(f => !f.dup);
+    if (!found.length) { list.innerHTML = `<p class="gmnote">No flight bookings turned up in your emails.</p>`; go.remove(); return; }
+    list.innerHTML = `<p class="gmnote">Found ${found.length} flight${found.length > 1 ? "s" : ""}${found.length - fresh.length ? `, ${found.length - fresh.length} already in your vault` : ""}. Untick anything that's wrong.</p>`
+      + found.map((f, i) => { const a = AIRPORT[f.from], b = AIRPORT[f.to];
+        return `<label class="gmrow${f.dup ? " dup" : ""}"><input type="checkbox" data-gm="${i}"${f.dup ? " disabled" : " checked"}>
+          <span class="gmmain"><b>${esc(a.city || f.from)} → ${esc(b.city || f.to)}</b> <span class="gmcode">${f.from}–${f.to}</span>
+          <span class="gmsub">${f.date ? fmtDate(f.date) : "Date not found, using " + fmtDate(f.sent)}${f.airline ? " · " + esc(f.airline) : ""}${f.flightNo ? " " + esc(f.flightNo) : ""}${f.dup ? " · already added" : ""}</span>
+          <span class="gmsub gmsubj">${esc(f.subject.slice(0, 90))}</span></span></label>`; }).join("")
+      + `<label class="gmrow gmplaces"><input type="checkbox" id="gmPlaces" checked><span class="gmmain">Also add the destination cities and countries to my places</span></label>`;
+    go.disabled = !fresh.length; go.textContent = "Add selected";
+    go.onclick = async () => {
+      const pick = $$("[data-gm]:checked", list).map(x => found[+x.dataset.gm]), withPlaces = $("#gmPlaces").checked;
+      if (!pick.length) return (err.textContent = "Tick at least one flight.");
+      go.disabled = true;
+      for (const f of pick) { const rec = {id: uid(), from: f.from, to: f.to, date: f.date || f.sent, airline: f.airline, flightNo: (f.flightNo || "").toUpperCase(), seat: f.seat, cabin: f.cabin, pnr: f.pnr, boarding: "", gate: "", color: "", source: "gmail"};
+        await store.put("flights", rec); if (withPlaces) await addDestination(rec); }
+      closeModal(); toast(`Added ${pick.length} flight${pick.length > 1 ? "s" : ""} from Gmail`);
+    };
+  };
 }
 
 window.addEventListener("hashchange", () => { renderAll(); window.scrollTo(0, 0); });
