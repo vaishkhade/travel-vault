@@ -981,13 +981,13 @@ html body button.pass:hover,html body button.pass:focus-visible{filter:var(--dsh
 html body .vcard .content{box-shadow:none}
 /* scroll rows get room on every side so blur and hover glow never hit the scroll edge */
 .sbento .bcard>.hrow{padding:20px 32px 40px 28px;margin:-20px -32px -28px -28px;scroll-padding-inline:28px 32px}
-/* pass shadow drawn by a box-shadow layer behind the ticket, not a filter (Safari clips filters on buttons to their box) */
-:root,:root[data-mode="light"]{--sh-hover:0 2px 6px rgba(29,90,216,.04),0 14px 34px rgba(29,90,216,.09)}
-:root:not([data-mode="light"]){--sh-hover:0 2px 6px rgba(70,110,255,.08),0 14px 34px rgba(70,110,255,.13)}
-html body button.pass,html body button.pass:hover,html body button.pass:focus-visible{filter:none!important}
-button.pass{position:relative;isolation:isolate}
-button.pass::after{content:"";position:absolute;inset:0;border-radius:var(--r,16px);box-shadow:var(--sh-rest);pointer-events:none;z-index:-1;transition:box-shadow .2s ease}
-button.pass:hover::after,button.pass:focus-visible::after{box-shadow:var(--sh-hover)}
+/* pass shadow follows the ticket outline (notches included); hover is a barely-there blue */
+:root,:root[data-mode="light"]{--sh-hover:0 2px 6px rgba(29,90,216,.03),0 14px 34px rgba(29,90,216,.06);
+  --dsh-rest:drop-shadow(0 1px 2px rgba(13,29,66,.05)) drop-shadow(0 8px 20px rgba(13,29,66,.08));--dsh-hover:drop-shadow(0 2px 5px rgba(29,90,216,.04)) drop-shadow(0 12px 26px rgba(29,90,216,.08))}
+:root:not([data-mode="light"]){--sh-hover:0 2px 6px rgba(70,110,255,.06),0 14px 34px rgba(70,110,255,.10);
+  --dsh-hover:drop-shadow(0 2px 5px rgba(0,0,0,.3)) drop-shadow(0 12px 26px rgba(70,110,255,.10))}
+html body button.pass{filter:var(--dsh-rest)!important}
+html body button.pass:hover,html body button.pass:focus-visible{filter:var(--dsh-hover)!important}
 .ffolders.four .ffolder .back .sheet{top:-28px}
 .ffolders.four .ffolder .docs{top:-8px}
 .ffolders.four .ffolder:hover .docs,.ffolders.four .ffolder:focus-visible .docs{transform:translate(-2px,-12px) rotate(-8.16deg)}
