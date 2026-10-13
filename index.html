@@ -1617,7 +1617,7 @@ function julianNear(doy){ // BCBP dates carry only the day of the year: pick the
 }
 function parseBCBP(s){
   s = String(s || "").replace(/^\]\w\d/, "");
-  const i = s.indexOf("M"); if (i < 0) return null; s = s.slice(i);
+  const i = s.search(/M[1-4]/); if (i < 0) return null; s = s.slice(i);
   if (!/^M[1-4]/.test(s) || s.length < 58) return null;
   const leg = s.slice(23), t = x => x.trim();
   const from = t(leg.slice(7, 10)), to = t(leg.slice(10, 13)), carrier = t(leg.slice(13, 16)), num = t(leg.slice(16, 21)).replace(/^0+(?=\d)/, "");
@@ -1628,6 +1628,15 @@ function parseBCBP(s){
     cabin: CABIN_OF(leg[24] || "Y"), seat: /^\d{1,3}[A-Z]$/.test(seat) ? seat : "", pnr: t(leg.slice(0, 7)),
     passenger: name.length ? [name[1], name[0]].filter(Boolean).join(" ").toLowerCase().replace(/(^|[\s-])\S/g, c => c.toUpperCase()) : "", legs: +s[1] || 1};
 }
+const MAIN_AIRPORT = {London: "LHR", "New York": "JFK", Paris: "CDG", Tokyo: "HND", Milan: "MXP", Rome: "FCO", Moscow: "SVO", Istanbul: "IST", Dubai: "DXB", Bangkok: "BKK", Seoul: "ICN", Shanghai: "PVG", Beijing: "PEK", Chicago: "ORD", Washington: "IAD", Stockholm: "ARN", "São Paulo": "GRU", "Buenos Aires": "EZE", Osaka: "KIX", Jakarta: "CGK", "Kuala Lumpur": "KUL", Toronto: "YYZ", Montreal: "YUL", Houston: "IAH", Berlin: "BER", Oslo: "OSL", Mumbai: "BOM", Delhi: "DEL", "New Delhi": "DEL"};
+let cityAirports = null;
+function CITY_AIRPORTS(){ // city name -> its airport, only when the city has one airport or a well-known main one
+  if (cityAirports) return cityAirports;
+  const by = {}; for (const a of Object.values(AIRPORT)) if (a.city && a.city.length > 3) (by[a.city] = by[a.city] || []).push(a.iata);
+  cityAirports = {}; for (const [c, l] of Object.entries(by)) if (MAIN_AIRPORT[c] || l.length === 1) cityAirports[c] = MAIN_AIRPORT[c] || l[0];
+  for (const [c, i] of Object.entries(MAIN_AIRPORT)) if (AIRPORT[i]) cityAirports[c] = i;
+  return cityAirports;
+}
 const MON_NUM = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
 function parsePassText(txt){ // best-effort read of a PDF's text when it has no readable barcode
   const T = txt.replace(/\s+/g, " "), out = {};
@@ -1635,12 +1644,19 @@ function parsePassText(txt){ // best-effort read of a PDF's text when it has no 
   if (pair && AIRPORT[pair[1]] && AIRPORT[pair[2]]) { out.from = pair[1]; out.to = pair[2]; }
   const codes = [...T.matchAll(/\b([A-Z]{3})\b/g)].map(m => m[1]).filter(c => AIRPORT[c]);
   const uniq = [...new Set(codes)]; if (!out.from && uniq.length >= 2) { out.from = uniq[0]; out.to = uniq[1]; }
+  if (!out.from) { // fall back to city names, e.g. "Mumbai … Abu Dhabi"
+    const hits = [];
+    for (const [city, iatas] of Object.entries(CITY_AIRPORTS())) { const i = T.search(new RegExp("\\b" + city.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i")); if (i >= 0) hits.push([i, iatas]); }
+    hits.sort((a, b) => a[0] - b[0]); const picks = [...new Set(hits.map(h => h[1]))];
+    if (picks.length >= 2) { out.from = picks[0]; out.to = picks[1]; }
+  }
   for (const m of T.matchAll(/\b([A-Z0-9]{2})\s?-?(\d{1,4})\b/g)) if (AIRLINE_NAMES[m[1]] && /[A-Z]/.test(m[1])) { out.flightNo = `${m[1]} ${+m[2]}`; out.airline = AIRLINE_NAMES[m[1]]; break; }
   let m = T.match(/\b(\d{1,2})[\s\-\/]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)[a-z]*[\s\-\/,]*(\d{2,4})\b/i);
   if (m) { const y = m[3].length === 2 ? 2000 + +m[3] : +m[3]; out.date = iso(new Date(y, MON_NUM[m[2].toLowerCase()] - 1, +m[1])); }
   else if ((m = T.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)[a-z]*\.? (\d{1,2}),? (\d{4})\b/i))) out.date = iso(new Date(+m[3], MON_NUM[m[1].toLowerCase()] - 1, +m[2]));
   else if ((m = T.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/))) out.date = `${m[1]}-${m[2]}-${m[3]}`;
   if ((m = T.match(/\bSeat(?: No\.?| number)?\s*:?\s*(\d{1,2}[A-K])\b/i))) out.seat = m[1].toUpperCase();
+  else if (/\bSeat\b/i.test(T) && (m = T.match(/\b([1-9]\d?[A-K])\b/))) out.seat = m[1];
   if ((m = T.match(/\b(?:PNR|Booking (?:ref(?:erence)?|code)|Confirmation(?: code| number)?|Record locator)\s*(?:No\.?)?\s*:?\s*([A-Z0-9]{5,8})\b/i))) out.pnr = m[1].toUpperCase();
   if ((m = T.match(/\bGate\s*:?\s*([A-Z]?\d{1,3}[A-Z]?)\b/i))) out.gate = m[1].toUpperCase();
   if ((m = T.match(/\bBoarding(?: time)?\s*:?\s*(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i))) { let h = +m[1]; if (m[3]) h = (h % 12) + (/pm/i.test(m[3]) ? 12 : 0); out.boarding = `${String(h).padStart(2, "0")}:${m[2]}`; }
@@ -1653,6 +1669,18 @@ function loadLib(src, global){
   return libLoads[src] = libLoads[src] || new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = () => window[global] ? res(window[global]) : rej(new Error(global)); el.onerror = rej; document.head.appendChild(el); });
 }
 const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+const TESS = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/";
+async function ocrImage(cv){ // free, in-browser OCR for passes and booking screenshots that have no barcode
+  const T = await loadLib(TESS + "tesseract.min.js", "Tesseract");
+  const w = await T.createWorker("eng", 1, {workerPath: TESS + "worker.min.js", corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1", langPath: "https://cdn.jsdelivr.net/npm/@tesseract.js-data/eng@1.0.0/4.0.0_best_int"});
+  try {
+    const big = Math.max(cv.width, cv.height), at = f => { const c = document.createElement("canvas"); c.width = Math.round(cv.width * f); c.height = Math.round(cv.height * f);
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(cv, 0, 0, c.width, c.height); return c; };
+    let tx = (await w.recognize(at(big < 1400 ? 2 : 1))).data.text || "";
+    if (big > 1000) tx += "\n" + ((await w.recognize(at(800 / big))).data.text || ""); // large headline text (like airport codes) reads better shrunk
+    return tx;
+  } finally { w.terminate(); }
+}
 const ZXING = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
 async function decodeCanvas(cv){
   if ("BarcodeDetector" in window) {
@@ -1669,14 +1697,15 @@ async function decodeCanvas(cv){
   for (const f of [Math.min(1, 1800 / big), Math.min(1, 1100 / big), Math.min(2, 2400 / big)]) for (const rot of [false, true]) {
     const txt = tryOne(scaled(cv, f, rot)); if (txt) return txt;
   }
-  return null;
+  const inv = scaled(cv, Math.min(1, 1800 / big), false), g = inv.getContext("2d"); g.globalCompositeOperation = "difference"; g.fillStyle = "#fff"; g.fillRect(0, 0, inv.width, inv.height);
+  return tryOne(inv); // white-on-dark codes from dark-mode screenshots
 }
 function imageCanvas(file){
   return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
     im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0); URL.revokeObjectURL(u); res(c); };
     im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("image")); }; im.src = u; });
 }
-async function readBoardingPass(file){
+async function readBoardingPass(file, onStep){
   let raw = null, text = "";
   if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
     const lib = await loadLib(PDFJS + "pdf.min.js", "pdfjsLib");
@@ -1689,7 +1718,10 @@ async function readBoardingPass(file){
       await page.render({canvasContext: c.getContext("2d"), viewport: vp}).promise;
       raw = await decodeCanvas(c);
     }
-  } else if ((file.type || "").startsWith("image/")) raw = await decodeCanvas(await imageCanvas(file));
+  } else if ((file.type || "").startsWith("image/")) {
+    const cv = await imageCanvas(file); raw = await decodeCanvas(cv);
+    if (!raw) { if (onStep) onStep("No barcode found, reading the text on it…"); try { text = await ocrImage(cv); } catch (e) {} }
+  }
   const fromCode = raw ? parseBCBP(raw) : null, fromText = text ? parsePassText(text) : {};
   const out = {...fromText, ...(fromCode || {})};
   for (const k of ["gate", "boarding"]) if (fromText[k]) out[k] = fromText[k]; // only printed on the pass, never in the barcode
@@ -1725,7 +1757,7 @@ function openFlightForm(existing, toCc){
   $("#fScan").addEventListener("change", async () => {
     const file = $("#fScan").files[0], note = $("#fScanNote"); if (!file) return;
     note.className = "note"; note.textContent = "Reading your boarding pass…";
-    let r; try { r = await readBoardingPass(file); } catch (err) { r = {data: {}, source: null}; }
+    let r; try { r = await readBoardingPass(file, msg => { if ($("#fScan").files[0] === file) note.textContent = msg; }); } catch (err) { r = {data: {}, source: null}; }
     if ($("#fScan").files[0] !== file) return;
     const d = r.data, set = (sel, v) => { const el = $(sel); if (!el || !v) return 0; el.value = v; el.classList.remove("filled"); void el.offsetWidth; el.classList.add("filled"); return 1; };
     const n = set("#fFrom", d.from) + set("#fTo", d.to) + set("#fDate", d.date) + set("#fAirline", d.airline) + set("#fNo", d.flightNo) + set("#fSeat", d.seat)
