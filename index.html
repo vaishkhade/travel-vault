@@ -946,6 +946,11 @@ button.pass:hover,:root[data-mode="light"] button.pass:hover{filter:drop-shadow(
 @media (max-width:719px){.foot-bar,.foot-bar:is(*){margin:64px -8px -8px}.foot-bar .footin{padding:24px 16px}}
 .foot-bar .footin{grid-template-columns:1fr auto;min-height:100px}
 @media (max-width:719px){.foot-bar .footin{grid-template-columns:1fr;align-content:center;min-height:120px}}
+/* footer pinned to the bottom of the viewport; the page leaves room for it */
+.foot-bar,.foot-bar:is(*){position:fixed;left:0;right:0;bottom:0;z-index:28;margin:0;padding-bottom:env(safe-area-inset-bottom,0px)}
+body{padding-bottom:calc(100px + 48px + env(safe-area-inset-bottom,0px))}
+.toast{bottom:calc(120px + env(safe-area-inset-bottom,0px))}
+@media (max-width:719px){body{padding-bottom:calc(120px + 32px + env(safe-area-inset-bottom,0px))}.toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
