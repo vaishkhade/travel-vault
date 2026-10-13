@@ -609,6 +609,11 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 :root[data-mode="light"] #worldMap .arc{opacity:.85}
 #worldMap .archit{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke}
 #worldMap .pin{cursor:pointer}
+#worldMap .archit{cursor:pointer}
+#worldMap .snap{cursor:zoom-in}
+#worldMap .snap .card{fill:#fff;stroke:rgba(0,0,0,.08);stroke-width:.4}
+#worldMap .snap .ph{fill:#e9ecf2}
+#worldMap .snap .clip{fill:url(#tvSteel);stroke:#7d8592;stroke-width:.4}
 #worldMap .pin .head{stroke:rgba(0,0,0,.22);stroke-width:.5}
 #worldMap .pin.flag .head{fill:#fff;stroke:#d8dce4;stroke-width:1.2}
 #worldMap .pin .needle{stroke:url(#tvSteel);stroke-width:1.3;stroke-linecap:round}
@@ -734,6 +739,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .pvmeta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.pvmeta .note{flex:1;min-width:0}
 .pvcountry{font-size:13px;font-weight:500;color:var(--primary);text-decoration:none;white-space:nowrap}.pvcountry:hover{text-decoration:underline}
 .pvcolor{display:flex;align-items:center;gap:12px;margin-top:12px}
+.pvphoto{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
+.pvphoto .thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--surface-sunken);border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:zoom-in;padding:0}
+.pvphoto .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:3px}
 
 /* one-row sideways scroll in every country card, View more opens the full section */
 .hacts{display:flex;align-items:center;gap:8px;margin-left:auto}
@@ -1046,7 +1054,7 @@ async function runImport(){
       await fix(p.photos); await fix(p.files); for (const fo of p.folders || []) await fix(fo.items);
       await sbStore.put("places", p);
     }
-    for (const f of prev.flights) { if (f.scan && f.scan.src) f.scan.src = await copyFile(f.scan.src); await sbStore.put("flights", f); }
+    for (const f of prev.flights) { if (f.scan && f.scan.src) f.scan.src = await copyFile(f.scan.src); if (f.photo && f.photo.src) f.photo.src = await copyFile(f.photo.src); await sbStore.put("flights", f); }
     setLocalFlag("imported-" + sbUser.id);
     await sbLoad(); renderAll(); toast(`Copied ${plural(prev.places.length, "country", "countries")} and ${plural(prev.flights.length, "flight", "flights")}`);
   } catch (e) { sbFail(e, "finish copying"); }
@@ -1449,7 +1457,7 @@ function drawWorld(){
     g.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule().extentMajor([[-180, -80], [180, 85]]).step([20, 20])()));
     g.append("g").selectAll("text").data(OCEANS).join("text").attr("class", "ocean").attr("font-size", 20)
       .attr("x", d => proj([d[1], d[2]])[0]).attr("y", d => proj([d[1], d[2]])[1]).text(d => d[0]);
-    const gc = g.append("g"), gs = g.append("g").attr("class", "vshadow"), gv = g.append("g"), ga = g.append("g"), gp = g.append("g");
+    const gc = g.append("g"), gs = g.append("g").attr("class", "vshadow"), gv = g.append("g"), ga = g.append("g"), gq = g.append("g"), gp = g.append("g");
     gc.selectAll("path").data(WORLD.filter(d => +d.id !== 10)).join("path").attr("class", "country").attr("d", path);
     const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
     const zoom = d3.zoom().scaleExtent([1, 12]).translateExtent([[0, 0], [W, H]]).on("zoom", e => { g.attr("transform", e.transform); sizePins(); });
@@ -1463,22 +1471,25 @@ function drawWorld(){
     });
     const show = (e, text) => { const r = box.getBoundingClientRect(); tip.textContent = text; tip.hidden = false; tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; };
     svg.on("pointermove", e => {
-      const t = e.target, pin = t.closest(".pin");
+      const t = e.target, pin = t.closest(".pin"), snap = t.closest(".snap");
       if (pin) show(e, pin.dataset.label);
+      else if (snap) show(e, snap.dataset.label);
       else if (t.classList.contains("country")) { const cc = BY_NUM[t.__data__.id]; const c = COUNTRY[cc]; if (!c) return (tip.hidden = true); show(e, state.places[cc] ? `${c.flag} ${c.name} · ${(state.places[cc].cities || []).length} cities` : c.name); }
       else if (t.classList.contains("archit")) show(e, t.dataset.label);
       else tip.hidden = true;
     }).on("pointerleave", () => tip.hidden = true)
       .on("click", e => {
-        const t = e.target, pin = t.closest(".pin"); let cc = null;
+        const t = e.target, pin = t.closest(".pin"), snap = t.closest(".snap"); let cc = null;
+        if (snap) { const f = state.flights[snap.dataset.flight]; if (f && f.photo) openOriginal(f.photo, `${f.from} → ${f.to}`); return; }
+        if (t.classList.contains("archit")) { const f = state.flights[t.dataset.flight]; if (f) openPassView(f); return; }
         if (pin) cc = pin.dataset.cc;
         else if (t.classList.contains("country")) cc = BY_NUM[t.__data__.id];
         if (cc && state.places[cc]) location.hash = "place-" + cc;
       });
     addEventListener("resize", () => sizePins());
-    world = {svg, proj, path, gc, gs, gv, ga, gp};
+    world = {svg, proj, path, gc, gs, gv, ga, gq, gp};
   }
-  const {proj, path, gc, gs, gv, ga, gp} = world;
+  const {proj, path, gc, gs, gv, ga, gq, gp} = world;
   const region = d => "country r-" + ((COUNTRY[BY_NUM[d.id]] || {}).region || "x");
   gc.selectAll("path").attr("class", region);
   const vis = WORLD.filter(d => +d.id !== 10 && state.places[BY_NUM[d.id]]);
@@ -1486,14 +1497,27 @@ function drawWorld(){
   gv.selectAll("path").data(vis, d => d.id).join("path").attr("class", d => region(d) + " visited").attr("d", path);
   /* Flights hang between their airports as slack thread, sagging a little under their own weight */
   const fs = flights().filter(f => AIRPORT[f.from] && AIRPORT[f.to]);
-  const thread = f => {
-    const [x1, y1] = proj([AIRPORT[f.from].lng, AIRPORT[f.from].lat]), [x2, y2] = proj([AIRPORT[f.to].lng, AIRPORT[f.to].lat]);
-    const d = Math.hypot(x2 - x1, y2 - y1), sag = Math.min(60, 6 + d * .16);
-    return `M${x1},${y1}Q${(x1 + x2) / 2},${(y1 + y2) / 2 + sag} ${x2},${y2}`;
-  };
+  const ends = f => { const [x1, y1] = proj([AIRPORT[f.from].lng, AIRPORT[f.from].lat]), [x2, y2] = proj([AIRPORT[f.to].lng, AIRPORT[f.to].lat]); return [x1, y1, x2, y2, Math.min(60, 6 + Math.hypot(x2 - x1, y2 - y1) * .16)]; };
+  const thread = f => { const [x1, y1, x2, y2, sag] = ends(f); return `M${x1},${y1}Q${(x1 + x2) / 2},${(y1 + y2) / 2 + sag} ${x2},${y2}`; };
   const label = f => `${f.from} → ${f.to} · ${fmtDate(f.date)}`;
   ga.selectAll("path.arc").data(fs, f => f.id).join("path").attr("class", "arc").attr("d", thread);
-  ga.selectAll("path.archit").data(fs, f => f.id).join("path").attr("class", "archit").attr("d", thread).attr("data-label", label);
+  ga.selectAll("path.archit").data(fs, f => f.id).join("path").attr("class", "archit").attr("d", thread).attr("data-label", f => label(f) + (f.photo ? "" : " · click to add a photo")).attr("data-flight", f => f.id);
+  /* A flight's photo hangs from the middle of its thread like a clipped polaroid; flights sharing a route share one spot, so only the latest shows */
+  const seen = new Set(), snaps = fs.filter(f => f.photo).sort((a, b) => (b.date || "").localeCompare(a.date || "")).filter(f => { const k = [f.from, f.to].sort().join(); return !seen.has(k) && seen.add(k); });
+  gq.selectAll("g.snap").data(snaps, f => f.id).join(enter => {
+    const n = enter.append("g").attr("class", "snap");
+    n.append("rect").attr("class", "cast").attr("x", -15).attr("y", 5).attr("width", 32).attr("height", 38).attr("fill", "#000").attr("opacity", .18).attr("filter", "url(#tvBlur)");
+    const c = n.append("g").attr("class", "tilt");
+    c.append("rect").attr("class", "card").attr("x", -16).attr("y", 3).attr("width", 32).attr("height", 38).attr("rx", 1.2);
+    c.append("rect").attr("class", "ph").attr("x", -13).attr("y", 6).attr("width", 26).attr("height", 26);
+    c.append("image").attr("x", -13).attr("y", 6).attr("width", 26).attr("height", 26).attr("preserveAspectRatio", "xMidYMid slice");
+    n.append("rect").attr("class", "clip").attr("x", -4).attr("y", -1.5).attr("width", 8).attr("height", 7).attr("rx", 1.2);
+    return n;
+  }).attr("data-flight", f => f.id).attr("data-label", f => `${label(f)} · open photo`)
+    .each(function(f, i){
+      const [x1, y1, x2, y2, sag] = ends(f); this.dataset.x = (x1 + x2) / 2; this.dataset.y = (y1 + y2) / 2 + sag / 2;
+      const n = d3.select(this); n.select(".tilt").attr("transform", `rotate(${i % 2 ? 6 : -5})`); n.select("image").attr("href", srcUrl(f.photo.src) || null);
+    });
   /* One flag pin per visited country, a small coloured push pin per city */
   const pins = [];
   places().forEach((p, i) => {
@@ -1538,6 +1562,7 @@ function sizePins(){
   const k = d3.zoomTransform(world.svg.node()).k, w = world.svg.node().clientWidth || 960;
   const s = Math.min(2, Math.max(1, 640 / w)) / k;
   world.gs.selectAll("g").attr("transform", function(){ const o = +this.dataset.o; return `translate(${o * .5 / k},${o * 1.1 / k})`; });
+  world.gq.selectAll("g.snap").attr("transform", function(){ return `translate(${this.dataset.x},${this.dataset.y}) scale(${s})`; });
   world.gp.selectAll("g.pin").attr("transform", function(){ return `translate(${this.dataset.x},${this.dataset.y}) scale(${s})`; });
 }
 
@@ -2301,6 +2326,7 @@ function openPassView(f, retry){
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
     <div class="pvcolor"><span class="note">Colour</span>${passPaletteHTML(f.color)}</div>
+    <div class="pvphoto" id="pvPhoto"></div><input type="file" accept="image/*" id="pvPhotoPick" hidden>
     <div class="pvmeta"><span class="note">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</span>${(() => { const cc = b && b.cc; return cc && state.places[cc] && !(route === "place" && routeArg === cc) ? `<a class="pvcountry" href="#place-${esc(cc)}" data-close>${COUNTRY[cc].flag} ${esc(COUNTRY[cc].name)} →</a>` : ""; })()}</div>
     <div class="foot" id="pvFoot"></div>`, "passview");
   const foot = () => {
@@ -2309,6 +2335,28 @@ function openPassView(f, retry){
       : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button>${f.scan ? `<button class="btn small ghost" type="button" id="pvOrig">View original</button>` : ""}<button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
   };
   passConfirm = false; foot();
+  /* one photo per flight, shown on the map where its thread hangs */
+  const photoRow = () => {
+    const u = f.photo ? srcUrl(f.photo.src) : "";
+    $("#pvPhoto", ov).innerHTML = `<span class="note">Map photo</span>${f.photo ? `<button type="button" class="thumb" id="pvPhotoOpen" aria-label="Open photo">${u ? `<img src="${esc(u)}" alt="">` : ""}</button><button class="btn small ghost" type="button" id="pvPhotoAdd">Change</button><button class="btn small ghost" type="button" id="pvPhotoDel">Remove</button>` : `<button class="btn small" type="button" id="pvPhotoAdd">Add photo</button><span class="note">It hangs on this flight's thread on the map</span>`}`;
+  };
+  photoRow();
+  $("#pvPhoto", ov).addEventListener("click", async e => {
+    const id = e.target.closest("button") && e.target.closest("button").id;
+    if (id === "pvPhotoAdd") $("#pvPhotoPick", ov).click();
+    if (id === "pvPhotoOpen") openOriginal(f.photo, `${f.from} → ${f.to}`);
+    if (id === "pvPhotoDel") { const old = f.photo; f = {...f}; delete f.photo; await store.put("flights", f); store.dropFile(old.src); photoRow(); toast("Photo removed"); }
+  });
+  $("#pvPhotoPick", ov).addEventListener("change", async e => {
+    const file = e.target.files[0]; e.target.value = ""; if (!file || !file.type.startsWith("image/")) return;
+    toast("Uploading photo…");
+    try {
+      const src = await store.saveFile(file), old = f.photo;
+      f = {...f, photo: {name: file.name, type: file.type, size: file.size, src}}; await store.put("flights", f);
+      if (old) store.dropFile(old.src);
+      photoRow(); toast("Photo added to the map");
+    } catch (err) { toast("Couldn't upload that photo. Try a JPG or PNG under 20 MB."); }
+  });
   $(".pvcolor", ov).addEventListener("click", async e => {
     const sw = e.target.closest("[data-pcolor]"); if (!sw) return;
     f = {...f, color: sw.dataset.pcolor}; await store.put("flights", f);
@@ -2318,7 +2366,7 @@ function openPassView(f, retry){
     const id = e.target.id;
     if (id === "pvDel") { passConfirm = true; foot(); }
     if (id === "pvDelNo") { passConfirm = false; foot(); }
-    if (id === "pvDelYes") { if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
+    if (id === "pvDelYes") { if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); if (f.photo) store.dropFile(f.photo.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
     if (id === "pvEdit") openFlightForm(f);
     if (id === "pvOrig") openOriginal(f.scan);
   });
@@ -2328,12 +2376,13 @@ document.addEventListener("click", e => {
   e.preventDefault(); for (const b of sw.parentNode.children) b.setAttribute("aria-pressed", b === sw);
 });
 /* the uploaded boarding pass stays hidden until asked for */
-function openOriginal(scan, tries = 0){
+function openOriginal(scan, title, tries = 0){
+  if (typeof title === "number") { tries = title; title = ""; }
   const u = srcUrl(scan.src);
-  if (!u) { if (tries < 10) setTimeout(() => openOriginal(scan, tries + 1), 300); else toast("Couldn't open the original right now"); return; } // the file link is fetched on first use
+  if (!u) { if (tries < 10) setTimeout(() => openOriginal(scan, title, tries + 1), 300); else toast("Couldn't open the original right now"); return; } // the file link is fetched on first use
   if (!(scan.type || "").startsWith("image/")) { window.open(u, "_blank", "noopener"); return; }
-  const ov = document.createElement("div"); ov.className = "origview"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Original boarding pass");
-  ov.innerHTML = `<div class="origbox"><div class="orighead"><b>Original boarding pass</b><a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">Open in new tab</a><button class="btn small" type="button" data-origclose>Close</button></div><img src="${esc(u)}" alt="Original boarding pass ${esc(scan.name || "")}"></div>`;
+  const ov = document.createElement("div"); ov.className = "origview"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", title || "Original boarding pass");
+  ov.innerHTML = `<div class="origbox"><div class="orighead"><b>${esc(title || "Original boarding pass")}</b><a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">Open in new tab</a><button class="btn small" type="button" data-origclose>Close</button></div><img src="${esc(u)}" alt="${esc(title || "Original boarding pass")} ${esc(scan.name || "")}"></div>`;
   const close = () => { ov.remove(); document.removeEventListener("keydown", esc_, true); };
   const esc_ = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
   ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-origclose]")) close(); });
