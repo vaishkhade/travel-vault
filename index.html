@@ -513,18 +513,16 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sbento .bcard{grid-column:span 12;margin:0}
 .sbento .s-photos{grid-column:span 7;order:3}.sbento .s-notes{grid-column:span 5;order:4}.sbento .s-files{order:5}
 @media (max-width:860px){.sbento .s-photos,.sbento .s-notes{grid-column:span 12}}
-.bcard{position:relative;background:var(--bc);border:0;border-radius:20px;padding:24px;min-width:0;color:#151a2d}
-.bcard .section-head{margin-top:0;padding-right:28px}
-.bcard h2{display:flex;align-items:center;gap:8px;color:#151a2d}
-.bcard .section-head .note,.bcard .empty p{color:#454c63}
-.bcard .empty{background:rgba(255,255,255,.55);border-color:rgba(21,26,45,.18)}
-.bcard .drop{background:rgba(255,255,255,.55);border-color:rgba(21,26,45,.22);color:#151a2d}
-.bcard .files{background:rgba(255,255,255,.6);border-color:transparent;box-shadow:none;color:#151a2d}.bcard .files .note{color:#454c63}
-.bcard.notes textarea{background:rgba(255,255,255,.7);border-color:transparent;color:#151a2d}
-.bpick{position:absolute;right:16px;top:16px;z-index:3;width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,.85);background:var(--bc);box-shadow:0 0 0 1px rgba(21,26,45,.18);cursor:pointer;padding:0;opacity:0;transition:opacity .2s ease}
-.bcard:hover>.bpick,.bcard:focus-within>.bpick,.bcard.open>.bpick{opacity:1}
-@media (hover:none){.bpick{opacity:1}}
-.bpal{left:auto;right:8px;top:46px}
+.bcard{position:relative;background:var(--card-grey);border:0;border-radius:20px;padding:24px;min-width:0}
+.bcard .section-head{margin-top:0}
+.bcard h2{display:flex;align-items:center;gap:8px}
+.bcard .empty,.bcard .drop{background:var(--paper)}
+.bcard .files{border-color:transparent;box-shadow:none}
+.bcard.notes textarea{border-color:transparent}
+.hero-card,.hero .mini-map{background:var(--card-grey);border:0;box-shadow:none}
+:root{--card-grey:#F5F6F8}
+:root:not([data-mode="light"]){--card-grey:#111114}
+:root[data-mode="light"]{--card-grey:#F5F6F8}
 .top .wrap{max-width:none;padding-inline:24px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
@@ -1000,13 +998,9 @@ const BICON = {globe: bi("M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM5.6 2.9A5.5 5.5 0 0
   plane: bi("M15.5 9.5L9.2 5.8V1.9a1.2 1.2 0 0 0-2.4 0v3.9L.5 9.5v1.6l6.3-1.9v3.5l-1.9 1.3v1.3L8 14.5l3.1.8V14l-1.9-1.3V9.2l6.3 1.9z")};
 function bentoOpen(cc, p, id, extra){
   const key = cc + "~" + id, color = ((p.bento || {})[id]) || BDEFAULT[id];
-  return `<section class="bcard block s-${id}${extra ? " " + extra : ""}${openPal === key ? " open" : ""}" style="--bc:${color}"><button type="button" class="bpick" data-fcolor="${esc(key)}" aria-label="Change card colour" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color, "bpal", BCOLORS) : ""}`;
+  return `<section class="bcard block s-${id}${extra ? " " + extra : ""}">`;
 }
 function bentoClose(){ return `</section>`; }
-function bentoCard(cc, p, id, inner){
-  const key = cc + "~" + id, color = ((p.bento || {})[id]) || BDEFAULT[id];
-  return `<div class="bcard b-${id}${openPal === key ? " open" : ""}" style="--bc:${color}">${inner}<button type="button" class="bpick" data-fcolor="${esc(key)}" aria-label="Change card colour" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color, "bpal", BCOLORS) : ""}</div>`;
-}
 function folderHTML({href, label, month, code, meta, title, pics, key, color}){
   const [y, mo] = (month || "").split("-");
   const pick = key ? `<button type="button" class="fcolor" data-fcolor="${esc(key)}" aria-label="Change colour of ${esc(title)}" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color) : ""}` : "";
