@@ -981,6 +981,13 @@ html body button.pass:hover,html body button.pass:focus-visible{filter:var(--dsh
 html body .vcard .content{box-shadow:none}
 /* scroll rows get room on every side so blur and hover glow never hit the scroll edge */
 .sbento .bcard>.hrow{padding:20px 32px 40px 28px;margin:-20px -32px -28px -28px;scroll-padding-inline:28px 32px}
+/* pass shadow drawn by a box-shadow layer behind the ticket, not a filter (Safari clips filters on buttons to their box) */
+:root,:root[data-mode="light"]{--sh-hover:0 2px 6px rgba(29,90,216,.04),0 14px 34px rgba(29,90,216,.09)}
+:root:not([data-mode="light"]){--sh-hover:0 2px 6px rgba(70,110,255,.08),0 14px 34px rgba(70,110,255,.13)}
+html body button.pass,html body button.pass:hover,html body button.pass:focus-visible{filter:none!important}
+button.pass{position:relative;isolation:isolate}
+button.pass::after{content:"";position:absolute;inset:0;border-radius:var(--r,16px);box-shadow:var(--sh-rest);pointer-events:none;z-index:-1;transition:box-shadow .2s ease}
+button.pass:hover::after,button.pass:focus-visible::after{box-shadow:var(--sh-hover)}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
