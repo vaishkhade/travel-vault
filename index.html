@@ -499,6 +499,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 [data-eadd]::before,#flightHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.sortwrap .addmenu{min-width:180px}
+.sortwrap .addmenu [aria-checked=true]{color:var(--primary);font-weight:500}
+.sortwrap .addmenu [aria-checked=true]::after{content:"";margin-left:auto;width:14px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
@@ -545,7 +548,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
       <div class="toolrow">
         <div class="seg" role="group" aria-label="Show"><button type="button" data-pmode="countries" aria-pressed="true">Countries</button><button type="button" data-pmode="cities" aria-pressed="false">Cities</button></div>
         <input type="search" id="placeSearch" class="grow" placeholder="Search countries or cities" aria-label="Search countries or cities">
-        <label class="select"><select id="placeSort" aria-label="Sort places"></select></label>
+        <div class="addwrap select sortwrap"><button class="btn" type="button" data-addtoggle data-sortfor="placeSort" aria-haspopup="menu" aria-expanded="false"><span class="sv"></span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden></div><select id="placeSort" hidden tabindex="-1" aria-label="Sort places"></select></div>
       </div>
       <div class="chips" id="regionChips"></div>
     </div>
@@ -557,7 +560,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
     <div class="toolbar">
       <div class="toolrow">
         <input type="search" id="passSearch" class="grow" placeholder="Search airports, cities or airlines" aria-label="Search flights">
-        <label class="select"><select id="passSort" aria-label="Sort flights"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="far">Longest flight</option><option value="airline">Airline A–Z</option></select></label>
+        <div class="addwrap select sortwrap"><button class="btn" type="button" data-addtoggle data-sortfor="passSort" aria-haspopup="menu" aria-expanded="false"><span class="sv"></span><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden></div><select id="passSort" hidden tabindex="-1" aria-label="Sort flights"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="far">Longest flight</option><option value="airline">Airline A–Z</option></select></div>
       </div>
       <div class="chips" id="cabinChips"></div>
     </div>
@@ -1251,7 +1254,7 @@ function renderPlaces(){
   $("#regionChips").innerHTML = regions.map(r => `<button type="button" class="chip" data-region="${esc(r)}" aria-pressed="${r === regionFilter}">${esc(r)}</button>`).join("");
   $$("[data-pmode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.pmode === placeMode));
   const sel = $("#placeSort"), opts = SORTS[placeMode];
-  if (sel.dataset.mode !== placeMode) { sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(""); sel.dataset.mode = placeMode; }
+  if (sel.dataset.mode !== placeMode) { sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(""); sel.dataset.mode = placeMode; syncSorts(); }
   const sort = sel.value;
   const inRegion = p => regionFilter === "All" || COUNTRY[p.id].region === regionFilter;
   const cityTotal = allCities().length;
@@ -1565,6 +1568,17 @@ function cityRecord(cc, name){
 function newPlace(cc){ return {id: cc, cities: [], photos: [], files: [], notes: "", firstVisit: "", createdAt: new Date().toISOString()}; }
 
 /* Add dropdowns (header and Places) */
+
+/* Sort dropdowns: same button + menu as Add, backed by the hidden native select */
+function syncSorts(){ $$("[data-sortfor]").forEach(b => { const sel = $("#" + b.dataset.sortfor), o = sel.options[sel.selectedIndex]; b.querySelector(".sv").textContent = o ? o.textContent : ""; }); }
+document.addEventListener("click", e => {
+  const tg = e.target.closest("[data-sortfor]");
+  if (tg) { const sel = $("#" + tg.dataset.sortfor);
+    tg.nextElementSibling.innerHTML = [...sel.options].map(o => `<button type="button" role="menuitemradio" aria-checked="${o.value === sel.value}" data-sortval="${esc(o.value)}">${esc(o.textContent)}</button>`).join(""); return; }
+  const it = e.target.closest("[data-sortval]");
+  if (it) { const sel = it.closest(".sortwrap").querySelector("select"); sel.value = it.dataset.sortval; syncSorts(); sel.dispatchEvent(new Event("change")); }
+}, true);
+syncSorts();
 const closeAdds = except => $$(".addwrap").forEach(w => { if (w === except) return; const m = w.querySelector(".addmenu"); if (m && !m.hidden) { m.hidden = true; w.querySelector("[data-addtoggle]").setAttribute("aria-expanded", "false"); } });
 document.addEventListener("click", e => {
   const tg = e.target.closest("[data-addtoggle]"), item = e.target.closest(".addmenu [data-add]");
