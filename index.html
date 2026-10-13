@@ -922,6 +922,11 @@ button.pass:hover{filter:drop-shadow(0 2px 4px rgba(13,29,66,.06)) drop-shadow(0
 :root[data-mode="light"] .pass .main,:root[data-mode="light"] .pass .stub{background:rgba(255,255,255,.9)}
 button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rgba(13,29,66,.06)) drop-shadow(0 8px 20px rgba(13,29,66,.11))}
 button.pass:hover,:root[data-mode="light"] button.pass:hover{filter:drop-shadow(0 2px 4px rgba(13,29,66,.07)) drop-shadow(0 12px 26px rgba(13,29,66,.15))}
+/* empty states fill the whole section and lift softly like the cards */
+.ffolders:has(>.empty),.passes:has(>.empty){display:block;padding-top:0}
+#recentPlaces.ffolders:has(>.empty){padding-top:0}
+.empty,:root[data-mode="light"] .empty{border:0!important;box-shadow:var(--softsh);width:100%;box-sizing:border-box}
+:root[data-mode="light"] .empty{background:rgba(255,255,255,.9)}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
