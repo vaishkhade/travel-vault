@@ -812,6 +812,15 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 4px 12p
 @media (max-width:420px){.sectpage .passes{grid-template-columns:minmax(0,1fr)}}
 .sectpage .photos{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
+/* no borders on cards: very light, soft shadows instead */
+:root{--soft:0 1px 2px rgba(13,29,66,.04),0 6px 20px rgba(13,29,66,.06)}
+:root:not([data-mode="light"]){--soft:0 1px 2px rgba(0,0,0,.22),0 8px 24px rgba(0,0,0,.22)}
+.stat,.hero-card,.files,.modal,.mapbox,.mini-map,#worldMap,:root[data-mode="light"] #worldMap,.ntile,:root:not([data-mode="light"]) .ntile,.empty,.addtile,.drop{border-color:transparent!important;border-style:solid!important;box-shadow:var(--soft)}
+.addtile,.drop{background:var(--card)}.bcard .drop,.bcard .empty{background:var(--card)}
+.addtile:hover,.drop:hover{box-shadow:0 2px 4px rgba(13,29,66,.05),0 10px 28px rgba(13,29,66,.10)}
+.drop.over{box-shadow:0 0 0 2px var(--primary),var(--soft)}
+.bcard .files,.bcard .files.hrow{box-shadow:none}
+.vcard .content{border-color:transparent!important}.vcard{box-shadow:var(--soft)}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
