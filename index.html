@@ -991,6 +991,13 @@ html body button.pass:hover,html body button.pass:focus-visible{filter:var(--dsh
 .ffolders.four .ffolder .back .sheet{top:-28px}
 .ffolders.four .ffolder .docs{top:-8px}
 .ffolders.four .ffolder:hover .docs,.ffolders.four .ffolder:focus-visible .docs{transform:translate(-2px,-12px) rotate(-8.16deg)}
+/* one hover everywhere: the city card's lift and glow (passes use the same values as a drop-shadow so it follows the notches) */
+:root,:root[data-mode="light"]{--dsh-rest:drop-shadow(0 1px 3px rgba(13,29,66,.04)) drop-shadow(0 10px 30px rgba(13,29,66,.07));--dsh-hover:drop-shadow(0 2px 6px rgba(29,90,216,.03)) drop-shadow(0 14px 34px rgba(29,90,216,.06))}
+:root:not([data-mode="light"]){--dsh-rest:drop-shadow(0 1px 3px rgba(0,0,0,.25)) drop-shadow(0 10px 30px rgba(0,0,0,.32));--dsh-hover:drop-shadow(0 2px 6px rgba(70,110,255,.06)) drop-shadow(0 14px 34px rgba(70,110,255,.10))}
+html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.photo){transition:transform var(--duration-fast) var(--ease-emphasized),box-shadow var(--duration-fast) var(--ease-standard),filter var(--duration-fast) var(--ease-standard)}
+html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){transform:translateY(var(--lift))!important}
+html body :is(.vcard,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){box-shadow:var(--sh-hover)!important}
+@media (prefers-reduced-motion:reduce){html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){transform:none!important}}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
