@@ -211,6 +211,9 @@ button.pass:hover{transform:translateY(-2px)}
 .route .plane{padding-bottom:16px;color:var(--purple)}
 .year{grid-column:1/-1;font-weight:500;font-size:18px;color:var(--purple);border-bottom:1px dashed var(--line);padding-bottom:8px;margin-top:16px;line-height:var(--lh-tight)}
 .year:first-child{margin-top:0}
+.month{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:500;line-height:20px;color:var(--ink-muted);margin-top:-4px}
+.month span{font-size:12px;font-weight:400;color:var(--ink-faint,var(--ink-muted));opacity:.8}
+.ffolders .year,.ffolders .month{align-self:end;justify-self:stretch}.ffolders .year{margin-top:8px;margin-bottom:calc(8px - 48px * var(--fz,1))}.ffolders.tall .year{margin-bottom:calc(8px - 72px * var(--fz,1))}.ffolders .month{margin-bottom:calc(16px - 48px * var(--fz,1))}.ffolders.tall .month{margin-bottom:calc(64px - 72px * var(--fz,1))}.ffolders.four:has(>.year:first-child){padding-top:0}.ffolders .year:first-child{margin-top:0}
 .fields{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;gap:4px 8px;margin-top:12px}
 .fields div{min-width:0}
 .fields b{display:block;font-weight:600;font-size:13px;white-space:nowrap;line-height:var(--lh-body)}
@@ -244,6 +247,19 @@ button.pass:hover{transform:translateY(-2px)}
 .photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
 .photo{position:relative;aspect-ratio:1;max-width:100%;border-radius:12px;overflow:hidden;background:var(--card2);border:0;padding:0;cursor:zoom-in}
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo video{width:100%;height:100%;object-fit:cover;display:block;pointer-events:none;background:#000}
+.photo .play{position:absolute;left:50%;top:50%;width:36px;height:36px;margin:-18px 0 0 -18px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;display:grid;place-items:center;backdrop-filter:blur(4px)}
+.photo .play svg{width:16px;height:16px;margin-left:2px}
+.photo.album{display:block;text-decoration:none;cursor:pointer;background:var(--primary-soft)}
+.photo.album .fbadge{position:absolute;left:8px;top:8px;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(255,255,255,.9);color:#1a4fbe;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.photo.album .alb{position:absolute;inset:auto 0 0 0;padding:24px 10px 8px;background:linear-gradient(transparent,rgba(0,0,0,.6));color:#fff;display:flex;flex-direction:column;gap:2px;text-align:left}
+.photo.album:not(:has(img)) .alb{background:none;color:var(--on-primary-soft,var(--ink))}
+.photo.album .alb b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.photo.album .alb span{font-size:11px;opacity:.85}
+.file.dirrow{text-decoration:none;color:inherit;cursor:pointer}.file.dirrow:hover .name{color:var(--primary)}
+.file .ext.dir{display:grid;place-items:center;padding:6px 0;color:var(--primary)}
+.uptoggle{display:inline-flex;padding:2px;border-radius:999px;background:var(--surface-sunken,var(--card2));border:1px solid var(--line)}
+.uptoggle button{border:0;background:transparent;font:inherit;font-size:12px;font-weight:500;color:var(--ink-muted);padding:4px 10px;border-radius:999px;cursor:pointer}
+.uptoggle button[aria-pressed="true"]{background:var(--surface-raised,var(--card));color:var(--primary);box-shadow:0 1px 2px rgba(13,29,66,.12)}
 .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1;max-width:100%;border:1.5px dashed var(--line);border-radius:12px;color:var(--purple);cursor:pointer;text-align:center;padding:8px;font-size:13px;background:transparent}
 .drop:hover,.drop.over{border-color:var(--purple);color:var(--ink);background:var(--soft)}
 .files{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden}
@@ -269,7 +285,7 @@ button.pass:hover{transform:translateY(-2px)}
 .modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap;align-items:center}
 .modal .err{color:var(--danger);font-size:13px;margin-right:auto}
 .lightbox{max-width:980px;background:transparent;box-shadow:none;padding:0;border:0}
-.lightbox img{max-height:78vh;width:auto;margin:0 auto;display:block;border-radius:12px}
+.lightbox video,.lightbox img{max-height:78vh;width:auto;margin:0 auto;display:block;border-radius:12px}
 .lightbox .bar{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 .passview{max-width:720px}
 .scan{margin-top:14px}
@@ -653,7 +669,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 4px 12p
 .pass[class*="pc-"] .main{border-right-color:#c6d3ea}
 /* rows: a little air above the scrollbar, and they run to the card's right edge so the peeking item is cut by the card itself */
 .sbento .bcard{overflow:hidden}
-.sbento .bcard>.hrow{padding-bottom:12px;margin-right:-16px;padding-right:16px;scroll-padding-inline-end:16px}
+.sbento .bcard>.hrow{padding:8px 16px 12px 8px;margin:-8px -16px 0 -8px;scroll-padding-inline:8px 16px} /* room inside the scroll box so hover lifts, shadows and menus aren't clipped */
 .sbento .bcard>.hrow:has(>.empty),.sbento .bcard>.hrow:has(>.fempty){margin-right:0;padding-right:0}
 /* note tiles: the Figma sheet stack, front sheet carries the note */
 .ntile{display:flex;flex-direction:column;justify-content:space-between;width:124px;height:141px;box-sizing:border-box;padding:8px;background:#fff;border:.581px solid #EDEDED;border-radius:6.973px;overflow:hidden;cursor:pointer;text-align:left;transition:transform .2s ease,box-shadow .2s ease}
@@ -1379,11 +1395,11 @@ setMode((() => { try { return localStorage.getItem("tv-mode") || "light"; } catc
 $("#modeBtn").onclick = () => { const m = document.documentElement.dataset.mode === "light" ? "dark" : "light"; setMode(m); try { localStorage.setItem("tv-mode", m); } catch (e) {} };
 
 /* ---------- views ---------- */
-let route = "map", routeArg = null, routeSub = null, routeView = null, highlightFlight = null;
+let route = "map", routeArg = null, routeDir = null, routeSub = null, routeView = null, highlightFlight = null;
 function parseHash(){
   const h = (location.hash || "#map").slice(1);
-  routeSub = null; routeView = null;
-  if (h.startsWith("place-")) { route = "place"; const [rest, view] = h.slice(6).split("/"), [cc, sub] = rest.split("."); routeArg = cc.toUpperCase(); routeSub = sub || null; routeView = SECTIONS[view] ? view : null; }
+  routeSub = null; routeView = null; routeDir = null;
+  if (h.startsWith("place-")) { route = "place"; const [rest, view, d] = h.slice(6).split("/"), [cc, sub] = rest.split("."); routeDir = d ? decodeURIComponent(d) : null; routeArg = cc.toUpperCase(); routeSub = sub || null; routeView = SECTIONS[view] ? view : null; }
   else if (["map", "places", "passes"].includes(h)) { route = h; routeArg = null; }
   else { route = "map"; }
 }
@@ -1590,6 +1606,19 @@ function sizePins(){
 
 const ADD_TILE = {country: ["Add country", "Somewhere you've been"], city: ["Add city", "Pin it on your map"], flight: ["Add flight", "Upload a boarding pass or type it in"]};
 const addTile = k => `<button type="button" class="addtile" data-eadd="${k}"><span class="plus" aria-hidden="true">+</span>${ADD_TILE[k][0]}<span class="note">${ADD_TILE[k][1]}</span></button>`;
+/* Year, then month, headings over a date-sorted grid. Countries and cities carry a month of first visit, flights a full date */
+function datedGroups(list, dateOf, render, unit, lead = ""){
+  const per = {}; for (const x of list) { const k = (dateOf(x) || "").slice(0, 7) || "none"; per[k] = (per[k] || 0) + 1; }
+  let html = "", y0 = null, m0 = null, led = !lead;
+  for (const x of list) {
+    const d = dateOf(x) || "", y = d.slice(0, 4), m = d.slice(5, 7);
+    if ((y || "none") !== y0) { y0 = y || "none"; m0 = null; html += `<div class="year">${y ? esc(y) : "Date not set"}</div>`; }
+    if (m && m !== m0) { m0 = m; html += `<div class="month">${MONTHS_FULL[+m - 1]}<span>${plural(per[d.slice(0, 7)], ...unit)}</span></div>`; }
+    if (!led) { html += lead; led = true; }
+    html += render(x);
+  }
+  return html;
+}
 const EADD_ONE = () => placeMode === "cities" ? `<button class="btn primary" type="button" data-eadd="city">Add city</button>` : `<button class="btn primary" type="button" data-eadd="country">Add country</button>`;
 const EADD_PLACE = `<button class="btn primary" type="button" data-eadd="country">Add country</button><button class="btn" type="button" data-eadd="city">Add city</button>`;
 document.addEventListener("click", e => {
@@ -1656,7 +1685,7 @@ document.addEventListener("pointerdown", e => {
 let regionFilter = "All", placeMode = "countries";
 const SORTS = {
   countries: [["recent", "Recently visited"], ["oldest", "First visited"], ["name", "Name A–Z"], ["cities", "Most cities"], ["flights", "Most flights"]],
-  cities: [["name", "Name A–Z"], ["country", "Country"], ["items", "Most items"], ["recent", "Recently visited"]]
+  cities: [["recent", "Recently visited"], ["name", "Name A–Z"], ["country", "Country"], ["items", "Most items"]]
 };
 function renderPlaces(){
   const q = $("#placeSearch").value.trim().toLowerCase();
@@ -1678,14 +1707,14 @@ function renderPlaces(){
       name: (a, b) => COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name), cities: (a, b) => (b.cities || []).length - (a.cities || []).length,
       flights: (a, b) => flightsFor(b.id).length - flightsFor(a.id).length};
     list.sort((a, b) => by[sort](a, b) || COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name));
-    html = list.length ? addTile("country") + list.map(countryFolderHTML).join("") : "";
+    html = !list.length ? "" : sort === "recent" || sort === "oldest" ? datedGroups(list, p => p.firstVisit, countryFolderHTML, ["country", "countries"], addTile("country")) : addTile("country") + list.map(countryFolderHTML).join("");
   } else {
     const list = allCities().filter(x => inRegion(x.p) && (!q || x.name.toLowerCase().includes(q) || COUNTRY[x.p.id].name.toLowerCase().includes(q)));
     const items = x => x.fo ? (x.fo.items || []).length : 0;
     const by = {name: (a, b) => a.name.localeCompare(b.name), country: (a, b) => COUNTRY[a.p.id].name.localeCompare(COUNTRY[b.p.id].name),
       items: (a, b) => items(b) - items(a), recent: (a, b) => (b.p.firstVisit || "").localeCompare(a.p.firstVisit || "")};
     list.sort((a, b) => by[sort](a, b) || a.name.localeCompare(b.name));
-    html = list.length ? addTile("city") + list.map(cityFolderHTML).join("") : "";
+    html = !list.length ? "" : sort === "recent" ? datedGroups(list, x => x.p.firstVisit, cityFolderHTML, ["city", "cities"], addTile("city")) : addTile("city") + list.map(cityFolderHTML).join("");
   }
   queueMicrotask(fitFolders);
   $("#folders").innerHTML = html ||
@@ -1719,9 +1748,7 @@ function renderPasses(){
   $("#passesCount").textContent = `${plural(all.length, "flight", "flights")} · ${stats().km.toLocaleString()} km`;
   if (!all.length) { $("#allPasses").innerHTML = `<div class="empty"><p>No flights yet. Add one and attach its boarding pass to fill in the details.</p><div class="eacts"><button class="btn primary" type="button" data-eadd="flight">Add flight</button></div></div>`; return; }
   if (!fs.length) { $("#allPasses").innerHTML = `<div class="empty">No flights match.</div>`; return; }
-  let html = "", yr = null;
-  const years = sort === "new" || sort === "old";
-  for (const f of fs) { if (years) { const y = (f.date || "").slice(0, 4) || "Undated"; if (y !== yr) { html += `<div class="year">${esc(y)}</div>`; yr = y; } } if (!html.includes("addtile")) html += addTile("flight"); html += passHTML(f); }
+  const html = sort === "new" || sort === "old" ? datedGroups(fs, f => f.date, f => passHTML(f), ["flight", "flights"], addTile("flight")) : addTile("flight") + fs.map(f => passHTML(f)).join("");
   $("#allPasses").innerHTML = html;
 }
 $("#passSearch").addEventListener("input", renderPasses);
@@ -1807,15 +1834,15 @@ function renderPlace(cc){
     ${bentoClose(cc, p, "flights")}
 
     ${bentoOpen(cc, p, "photos")}
-      <div class="section-head"><h2>${BICON.photo}Photos${cchip((p.photos || []).length)}</h2></div>
+      <div class="section-head"><h2>${BICON.photo}Photos &amp; videos${cchip((p.photos || []).length)}</h2><div class="hacts">${upToggle("photos")}</div></div>
       <div class="photos hrow" id="photos">
-        <button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button>
+        ${dropTile("photos")}
         ${sectionItems(cc, p, "photos")}
       </div>${viewMore(cc, "photos", (p.photos || []).length)}
     ${bentoClose(cc, p, "photos")}
 
     ${bentoOpen(cc, p, "files")}
-      <div class="section-head"><h2>${BICON.file}Files &amp; documents${cchip((p.files || []).length)}</h2><div class="hacts"><button class="btn small" type="button" data-upload="files">Add files</button></div></div>
+      <div class="section-head"><h2>${BICON.file}Files &amp; documents${cchip((p.files || []).length)}</h2><div class="hacts">${upToggle("files")}<button class="btn small" type="button" data-upload="files">${upMode.files === "folder" ? "Add folder" : "Add files"}</button></div></div>
       <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>${viewMore(cc, "files", (p.files || []).length)}
     ${bentoClose(cc, p, "files")}
 
@@ -1879,29 +1906,62 @@ function openNote(cc, id){
   };
 }
 const cchip = n => `<span class="cchip" aria-label="${n} ${n === 1 ? "item" : "items"}">${n}</span>`;
-const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents", notes: "Notes"};
+const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos & videos", files: "Files & documents", notes: "Notes"};
 const viewMore = (cc, id, n) => n > 2 ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
-function sectionItems(cc, p, id){
+/* Uploads that came from a folder keep its name in .dir; the card shows each folder as one tile that opens it */
+function dirGroups(list, dir){
+  const out = [], seen = {};
+  (list || []).forEach((item, i) => {
+    if (dir) { if (item.dir === dir) out.push({item, i}); return; }
+    if (!item.dir) return out.push({item, i});
+    if (!seen[item.dir]) out.push(seen[item.dir] = {dir: item.dir, items: [], i});
+    seen[item.dir].items.push(item);
+  });
+  return out;
+}
+const isVideo = it => (it.type || "").startsWith("video/");
+const PLAY = '<span class="play" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M5 3.5v9l7.5-4.5z" fill="currentColor"/></svg></span>';
+function mediaHTML(ph, i){
+  const u = srcUrl(ph.src);
+  return `<button type="button" class="photo${isVideo(ph) ? " vid" : ""}" data-photo="${i}" aria-label="Open ${isVideo(ph) ? "video" : "photo"} ${esc(ph.name || "")}">${u ? isVideo(ph) ? `<video src="${esc(u)}#t=0.5" muted playsinline preload="metadata"></video>` : `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}${isVideo(ph) ? PLAY : ""}</button>`;
+}
+function albumHTML(cc, kind, g){
+  const cover = g.items.find(x => (x.type || "").startsWith("image/")), u = cover ? srcUrl(cover.src) : "";
+  const href = `#place-${esc(cc)}/${kind}/${encodeURIComponent(g.dir)}`;
+  if (kind === "files") return `<a class="file dirrow" href="${href}"><span class="ext dir" aria-hidden="true"><svg viewBox="0 0 16 16" width="18" height="18"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3.2l1.5 1.5H13A1.5 1.5 0 0 1 14.5 6v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5z" fill="currentColor"/></svg></span><div style="min-width:0"><div class="name">${esc(g.dir)}</div><div class="note">Folder · ${plural(g.items.length, "file", "files")}</div></div></a>`;
+  return `<a class="photo album" href="${href}" aria-label="Open folder ${esc(g.dir)}, ${plural(g.items.length, "item", "items")}">${u ? `<img src="${esc(u)}" alt="" loading="lazy">` : ""}<span class="fbadge" aria-hidden="true"><svg viewBox="0 0 16 16" width="14" height="14"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3.2l1.5 1.5H13A1.5 1.5 0 0 1 14.5 6v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5z" fill="currentColor"/></svg></span><span class="alb"><b>${esc(g.dir)}</b><span>${plural(g.items.length, "item", "items")}</span></span></a>`;
+}
+const dropTile = kind => upMode[kind] === "folder"
+  ? `<button type="button" class="drop" data-upload="${kind}"><span style="font-size:22px">+</span>Add a folder<span class="note">or drop one here</span></button>`
+  : `<button type="button" class="drop" data-upload="${kind}"><span style="font-size:22px">+</span>Add photos or videos<span class="note">or drop them here</span></button>`;
+const upMode = {photos: "files", files: "files"};
+const upToggle = kind => `<span class="uptoggle" role="group" aria-label="Add ${kind === "photos" ? "photos and videos" : "files"} as"><button type="button" data-upmode="${kind}:files" aria-pressed="${upMode[kind] !== "folder"}">Files</button><button type="button" data-upmode="${kind}:folder" aria-pressed="${upMode[kind] === "folder"}">Folder</button></span>`;
+document.addEventListener("click", e => { const b = e.target.closest("[data-upmode]"); if (!b) return; const [k, m] = b.dataset.upmode.split(":"); upMode[k] = m; renderAll(); });
+function sectionItems(cc, p, id, dir){
   if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
   if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
   if (id === "notes") { const ns = notesOf(p); return ns.length ? ns.map(n => noteTileHTML(n)).join("") : `<div class="empty"><p>No notes yet. Write down favourite food, where you stayed, who you went with.</p></div>`; }
-  if (id === "photos") return (p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("");
-  return (p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
-    : `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`;
+  if (id === "photos") return dirGroups(p.photos, dir).map(g => g.dir ? albumHTML(cc, "photos", g) : mediaHTML(g.item, g.i)).join("");
+  if (dir) return dirGroups(p.files, dir).map(g => fileRowHTML(g.item, g.i)).join("") || `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">This folder is empty.</span></div>`;
+  return (p.files || []).length ? dirGroups(p.files).map(g => g.dir ? albumHTML(cc, "files", g) : fileRowHTML(g.item, g.i)).join("")
+    : `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work, and you can add a whole folder.</span></div>`;
 }
+const fileRowHTML = (fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`;
 /* View more: one section of a country on its own page, every item in a grid */
 function renderSection(cc, p, id){
-  const c = COUNTRY[cc], n = {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length, notes: notesOf(p).length}[id];
+  const dir = (id === "photos" || id === "files") ? routeDir : null;
+  const c = COUNTRY[cc], n = dir ? (p[id] || []).filter(x => x.dir === dir).length : {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length, notes: notesOf(p).length}[id];
   const icon = {cities: BICON.pin, flights: BICON.plane, photos: BICON.photo, files: BICON.file, notes: BICON.note}[id];
   const add = {cities: `<button class="btn small" type="button" id="cityHere">Add city</button>`, flights: `<button class="btn small" type="button" id="flightHere">Add flight</button>`,
-    photos: `<button class="btn small" type="button" data-upload="photos">Add photos</button>`, files: `<button class="btn small" type="button" data-upload="files">Add files</button>`, notes: `<button class="btn small" type="button" id="noteHere">Add note</button>`}[id];
-  const unit = {cities: ["city", "cities"], flights: ["flight", "flights"], photos: ["photo", "photos"], files: ["file", "files"], notes: ["note", "notes"]}[id];
-  const body = id === "photos" ? `<div class="photos">${sectionItems(cc, p, id)}<button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button></div>`
-    : `<div class="${{cities: "vcards", flights: "passes", files: "files", notes: "ntiles"}[id]}">${sectionItems(cc, p, id)}</div>`;
+    photos: dir ? `<button class="btn small" type="button" data-upload="photos" data-intodir="${esc(dir)}">Add to this folder</button>` : `${upToggle("photos")}<button class="btn small" type="button" data-upload="photos">${upMode.photos === "folder" ? "Add folder" : "Add photos or videos"}</button>`,
+    files: dir ? `<button class="btn small" type="button" data-upload="files" data-intodir="${esc(dir)}">Add to this folder</button>` : `${upToggle("files")}<button class="btn small" type="button" data-upload="files">${upMode.files === "folder" ? "Add folder" : "Add files"}</button>`, notes: `<button class="btn small" type="button" id="noteHere">Add note</button>`}[id];
+  const unit = {cities: ["city", "cities"], flights: ["flight", "flights"], photos: ["item", "items"], files: ["file", "files"], notes: ["note", "notes"]}[id];
+  const body = id === "photos" ? `<div class="photos">${dir ? "" : dropTile("photos")}${sectionItems(cc, p, id, dir)}</div>`
+    : `<div class="${{cities: "vcards", flights: "passes", files: "files", notes: "ntiles"}[id]}">${sectionItems(cc, p, id, dir)}</div>`;
   $("#v-place").innerHTML = `
-    <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${esc(SECTIONS[id])}</div>
-    <div class="folderhead secthead"><h1>${icon}${esc(SECTIONS[id])}</h1><span class="note">${plural(n, ...unit)}</span>
-      <div class="folderacts" style="margin-left:auto"><a class="btn small ghost" href="#place-${esc(cc)}">Back to ${esc(c.name)}</a>${add}</div></div>
+    <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${dir ? `<a href="#place-${esc(cc)}/${id}">${esc(SECTIONS[id])}</a> / ${esc(dir)}` : esc(SECTIONS[id])}</div>
+    <div class="folderhead secthead"><h1>${icon}${esc(dir || SECTIONS[id])}</h1><span class="note">${plural(n, ...unit)}</span>
+      <div class="folderacts" style="margin-left:auto">${dir ? `<button class="btn small ghost" type="button" data-deldir="${id}">Delete folder</button>` : `<a class="btn small ghost" href="#place-${esc(cc)}">Back to ${esc(c.name)}</a>`}${add}</div></div>
     <div class="sectpage s-${id}page">${body}</div>`;
 }
 function renderSubfolder(cc, p){
@@ -1979,7 +2039,10 @@ $("#v-place").addEventListener("click", async e => {
   const p = state.places[routeArg]; if (!p) return;
   const t = e.target.closest("button, a"); if (!t) return;
   if (t.dataset.delcity != null) { const cities = [...p.cities]; cities.splice(+t.dataset.delcity, 1); store.put("places", {...p, cities}); }
-  if (t.dataset.upload) pickFiles(t.dataset.upload);
+  if (t.dataset.upload) pickFiles(t.dataset.upload, t.dataset.intodir);
+  if (t.dataset.deldir) { const k = t.dataset.deldir, d = routeDir, gone = (p[k] || []).filter(x => x.dir === d);
+    if (!confirm(`Delete the folder ${d} and its ${plural(gone.length, "item", "items")}?`)) return;
+    await store.put("places", {...p, [k]: (p[k] || []).filter(x => x.dir !== d)}); gone.forEach(x => store.dropFile(x.src)); location.hash = `place-${p.id}/${k}`; toast(`Deleted ${d}`); }
   if (t.dataset.photo != null) openLightbox(+t.dataset.photo);
   if (t.dataset.fphoto != null) openLightbox(+t.dataset.fphoto, routeSub);
   if (t.id === "newFolder" || t.dataset.newfolder != null) openFolderForm();
@@ -1994,30 +2057,48 @@ $("#v-place").addEventListener("click", async e => {
   if (t.id === "delPlaceNo") { placeConfirm = false; renderAll(); }
   if (t.id === "delPlaceYes") { placeConfirm = false; for (const x of [...(p.photos || []), ...(p.files || []), ...(p.folders || []).flatMap(f => f.items || [])]) store.dropFile(x.src); await store.del("places", p.id); location.hash = "places"; toast(`Removed ${COUNTRY[p.id].name}`); }
 });
-const photosDrop = e => { const d = e.target.closest(".drop"); if (!d) return; e.preventDefault(); d.classList.toggle("over", e.type === "dragover"); if (e.type === "drop") uploadTo(d.dataset.drop || "photos", [...e.dataTransfer.files]); };
+const photosDrop = e => { const d = e.target.closest(".drop"); if (!d) return; e.preventDefault(); d.classList.toggle("over", e.type === "dragover"); if (e.type === "drop") { const kind = d.dataset.drop || d.dataset.upload || "photos", into = d.dataset.intodir; droppedFiles(e.dataTransfer).then(fs => uploadTo(kind, fs, into)); } };
 ["dragover", "dragleave", "drop"].forEach(t => $("#v-place").addEventListener(t, photosDrop));
 
-let uploadTarget = "photos";
-function pickFiles(kind){
-  uploadTarget = kind;
-  const fp = $("#filePick"); fp.accept = kind === "photos" ? "image/*" : kind === "folder" ? "" : "image/*,application/pdf,text/plain,text/csv,text/markdown,application/json,video/mp4,video/webm";
+let uploadTarget = "photos", uploadDir = null;
+function pickFiles(kind, intoDir){
+  uploadTarget = kind; uploadDir = intoDir || null;
+  const fp = $("#filePick"), folder = !intoDir && upMode[kind] === "folder";
+  fp.webkitdirectory = folder; // the Folder toggle picks a whole folder; its name becomes the group
+  fp.accept = folder ? "" : kind === "photos" ? "image/*,video/*" : kind === "folder" ? "" : "image/*,application/pdf,text/plain,text/csv,text/markdown,application/json,video/mp4,video/webm,video/quicktime";
   fp.value = ""; fp.click();
 }
-$("#filePick").addEventListener("change", e => uploadTo(uploadTarget, [...e.target.files]));
-async function uploadTo(kind, files){
+$("#filePick").addEventListener("change", e => uploadTo(uploadTarget, [...e.target.files], uploadDir));
+/* dropped folders arrive as directory entries; walk them so their files keep the folder name */
+async function droppedFiles(dt){
+  const entries = [...(dt.items || [])].map(it => it.webkitGetAsEntry && it.webkitGetAsEntry()).filter(Boolean);
+  if (!entries.length || !entries.some(en => en.isDirectory)) return [...dt.files];
+  const out = [];
+  const walk = (en, top) => new Promise(res => {
+    if (en.isFile) return en.file(f => { f._dir = top; out.push(f); res(); }, () => res());
+    const rd = en.createReader(), all = [];
+    const more = () => rd.readEntries(async batch => { if (!batch.length) { for (const c of all) await walk(c, top); return res(); } all.push(...batch); more(); }, () => res());
+    more();
+  });
+  for (const en of entries) await walk(en, en.isDirectory ? en.name : null);
+  return out;
+}
+async function uploadTo(kind, files, intoDir){
   const cc = routeArg, sub = routeSub; if (!state.places[cc] || !files.length) return;
-  if (kind === "photos") files = files.filter(f => f.type.startsWith("image/"));
+  const dirOf = f => intoDir || f._dir || (f.webkitRelativePath ? f.webkitRelativePath.split("/")[0] : null);
+  files = files.filter(f => !/^\./.test(f.name));
+  if (kind === "photos") files = files.filter(f => f.type.startsWith("image/") || f.type.startsWith("video/"));
   let added = 0, failed = [];
   toast(`Uploading ${files.length} ${files.length === 1 ? "file" : "files"}…`);
   for (const f of files) {
     try {
       const src = await store.saveFile(f);
       const p = state.places[cc];
-      const rec = {id: uid(), name: f.name, type: f.type, size: f.size, src, addedAt: new Date().toISOString()};
+      const rec = {id: uid(), name: f.name, type: f.type, size: f.size, src, addedAt: new Date().toISOString(), ...(kind !== "folder" && dirOf(f) ? {dir: dirOf(f)} : {})};
       if (kind === "folder") await store.put("places", {...p, folders: p.folders.map(f => f.id === sub ? {...f, items: [...(f.items || []), rec]} : f)});
       else await store.put("places", {...p, [kind]: [...(p[kind] || []), rec]});
       added++;
-    } catch (err) { failed.push(f.name + (err && err.code === "unsupported_type" ? " (this file type can't be stored; try PDF, image or text)" : err && err.code === "too_large" ? " (over 20 MB)" : "")); }
+    } catch (err) { failed.push(f.name + (err && err.code === "unsupported_type" ? " (this file type can't be stored; try PDF, image or text)" : err && (err.code === "too_large" || /exceeded|too large|payload/i.test(err.message || "")) ? " (too large to store)" : "")); }
   }
   toast(failed.length ? `Added ${added}. Couldn't add ${failed.join(", ")}` : `Added ${added} ${added === 1 ? "file" : "files"}`);
 }
@@ -2420,17 +2501,18 @@ function openOriginal(scan, title, tries = 0){
 function openLightbox(i, folderId){
   const p = state.places[routeArg];
   const fo = folderId ? (p.folders || []).find(f => f.id === folderId) : null;
-  const list = fo ? (fo.items || []).filter(it => (it.type || "").startsWith("image/")) : (p.photos || []);
+  let list = fo ? (fo.items || []).filter(it => (it.type || "").startsWith("image/")) : (p.photos || []);
+  if (!fo) { const base = list[i]; if (!base) return; list = list.filter(x => (x.dir || "") === (base.dir || "")); i = list.indexOf(base); }
   if (!list[i]) return;
   let confirmDel = false;
   const draw = () => {
     const ph = list[i], u = srcUrl(ph.src);
-    modal(`${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}">` : `<div class="empty">Loading photo…</div>`}
+    modal(`${u ? isVideo(ph) ? `<video src="${esc(u)}" controls autoplay playsinline></video>` : `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}">` : `<div class="empty">Loading…</div>`}
       <div class="bar">
         <button class="btn small" type="button" id="lbPrev" ${i === 0 ? "disabled" : ""}>← Previous</button>
         <span class="btn small ghost" style="color:#FFFFFF;border-color:transparent">${i + 1} / ${list.length}</span>
         <button class="btn small" type="button" id="lbNext" ${i === list.length - 1 ? "disabled" : ""}>Next →</button>
-        ${confirmDel ? `<button class="btn small danger" style="background:var(--card)" type="button" id="lbDelYes">Delete this photo</button><button class="btn small" type="button" id="lbDelNo">Keep</button>` : `<button class="btn small" type="button" id="lbDel">Delete</button>`}
+        ${confirmDel ? `<button class="btn small danger" style="background:var(--card)" type="button" id="lbDelYes">Delete this ${isVideo(list[i]) ? "video" : "photo"}</button><button class="btn small" type="button" id="lbDelNo">Keep</button>` : `<button class="btn small" type="button" id="lbDel">Delete</button>`}
         <button class="btn small primary" type="button" data-close>Close</button>
       </div>`, "lightbox");
     $("#lbPrev").onclick = () => { i--; confirmDel = false; draw(); };
@@ -2439,7 +2521,7 @@ function openLightbox(i, folderId){
     if ($("#lbDelNo")) $("#lbDelNo").onclick = () => { confirmDel = false; draw(); };
     if ($("#lbDelYes")) $("#lbDelYes").onclick = async () => { const cur = state.places[routeArg]; const gone = list[i];
       if (fo) await store.put("places", {...cur, folders: cur.folders.map(f => f.id === fo.id ? {...f, items: f.items.filter(x => x.id !== gone.id)} : f)});
-      else await store.put("places", {...cur, photos: cur.photos.filter(x => x !== gone && x.id !== gone.id)}); store.dropFile(gone.src); closeModal(); toast("Photo deleted"); };
+      else await store.put("places", {...cur, photos: cur.photos.filter(x => x !== gone && x.id !== gone.id)}); store.dropFile(gone.src); closeModal(); toast(isVideo(gone) ? "Video deleted" : "Photo deleted"); };
   };
   draw();
 }
