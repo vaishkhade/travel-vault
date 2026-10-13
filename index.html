@@ -543,7 +543,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
   </section>
 
   <section class="view" id="v-places" hidden aria-label="Places">
-    <div class="section-head"><h2>Places</h2><div class="folderacts"><span class="note" id="placesCount"></span><button class="btn" type="button" id="placesAdd" data-eadd="country">Add country</button></div></div>
+    <div class="section-head"><h2>Places</h2><div class="folderacts"><span class="note" id="placesCount"></span></div></div>
     <div class="toolbar">
       <div class="toolrow">
         <div class="seg" role="group" aria-label="Show"><button type="button" data-pmode="countries" aria-pressed="true">Countries</button><button type="button" data-pmode="cities" aria-pressed="false">Cities</button></div>
@@ -1258,7 +1258,6 @@ function renderPlaces(){
   const sort = sel.value;
   const inRegion = p => regionFilter === "All" || COUNTRY[p.id].region === regionFilter;
   const cityTotal = allCities().length;
-  const pa = $("#placesAdd"); pa.dataset.eadd = placeMode === "cities" ? "city" : "country"; pa.textContent = placeMode === "cities" ? "Add city" : "Add country";
   $("#placesCount").textContent = `${plural(all.length, "country", "countries")} · ${plural(cityTotal, "city", "cities")}`;
   let html = "";
   if (placeMode === "countries") {
