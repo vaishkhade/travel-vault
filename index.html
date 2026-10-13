@@ -666,6 +666,8 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .ffolder:hover .letter,.ffolder:focus-visible .letter{transform:translate(4px,-20px) rotate(10deg)}
 .ffolder:hover .back,.ffolder:focus-visible .back{transform:translate(2px,-25px) rotate(3.02deg)}
 .ffolders{padding-top:56px;row-gap:72px}
+.ffolders.four{grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));justify-content:stretch;justify-items:center;column-gap:24px;row-gap:calc(48px * var(--fz,1));padding-top:24px}
+.ffolders.four .fwrap{zoom:var(--fz,1)}
 .fwrap:hover,.fwrap:focus-within{z-index:2}
 @media (prefers-reduced-motion:reduce){.ffolder .in{transition:none}}
 /* boarding pass colours: very light pastels, muted darks in dark mode */
@@ -1522,6 +1524,7 @@ function renderPlaces(){
     list.sort((a, b) => by[sort](a, b) || a.name.localeCompare(b.name));
     html = list.map(cityFolderHTML).join("");
   }
+  queueMicrotask(fitFolders);
   $("#folders").innerHTML = html ||
     (all.length && placeMode === "cities" && !cityTotal ? `<div class="empty"><p>No cities yet.</p><div class="eacts">${EADD_ONE()}</div></div>` : all.length ? `<div class="empty">Nothing matches${q ? ` “${esc(q)}”` : ""}${regionFilter !== "All" ? ` in ${esc(regionFilter)}` : ""}.</div>`
       : `<div class="empty"><p>${placeMode === "cities" ? "No cities yet. Add one you've been to, or add a flight and its destination is added for you." : "No countries yet. Add one you've been to, or add a flight and its destination is added for you."}</p><div class="eacts">${EADD_ONE()}</div></div>`);
@@ -1530,6 +1533,14 @@ $("#placeSearch").addEventListener("input", renderPlaces);
 $("#placeSort").addEventListener("change", renderPlaces);
 $("#regionChips").addEventListener("click", e => { const b = e.target.closest("[data-region]"); if (b) { regionFilter = b.dataset.region; renderPlaces(); } });
 document.addEventListener("click", e => { const b = e.target.closest("[data-pmode]"); if (b) { placeMode = b.dataset.pmode; renderPlaces(); } });
+/* Cities tab: four folders a row on desktop, scaled down from the 291px Figma size so the gaps stay tight */
+function fitFolders(){
+  const g = $("#folders"); if (!g) return;
+  const on = placeMode === "cities" && !!g.querySelector(".fwrap"); g.classList.toggle("four", on); if (!on) return;
+  const w = g.clientWidth, cols = w >= 960 ? 4 : w >= 700 ? 3 : w >= 440 ? 2 : 1, gap = 24;
+  g.style.setProperty("--cols", cols); g.style.setProperty("--fz", Math.min(1, (w - gap * (cols - 1)) / cols / 291).toFixed(4));
+}
+addEventListener("resize", () => { if (route === "places") fitFolders(); });
 
 let cabinFilter = "All";
 function renderPasses(){
