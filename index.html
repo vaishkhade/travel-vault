@@ -725,7 +725,15 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .ffolder:hover .back,.ffolder:focus-visible .back{transform:translate(2px,-25px) rotate(3.02deg)}
 .ffolders{padding-top:56px;row-gap:72px}
 .ffolders.four{grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));justify-content:stretch;justify-items:center;column-gap:24px;row-gap:calc(48px * var(--fz,1));padding-top:24px}
-.ffolders.four .fwrap{zoom:var(--fz,1)}
+.ffolders.four .fwrap,.ffolders.four .addtile{zoom:var(--fz,1)}
+/* "Add" tile that leads a grid once it has entries, styled like the Add photos tile */
+.addtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--border,var(--line));border-radius:var(--radius-lg,16px);background:transparent;color:var(--ink-muted);font:inherit;font-size:14px;font-weight:500;cursor:pointer;text-align:center;padding:16px;transition:background .15s,border-color .15s,color .15s}
+.addtile:hover{background:var(--surface-hover,var(--surface-sunken));border-color:var(--primary);color:var(--primary)}
+.addtile .plus{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;font-size:24px;line-height:1;background:var(--primary-soft);color:var(--on-primary-soft,var(--primary))}
+.addtile .note{font-weight:400;font-size:12px}
+.addtile[data-eadd]::before{content:none;display:none}
+.ffolders .addtile{width:291px;height:218px;box-sizing:border-box}
+.passes .addtile{min-height:180px}
 .fwrap:hover,.fwrap:focus-within{z-index:2}
 @media (prefers-reduced-motion:reduce){.ffolder .in{transition:none}}
 /* boarding pass colours: very light pastels, muted darks in dark mode */
@@ -1575,6 +1583,8 @@ function sizePins(){
   world.gp.selectAll("g.pin").attr("transform", function(){ return `translate(${this.dataset.x},${this.dataset.y}) scale(${s})`; });
 }
 
+const ADD_TILE = {country: ["Add country", "Somewhere you've been"], city: ["Add city", "Pin it on your map"], flight: ["Add flight", "Upload a boarding pass or type it in"]};
+const addTile = k => `<button type="button" class="addtile" data-eadd="${k}"><span class="plus" aria-hidden="true">+</span>${ADD_TILE[k][0]}<span class="note">${ADD_TILE[k][1]}</span></button>`;
 const EADD_ONE = () => placeMode === "cities" ? `<button class="btn primary" type="button" data-eadd="city">Add city</button>` : `<button class="btn primary" type="button" data-eadd="country">Add country</button>`;
 const EADD_PLACE = `<button class="btn primary" type="button" data-eadd="country">Add country</button><button class="btn" type="button" data-eadd="city">Add city</button>`;
 document.addEventListener("click", e => {
@@ -1663,14 +1673,14 @@ function renderPlaces(){
       name: (a, b) => COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name), cities: (a, b) => (b.cities || []).length - (a.cities || []).length,
       flights: (a, b) => flightsFor(b.id).length - flightsFor(a.id).length};
     list.sort((a, b) => by[sort](a, b) || COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name));
-    html = list.map(countryFolderHTML).join("");
+    html = list.length ? addTile("country") + list.map(countryFolderHTML).join("") : "";
   } else {
     const list = allCities().filter(x => inRegion(x.p) && (!q || x.name.toLowerCase().includes(q) || COUNTRY[x.p.id].name.toLowerCase().includes(q)));
     const items = x => x.fo ? (x.fo.items || []).length : 0;
     const by = {name: (a, b) => a.name.localeCompare(b.name), country: (a, b) => COUNTRY[a.p.id].name.localeCompare(COUNTRY[b.p.id].name),
       items: (a, b) => items(b) - items(a), recent: (a, b) => (b.p.firstVisit || "").localeCompare(a.p.firstVisit || "")};
     list.sort((a, b) => by[sort](a, b) || a.name.localeCompare(b.name));
-    html = list.map(cityFolderHTML).join("");
+    html = list.length ? addTile("city") + list.map(cityFolderHTML).join("") : "";
   }
   queueMicrotask(fitFolders);
   $("#folders").innerHTML = html ||
@@ -1706,7 +1716,7 @@ function renderPasses(){
   if (!fs.length) { $("#allPasses").innerHTML = `<div class="empty">No flights match.</div>`; return; }
   let html = "", yr = null;
   const years = sort === "new" || sort === "old";
-  for (const f of fs) { if (years) { const y = (f.date || "").slice(0, 4) || "Undated"; if (y !== yr) { html += `<div class="year">${esc(y)}</div>`; yr = y; } } html += passHTML(f); }
+  for (const f of fs) { if (years) { const y = (f.date || "").slice(0, 4) || "Undated"; if (y !== yr) { html += `<div class="year">${esc(y)}</div>`; yr = y; } } if (!html.includes("addtile")) html += addTile("flight"); html += passHTML(f); }
   $("#allPasses").innerHTML = html;
 }
 $("#passSearch").addEventListener("input", renderPasses);
