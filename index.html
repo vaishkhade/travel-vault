@@ -572,8 +572,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .bcard .fields .label,.bcard .stub .label{font-size:9px;line-height:12px}
 .bcard .stub svg{height:28px}
 .bcard .passes{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
-.s-cities .vcards{display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 8px) / 2);gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:thin}
-.s-cities .vcards>.vcard{scroll-snap-align:start}
+.s-cities .vcards{display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 8px) / 2);gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.s-cities .vcards>.vcard{scroll-snap-align:start;height:var(--pass-h,auto)}
+.s-cities .vcard .content{flex:1}
 .s-cities .vcards:has(>.empty){display:block}
 .s-cities .vcard:hover{transform:none}
 .vmenu .palette .swatch{width:24px;height:24px;flex:none;padding:0;border-radius:999px}
@@ -1168,13 +1169,16 @@ function parseHash(){
 let cityScroll = 0;
 function fixCityRow(){
   const sc = $(".s-cities .vcards"); if (!sc) return;
+  const ps = $(".s-flights .pass"), side = ps && Math.abs($(".s-cities").getBoundingClientRect().top - $(".s-flights").getBoundingClientRect().top) < 1;
+  sc.style.setProperty("--pass-h", side ? ps.getBoundingClientRect().height + "px" : "auto"); // city cards match the pass height when the two cards sit side by side
   sc.scrollLeft = cityScroll;
+  sc.style.marginBottom = -(sc.offsetHeight - sc.clientHeight) + "px"; // a visible scrollbar sits in the bottom padding, so card bottoms still line up
   const m = sc.querySelector(".vcard.open .vmenu"); if (!m) return;
   const k = m.closest(".vcard").querySelector(".kebab").getBoundingClientRect();
   m.style.position = "fixed"; m.style.top = (k.top + 2) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, k.right - 8)) + "px";
 }
 document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".s-cities .vcards")) cityScroll = e.target.scrollLeft; if (openMenu) fixCityRow(); }, true);
-addEventListener("resize", () => { if (openMenu) fixCityRow(); });
+addEventListener("resize", () => { if (route === "place") fixCityRow(); });
 function renderAll(){
   parseHash();
   const needAuth = state.mode === "supabase" && !sbUser;
