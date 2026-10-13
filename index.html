@@ -542,7 +542,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .bcard h2{font-size:16px;line-height:24px}
 .bcard .vcards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
 .bcard .vcard .img{height:48px}
-.bcard .vcard .content{padding:8px 16px}
+.bcard .vcard .content{padding:16px}
 .bcard .vcard .title{font-size:16px}
 .bcard .passes{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
 .bcard .photos{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
@@ -571,6 +571,11 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .bcard .fields .label,.bcard .stub .label{font-size:9px;line-height:12px}
 .bcard .stub svg{height:28px}
 .bcard .passes{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.s-cities .vcards{display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 8px) / 2);gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding-bottom:8px;scrollbar-width:thin}
+.s-cities .vcards>.vcard{scroll-snap-align:start}
+.s-cities .vcards:has(>.empty){display:block}
+.s-cities .vcard:hover{transform:none}
+.vmenu .palette .swatch{width:24px;height:24px;flex:none;padding:0;border-radius:999px}
 .top .wrap{max-width:none;padding-inline:24px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
@@ -1158,6 +1163,17 @@ function parseHash(){
   else if (["map", "places", "passes"].includes(h)) { route = h; routeArg = null; }
   else { route = "map"; }
 }
+/* Cities row on the country page scrolls sideways; keep its scroll position and pin open menus above it */
+let cityScroll = 0;
+function fixCityRow(){
+  const sc = $(".s-cities .vcards"); if (!sc) return;
+  sc.scrollLeft = cityScroll;
+  const m = sc.querySelector(".vcard.open .vmenu"); if (!m) return;
+  const k = m.closest(".vcard").querySelector(".kebab").getBoundingClientRect();
+  m.style.position = "fixed"; m.style.top = (k.top + 2) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, k.right - 8)) + "px";
+}
+document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".s-cities .vcards")) cityScroll = e.target.scrollLeft; if (openMenu) fixCityRow(); }, true);
+addEventListener("resize", () => { if (openMenu) fixCityRow(); });
 function renderAll(){
   parseHash();
   const needAuth = state.mode === "supabase" && !sbUser;
@@ -1170,7 +1186,7 @@ function renderAll(){
   if (route === "map") renderMapView();
   if (route === "places") renderPlaces();
   if (route === "passes") renderPasses();
-  if (route === "place") renderPlace(routeArg);
+  if (route === "place") { renderPlace(routeArg); fixCityRow(); }
 }
 function renderBanner(){
   const ex = [...Object.values(state.places), ...Object.values(state.flights)].filter(x => x.example);
