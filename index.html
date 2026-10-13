@@ -2675,7 +2675,7 @@ boot();
 })();
 </script>
 <script>
-/* Side-gutter dot grid: dots only show near the cursor, in pastels, fading toward the content column. */
+/* Side-gutter dot grid: dots only show near the cursor, in pastel blues, fading toward the content column. */
 (() => {
   const cv = document.getElementById("dotgrid"); if (!cv || !cv.getContext) return;
   const ctx = cv.getContext("2d"), GAP = 22, R = 1.6, HOVER = 150, COL = 1180;
@@ -2691,14 +2691,14 @@ boot();
       const d = x < gut ? gut - x : x > W - gut ? x - (W - gut) : -1;
       if (d <= 0) continue;
       const m = Math.min(1, d / gut);                       // 0 at the content edge, 1 at the screen edge
-      dots.push({ x, y, ox: 0, oy: 0, m: m * (2 - m), h: (x * 2.6 + y * 1.9) % 360 });
+      dots.push({ x, y, ox: 0, oy: 0, m: m * (2 - m), h: 195 + (x * 2.6 + y * 1.9) % 40 });
     }
   }
   function draw() {
     raf = 0; glow += (target - glow) * (still.matches ? 1 : 0.12);
     ctx.clearRect(0, 0, W, H);
     const dark = document.documentElement.dataset.mode !== "light";
-    const L = dark ? 70 : 76, S = dark ? 75 : 92, A = dark ? 0.6 : 0.95;
+    const L = dark ? 70 : 74, S = dark ? 70 : 90, A = dark ? 0.6 : 0.95;
     let busy = Math.abs(target - glow) > 0.01;
     for (const p of dots) {
       const dx = p.x - mx, dy = p.y - my, dist = Math.hypot(dx, dy);
