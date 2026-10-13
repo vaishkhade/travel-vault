@@ -602,6 +602,20 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .ntile .r{display:flex;gap:4.068px}
 .ntile i{display:block;flex:1 0 0;height:9.297px;border-radius:18.595px;background:#EDEDED}
 .ntile .g1>i,.ntile .g2>i{flex:none;width:100%}
+.ntile .ntags{display:flex;flex-wrap:wrap;gap:4px;max-height:36px;overflow:hidden}
+.ntile .ntag{font-size:10px;line-height:14px;font-weight:500;padding:1px 6px;border-radius:999px;background:#E3EFFE;color:#1C2FC2;white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.tagfield .plabel{font-weight:500;font-size:13px;line-height:18px;color:var(--ink);margin-bottom:6px}
+.tagbox{display:flex;flex-wrap:wrap;align-items:center;gap:6px;min-height:44px;padding:6px 8px;border:1px solid var(--border,var(--line));border-radius:12px;background:var(--card)}
+.tagbox:focus-within{border-color:var(--primary)}
+.tagbox #nTags{display:contents}
+.tagbox input{flex:1;min-width:120px;border:0 !important;outline:0;background:transparent;padding:4px !important;box-shadow:none !important;font:inherit;color:inherit}
+.tagchip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 4px 0 10px;border-radius:999px;background:var(--primary-soft);color:var(--on-primary-soft);font-size:12px;font-weight:600}
+.tagchip button{display:inline-flex;width:18px;height:18px;border:0;padding:0;border-radius:50%;background:transparent;color:inherit;cursor:pointer;align-items:center;justify-content:center}
+.tagchip button svg{width:12px;height:12px}
+.tagchip button:hover{background:rgba(0,0,0,.08)}
+.tagsugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.tagadd{height:26px;padding:0 10px;border-radius:999px;border:1px dashed var(--border,var(--line));background:transparent;color:var(--ink-muted,inherit);font-size:12px;cursor:pointer}
+.tagadd:hover{border-color:var(--primary);color:var(--primary)}
 .ntile .nname{font-family:Poppins,sans-serif;font-weight:500;font-size:14px;line-height:normal;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 @media (prefers-reduced-motion:reduce){.ntile{transition:none}}
 .sbento .ntiles.hrow{grid-auto-columns:124px;gap:8px}
@@ -1655,7 +1669,7 @@ const saveNotes = (p, list) => store.put("places", {...p, noteList: list, notes:
 function noteTileHTML(n){ // Figma "Image Container only": 124x141 sheet, two bar groups, note name at the bottom
   const title = (n.text.trim().split("\n").find(Boolean) || "Note").slice(0, 80);
   return `<button type="button" class="ntile" data-note="${esc(n.id)}" aria-label="Open note: ${esc(title)}" title="${esc(title)}">
-    <span class="nbars"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span><span class="g2"><i></i><i></i><i></i></span></span>
+    <span class="nbars"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span>${(n.tags || []).length ? `<span class="ntags">${n.tags.map(t => `<span class="ntag">${esc(t)}</span>`).join("")}</span>` : `<span class="g2"><i></i><i></i><i></i></span>`}</span>
     <span class="nname">${esc(title)}</span>
   </button>`;
 }
@@ -1663,13 +1677,26 @@ function openNote(cc, id){
   const p = state.places[cc]; if (!p) return;
   const list = notesOf(p), n = id ? list.find(x => x.id === id) : null;
   const ov = modal(`<h2>${n ? "Note" : "New note"}</h2>
-    <form class="form" id="fNote"><label class="full">Note<textarea id="nText" rows="9" required placeholder="Favourite food, where you stayed, who you went with…">${esc(n ? n.text : "")}</textarea></label></form>
+    <form class="form" id="fNote"><label class="full">Note<textarea id="nText" rows="9" required placeholder="Favourite food, where you stayed, who you went with…">${esc(n ? n.text : "")}</textarea></label>
+      <div class="full tagfield"><div class="plabel" id="nTagsL">Tags</div><div class="tagbox" role="group" aria-labelledby="nTagsL"><span id="nTags"></span><input id="nTagIn" maxlength="24" placeholder="Add a tag, then Enter" aria-label="Add a tag" autocomplete="off"></div>
+        <div class="tagsugg" id="nSugg"></div></div></form>
     <div class="foot" id="nFoot">${n ? `<button class="btn small danger" type="button" id="nDel" style="margin-right:auto">Delete</button>` : ""}<button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fNote">Save note</button></div>`);
+  let tags = [...((n && n.tags) || [])];
+  const SUGG = ["Food", "Stay", "Visa", "Transport", "Shopping", "Sights", "Tips", "People"];
+  const drawTags = () => {
+    $("#nTags", ov).innerHTML = tags.map((t, i) => `<span class="tagchip">${esc(t)}<button type="button" data-untag="${i}" aria-label="Remove ${esc(t)}">${ICON_X}</button></span>`).join("");
+    $("#nSugg", ov).innerHTML = SUGG.filter(x => !tags.some(t => t.toLowerCase() === x.toLowerCase())).map(x => `<button type="button" class="tagadd" data-tag="${esc(x)}">+ ${esc(x)}</button>`).join("");
+  };
+  const addTag = v => { v = v.trim().replace(/,$/, "").trim(); if (v && !tags.some(t => t.toLowerCase() === v.toLowerCase()) && tags.length < 6) tags.push(v); drawTags(); };
+  drawTags();
+  $("#nTagIn", ov).addEventListener("keydown", e => { if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(e.target.value); e.target.value = ""; } else if (e.key === "Backspace" && !e.target.value && tags.length) { tags.pop(); drawTags(); } });
+  $("#nTagIn", ov).addEventListener("blur", e => { if (e.target.value.trim()) { addTag(e.target.value); e.target.value = ""; } });
+  $("#fNote", ov).addEventListener("click", e => { const u = e.target.closest("[data-untag]"), a = e.target.closest("[data-tag]"); if (u) { tags.splice(+u.dataset.untag, 1); drawTags(); } if (a) addTag(a.dataset.tag); });
   setTimeout(() => { const t = $("#nText"); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }, 50);
   $("#fNote", ov).addEventListener("submit", e => {
     e.preventDefault(); const text = $("#nText").value.trim(); if (!text) return;
     const cur = notesOf(state.places[cc]);
-    saveNotes(state.places[cc], n ? cur.map(x => x.id === n.id ? {...x, id: x.id === "n-legacy" ? uid() : x.id, text, at: new Date().toISOString()} : x) : [{id: uid(), text, at: new Date().toISOString()}, ...cur]);
+    saveNotes(state.places[cc], n ? cur.map(x => x.id === n.id ? {...x, id: x.id === "n-legacy" ? uid() : x.id, text, tags, at: new Date().toISOString()} : x) : [{id: uid(), text, tags, at: new Date().toISOString()}, ...cur]);
     closeModal(); toast(n ? "Note saved" : "Note added");
   });
   const del = $("#nDel", ov); if (del) del.onclick = () => {
@@ -1881,7 +1908,7 @@ function openPlaceForm(editCc){
       <form class="form" id="fEdit">
         <label>First visited<input id="eWhen" type="month" value="${esc(p.firstVisit || "")}"></label>
       </form>
-      <div class="foot"><a class="btn ghost" href="#place-${esc(editCc)}" data-close>Open country page</a><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fEdit">Save</button></div>`);
+      <div class="foot"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fEdit">Save</button></div>`);
     $("#fEdit", ov).addEventListener("submit", e => { e.preventDefault(); store.put("places", {...state.places[editCc], firstVisit: $("#eWhen").value}); closeModal(); toast(`Saved ${c.name}`); });
     return;
   }
