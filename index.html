@@ -919,7 +919,7 @@ button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rg
 button.pass:hover{filter:drop-shadow(0 2px 4px rgba(13,29,66,.06)) drop-shadow(0 10px 22px rgba(13,29,66,.12))}
 :root:not([data-mode="light"]) button.pass{filter:drop-shadow(0 1px 2px rgba(0,0,0,.25)) drop-shadow(0 8px 18px rgba(0,0,0,.25))}
 /* passes: a nearly solid face so the soft drop shadow reads like the cards' */
-:root[data-mode="light"] .pass .main,:root[data-mode="light"] .pass .stub{background:rgba(255,255,255,.9)}
+:root[data-mode="light"] .pass:not([class*="pc-"]) .main,:root[data-mode="light"] .pass:not([class*="pc-"]) .stub{background:rgba(255,255,255,.92)}
 button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rgba(13,29,66,.06)) drop-shadow(0 8px 20px rgba(13,29,66,.11))}
 button.pass:hover,:root[data-mode="light"] button.pass:hover{filter:drop-shadow(0 2px 4px rgba(13,29,66,.07)) drop-shadow(0 12px 26px rgba(13,29,66,.15))}
 /* empty states fill the whole section and lift softly like the cards */
@@ -954,6 +954,11 @@ body>.top,body>.top:is(*){width:calc(100% - 32px);box-sizing:border-box;align-se
 .foot-bar,.foot-bar:is(*){margin-top:auto!important}
 body>main{margin-bottom:96px}
 @media (max-width:719px){body>main{margin-bottom:64px}}
+/* passes: no backdrop blur on the pieces so the outer drop shadow renders everywhere (Safari drops it otherwise) */
+.pass .main,.pass .stub{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rgba(13,29,66,.07)) drop-shadow(0 8px 22px rgba(13,29,66,.13))}
+/* footer: plain content on the page, no fill, border, blur or shadow */
+.foot-bar,.foot-bar:is(*),:root:not([data-mode="light"]) .foot-bar,:root:not([data-mode="light"]) .foot-bar:is(*){background:none;box-shadow:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
