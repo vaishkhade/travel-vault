@@ -548,6 +548,26 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .bcard.notes textarea{min-height:96px}
 .bcard .file{padding:8px 16px}
 @media (max-width:420px){.bcard .passes{grid-template-columns:minmax(0,1fr)}}
+/* passes: both halves always share one height (flex instead of grid on the button) */
+.pass{display:flex;align-items:stretch}
+.pass .main{flex:1 1 auto;min-width:0}
+.pass .stub{flex:0 0 96px;width:96px}
+@media (max-width:480px){.pass .stub{flex-basis:88px;width:88px}}
+/* compact passes on the country page */
+.bcard .pass{--notch:7px}
+.bcard .pass .main{padding:12px 16px}
+.bcard .pass .stub{flex-basis:84px;width:84px;padding:12px 8px;gap:4px}
+.bcard .pass .head{margin-bottom:4px}
+.bcard .pass .airline{font-size:13px}
+.bcard .route .code{font-size:28px;line-height:34px}
+.bcard .route .plane{margin-top:6px}
+.bcard .route .plane svg{width:18px;height:18px}
+.bcard .route .city{font-size:11px;line-height:14px}
+.bcard .fields{margin-top:8px;gap:4px 8px;grid-template-columns:repeat(4,max-content)}
+.bcard .fields b,.bcard .stub b{font-size:12px;line-height:16px}
+.bcard .fields .label,.bcard .stub .label{font-size:9px;line-height:12px}
+.bcard .stub svg{height:28px}
+.bcard .passes{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
 .top .wrap{max-width:none;padding-inline:24px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
