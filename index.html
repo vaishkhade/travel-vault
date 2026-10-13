@@ -589,6 +589,16 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* boarding pass colours: very light pastels, muted darks in dark mode */
+.pc-lilac{--pc:#EEEBFC}.pc-blue{--pc:#E3EFFE}.pc-mint{--pc:#E0F5EA}.pc-peach{--pc:#FFEADB}.pc-rose{--pc:#FDE6F0}.pc-butter{--pc:#FCF3CF}.pc-sky{--pc:#DDF3F7}
+:root[data-mode="dark"] .pc-lilac{--pc:#1D1B26}:root[data-mode="dark"] .pc-blue{--pc:#171D28}:root[data-mode="dark"] .pc-mint{--pc:#16201B}:root[data-mode="dark"] .pc-peach{--pc:#241D18}:root[data-mode="dark"] .pc-rose{--pc:#241A1F}:root[data-mode="dark"] .pc-butter{--pc:#232117}:root[data-mode="dark"] .pc-sky{--pc:#152124}
+.pass[class*="pc-"] .main,.pass[class*="pc-"] .stub{background:var(--pc)}
+.pcolors{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pcolors .swatch{width:24px;height:24px;flex:none;background:var(--pc,var(--surface-raised,#fff));border:1px solid var(--line)}
+.pcolors .swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--primary)}
+.pcfield .plabel{font-weight:500;font-size:13px;line-height:18px;color:var(--ink);margin-bottom:6px}
+.pvcolor{display:flex;align-items:center;gap:12px;margin-top:12px}
+
 /* one-row sideways scroll in every country card, View more opens the full section */
 .hacts{display:flex;align-items:center;gap:8px;margin-left:auto}
 .sbento .bcard{display:flex;flex-direction:column;min-width:0}.sbento .bcard>.hrow{min-width:0}
@@ -1026,10 +1036,12 @@ function barcode(seed){
   while (x < 60) { h = Math.imul(h ^ (h >>> 13), 1274126177); const w = 1 + ((h >>> 3) & 3); const gap = 1 + ((h >>> 7) & 1); out += `<rect x="${x}" y="0" width="${w*.8}" height="38" fill="currentColor"/>`; x += w + gap; }
   return `<svg viewBox="0 0 60 38" preserveAspectRatio="none" aria-hidden="true">${out}</svg>`;
 }
+const PCOLORS = [["lilac", "Lilac"], ["blue", "Blue"], ["mint", "Mint"], ["peach", "Peach"], ["rose", "Rose"], ["butter", "Butter"], ["sky", "Sky"]];
+const passPaletteHTML = cur => `<div class="pcolors" role="group" aria-label="Pass colour"><button type="button" class="swatch" data-pcolor="" aria-label="Plain" aria-pressed="${!cur}"></button>${PCOLORS.map(([k, n]) => `<button type="button" class="swatch pc-${k}" data-pcolor="${k}" aria-label="${n}" aria-pressed="${cur === k}"></button>`).join("")}</div>`;
 function passHTML(f, opts={}){
   const a = AIRPORT[f.from] || {city:f.from}, b = AIRPORT[f.to] || {city:f.to};
   const cabin = f.cabin || "Economy";
-  return `<${opts.static ? "div" : "button type=\"button\""} class="pass" data-flight="${esc(f.id)}" aria-label="${esc(`${f.airline||"Flight"} ${f.flightNo||""} from ${a.city} to ${b.city} on ${fmtDate(f.date)}`)}">
+  return `<${opts.static ? "div" : "button type=\"button\""} class="pass${PCOLORS.some(([k]) => k === f.color) ? " pc-" + f.color : ""}" data-flight="${esc(f.id)}" aria-label="${esc(`${f.airline||"Flight"} ${f.flightNo||""} from ${a.city} to ${b.city} on ${fmtDate(f.date)}`)}">
     <div class="main">
       <div class="head"><span class="airline">${esc(f.airline || "Airline")}</span><span class="cabin ${esc(cabin.split(" ")[0])}">${esc(cabin)}</span></div>
       <div class="route">
@@ -1953,6 +1965,7 @@ function openFlightForm(existing, toCc){
       <label>Booking reference<input id="fPnr" placeholder="X7K2PQ" value="${esc(f.pnr || "")}" style="text-transform:uppercase"></label>
       <label>Boarding time<input id="fBoard" type="time" value="${esc(f.boarding || "")}"></label>
       <label>Gate<input id="fGate" placeholder="B12" value="${esc(f.gate || "")}"></label>
+      <div class="full pcfield"><div class="plabel" id="fColorL">Pass colour</div>${passPaletteHTML(f.color)}</div>
       ${existing ? "" : `<label class="full check"><input type="checkbox" id="fRound"> Round trip (adds the return flight too)</label>
       <div class="full rleg" id="fRet" role="group" aria-labelledby="fRetT" hidden><div class="rlegt" id="fRetT">Return flight</div><div class="form">
         <label>From<input id="rFrom" list="dlAirports" maxlength="3" autocomplete="off" style="text-transform:uppercase"></label>
@@ -1997,7 +2010,7 @@ function openFlightForm(existing, toCc){
     if (!AIRPORT[from] || !AIRPORT[to]) return ($("#fErr").textContent = `I don't know the airport code ${!AIRPORT[from] ? from : to}. Pick one from the list.`);
     $("#fSave").disabled = true;
     const rec = {...f, id: f.id || uid(), from, to, date: $("#fDate").value, airline: $("#fAirline").value.trim(), flightNo: $("#fNo").value.trim().toUpperCase(),
-      seat: $("#fSeat").value.trim().toUpperCase(), cabin: $("#fCabin").value, pnr: $("#fPnr").value.trim().toUpperCase(), boarding: $("#fBoard").value, gate: $("#fGate").value.trim().toUpperCase()};
+      seat: $("#fSeat").value.trim().toUpperCase(), cabin: $("#fCabin").value, pnr: $("#fPnr").value.trim().toUpperCase(), boarding: $("#fBoard").value, gate: $("#fGate").value.trim().toUpperCase(), color: ($("#fFlight .pcolors [aria-pressed=true]") || {dataset: {}}).dataset.pcolor || ""};
     const scan = $("#fScan").files[0];
     if (scan) {
       try { const src = await store.saveFile(scan); if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); rec.scan = {name: scan.name, type: scan.type, size: scan.size, src}; }
@@ -2009,7 +2022,7 @@ function openFlightForm(existing, toCc){
       if (!AIRPORT[rf] || !AIRPORT[rt]) { $("#fSave").disabled = false; return ($("#fErr").textContent = `I don't know the return airport code ${!AIRPORT[rf] ? rf : rt}. Pick one from the list.`); }
       rec.trip = rec.trip || uid();
       ret = {id: uid(), trip: rec.trip, from: rf, to: rt, date: $("#rDate").value, airline: $("#rAirline").value.trim() || rec.airline, flightNo: $("#rNo").value.trim().toUpperCase(),
-        seat: $("#rSeat").value.trim().toUpperCase(), cabin: rec.cabin, pnr: rec.pnr, boarding: $("#rBoard").value, gate: $("#rGate").value.trim().toUpperCase(), ...(rec.scan ? {scan: rec.scan} : {})};
+        seat: $("#rSeat").value.trim().toUpperCase(), cabin: rec.cabin, pnr: rec.pnr, boarding: $("#rBoard").value, gate: $("#rGate").value.trim().toUpperCase(), color: rec.color, ...(rec.scan ? {scan: rec.scan} : {})};
     }
     await store.put("flights", rec);
     if (ret) await store.put("flights", ret);
@@ -2035,6 +2048,7 @@ function openPassView(f, retry){
   const sUrl = f.scan ? srcUrl(f.scan.src) : "";
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
+    <div class="pvcolor"><span class="note">Colour</span>${passPaletteHTML(f.color)}</div>
     <div class="note" style="margin-top:10px">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</div>
     <div class="foot" id="pvFoot"></div>`, "passview");
   const foot = () => {
@@ -2043,6 +2057,11 @@ function openPassView(f, retry){
       : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button>${f.scan ? `<button class="btn small ghost" type="button" id="pvOrig">View original</button>` : ""}<button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
   };
   passConfirm = false; foot();
+  $(".pvcolor", ov).addEventListener("click", async e => {
+    const sw = e.target.closest("[data-pcolor]"); if (!sw) return;
+    f = {...f, color: sw.dataset.pcolor}; await store.put("flights", f);
+    const pv = $(".pass", ov); pv.className = "pass" + (f.color ? " pc-" + f.color : "");
+  });
   $("#pvFoot", ov).addEventListener("click", async e => {
     const id = e.target.id;
     if (id === "pvDel") { passConfirm = true; foot(); }
@@ -2052,6 +2071,10 @@ function openPassView(f, retry){
     if (id === "pvOrig") openOriginal(f.scan);
   });
 }
+document.addEventListener("click", e => {
+  const sw = e.target.closest(".pcolors [data-pcolor]"); if (!sw) return;
+  e.preventDefault(); for (const b of sw.parentNode.children) b.setAttribute("aria-pressed", b === sw);
+});
 /* the uploaded boarding pass stays hidden until asked for */
 function openOriginal(scan, tries = 0){
   const u = srcUrl(scan.src);
