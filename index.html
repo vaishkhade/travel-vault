@@ -585,6 +585,25 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* one-row sideways scroll in every country card, View more opens the full section */
+.hacts{display:flex;align-items:center;gap:8px;margin-left:auto}
+.bcard .section-head:has(.hacts){flex-wrap:nowrap}.bcard .section-head:has(.hacts) h2{min-width:0;white-space:nowrap}.hacts .note{white-space:nowrap}
+.bcard .hrow{display:grid;grid-template-columns:none;grid-auto-flow:column;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
+.bcard .hrow>*{scroll-snap-align:start}
+.bcard .hrow:has(>.empty),.bcard .hrow:has(>.fempty){display:block}
+.bcard .passes.hrow{grid-auto-columns:min(100%,max(320px,calc((100% - 8px) / 2)))}
+.bcard .photos.hrow{grid-auto-columns:104px}
+.bcard .files.hrow{background:transparent;border:0;border-radius:0;grid-auto-columns:min(100%,260px)}
+.bcard .files.hrow>.file{background:var(--card);border:0;border-radius:12px;grid-template-columns:40px minmax(0,1fr);padding:12px}
+.bcard .files.hrow>.file .acts{grid-column:1 / -1}
+.bcard .files.hrow>.fempty{grid-template-columns:1fr}
+.secthead h1{display:flex;align-items:center;gap:12px}
+.secthead h1 svg{width:28px;height:28px;flex:none}
+.sectpage{margin-top:24px}
+.sectpage .vcards{grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:16px}
+.sectpage .passes{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+@media (max-width:420px){.sectpage .passes{grid-template-columns:minmax(0,1fr)}}
+.sectpage .photos{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
 
@@ -1163,27 +1182,29 @@ setMode((() => { try { return localStorage.getItem("tv-mode") || "light"; } catc
 $("#modeBtn").onclick = () => { const m = document.documentElement.dataset.mode === "light" ? "dark" : "light"; setMode(m); try { localStorage.setItem("tv-mode", m); } catch (e) {} };
 
 /* ---------- views ---------- */
-let route = "map", routeArg = null, routeSub = null, highlightFlight = null;
+let route = "map", routeArg = null, routeSub = null, routeView = null, highlightFlight = null;
 function parseHash(){
   const h = (location.hash || "#map").slice(1);
-  routeSub = null;
-  if (h.startsWith("place-")) { route = "place"; const [cc, sub] = h.slice(6).split("."); routeArg = cc.toUpperCase(); routeSub = sub || null; }
+  routeSub = null; routeView = null;
+  if (h.startsWith("place-")) { route = "place"; const [rest, view] = h.slice(6).split("/"), [cc, sub] = rest.split("."); routeArg = cc.toUpperCase(); routeSub = sub || null; routeView = SECTIONS[view] ? view : null; }
   else if (["map", "places", "passes"].includes(h)) { route = h; routeArg = null; }
   else { route = "map"; }
 }
 /* Cities row on the country page scrolls sideways; keep its scroll position and pin open menus above it */
-let cityScroll = 0;
+let rowScroll = {};
 function fixCityRow(){
+  for (const r of $$(".sbento .hrow")) {
+    const k = r.closest(".bcard").className; r.scrollLeft = rowScroll[k] || 0;
+    r.style.marginBottom = -(r.offsetHeight - r.clientHeight) + "px"; // a visible scrollbar sits in the bottom padding, so card bottoms still line up
+  }
   const sc = $(".s-cities .vcards"); if (!sc) return;
   const ps = $(".s-flights .pass"), side = ps && Math.abs($(".s-cities").getBoundingClientRect().top - $(".s-flights").getBoundingClientRect().top) < 1;
   sc.style.setProperty("--pass-h", side ? ps.getBoundingClientRect().height + "px" : "auto"); // city cards match the pass height when the two cards sit side by side
-  sc.scrollLeft = cityScroll;
-  sc.style.marginBottom = -(sc.offsetHeight - sc.clientHeight) + "px"; // a visible scrollbar sits in the bottom padding, so card bottoms still line up
   const m = sc.querySelector(".vcard.open .vmenu"); if (!m) return;
   const k = m.closest(".vcard").querySelector(".kebab").getBoundingClientRect();
   m.style.position = "fixed"; m.style.top = (k.top + 2) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, k.right - 8)) + "px";
 }
-document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".s-cities .vcards")) cityScroll = e.target.scrollLeft; if (openMenu) fixCityRow(); }, true);
+document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".sbento .hrow")) rowScroll[e.target.closest(".bcard").className] = e.target.scrollLeft; if (openMenu) fixCityRow(); }, true);
 addEventListener("resize", () => { if (route === "place") fixCityRow(); });
 function renderAll(){
   parseHash();
@@ -1456,7 +1477,7 @@ function openCityForm(cc){
 let cityConfirm = null, placeConfirm = false, lastPlace = null;
 function renderPlace(cc){
   const el = $("#v-place"), c = COUNTRY[cc], p = state.places[cc];
-  if (lastPlace !== cc) { cityConfirm = null; placeConfirm = false; lastPlace = cc; }
+  if (lastPlace !== cc) { cityConfirm = null; placeConfirm = false; lastPlace = cc; rowScroll = {}; }
   if (!c) { el.innerHTML = `<div class="empty">That country isn't in the list. <a href="#places">Back to places</a></div>`; return; }
   if (!p) {
     el.innerHTML = `<div class="crumbs"><a href="#places">Places</a> / ${esc(c.name)}</div>` + (state.ready
@@ -1467,6 +1488,7 @@ function renderPlace(cc){
   }
   if (!p.folders) { store.put("places", {...p, folders: (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))}); return; }
   if (routeSub) return renderSubfolder(cc, p);
+  if (routeView) return renderSection(cc, p, routeView);
   const fl = flightsFor(cc);
   const notesFocused = document.activeElement && document.activeElement.id === "notes";
   if (notesFocused) return; // don't clobber typing
@@ -1493,30 +1515,27 @@ function renderPlace(cc){
     <div class="sbento">
     ${bentoOpen(cc, p, "cities")}
       <div class="section-head"><h2>${BICON.pin}Cities</h2>
-        <button class="btn small" type="button" id="cityHere">Add city</button>
+        <div class="hacts">${viewMore(cc, "cities", (p.folders || []).length)}<button class="btn small" type="button" id="cityHere">Add city</button></div>
       </div>
-      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`}</div>
+      <div class="vcards hrow">${sectionItems(cc, p, "cities")}</div>
     ${bentoClose(cc, p, "cities")}
 
     ${bentoOpen(cc, p, "flights")}
-      <div class="section-head"><h2>${BICON.plane}Flights</h2><button class="btn small" type="button" id="flightHere">Add flight</button></div>
-      <div class="passes" id="placePasses">${fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(c.name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`}</div>
+      <div class="section-head"><h2>${BICON.plane}Flights</h2><div class="hacts">${viewMore(cc, "flights", fl.length)}<button class="btn small" type="button" id="flightHere">Add flight</button></div></div>
+      <div class="passes hrow" id="placePasses">${sectionItems(cc, p, "flights")}</div>
     ${bentoClose(cc, p, "flights")}
 
     ${bentoOpen(cc, p, "photos")}
-      <div class="section-head"><h2>${BICON.photo}Photos</h2><span class="note">${(p.photos || []).length} photos</span></div>
-      <div class="photos" id="photos">
-        ${(p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("")}
+      <div class="section-head"><h2>${BICON.photo}Photos</h2><div class="hacts"><span class="note">${plural((p.photos || []).length, "photo", "photos")}</span>${viewMore(cc, "photos", (p.photos || []).length)}</div></div>
+      <div class="photos hrow" id="photos">
         <button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button>
+        ${sectionItems(cc, p, "photos")}
       </div>
     ${bentoClose(cc, p, "photos")}
 
     ${bentoOpen(cc, p, "files")}
-      <div class="section-head"><h2>${BICON.file}Files &amp; documents</h2><button class="btn small" type="button" data-upload="files">Add files</button></div>
-      <div class="files" id="files">
-        ${(p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
-          : `<div class="file" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`}
-      </div>
+      <div class="section-head"><h2>${BICON.file}Files &amp; documents</h2><div class="hacts">${viewMore(cc, "files", (p.files || []).length)}<button class="btn small" type="button" data-upload="files">Add files</button></div></div>
+      <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>
     ${bentoClose(cc, p, "files")}
 
     ${bentoOpen(cc, p, "notes", "notes")}
@@ -1536,6 +1555,30 @@ function renderPlace(cc){
     highlightFlight = null;
     if (t) { t.classList.add("flash"); setTimeout(() => t.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}), 50); }
   }
+}
+const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents"};
+const viewMore = (cc, id, n) => n ? `<a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a>` : "";
+function sectionItems(cc, p, id){
+  if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
+  if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
+  if (id === "photos") return (p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("");
+  return (p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
+    : `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`;
+}
+/* View more: one section of a country on its own page, every item in a grid */
+function renderSection(cc, p, id){
+  const c = COUNTRY[cc], n = {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length}[id];
+  const icon = {cities: BICON.pin, flights: BICON.plane, photos: BICON.photo, files: BICON.file}[id];
+  const add = {cities: `<button class="btn small" type="button" id="cityHere">Add city</button>`, flights: `<button class="btn small" type="button" id="flightHere">Add flight</button>`,
+    photos: `<button class="btn small" type="button" data-upload="photos">Add photos</button>`, files: `<button class="btn small" type="button" data-upload="files">Add files</button>`}[id];
+  const unit = {cities: ["city", "cities"], flights: ["flight", "flights"], photos: ["photo", "photos"], files: ["file", "files"]}[id];
+  const body = id === "photos" ? `<div class="photos">${sectionItems(cc, p, id)}<button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button></div>`
+    : `<div class="${{cities: "vcards", flights: "passes", files: "files"}[id]}">${sectionItems(cc, p, id)}</div>`;
+  $("#v-place").innerHTML = `
+    <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${esc(SECTIONS[id])}</div>
+    <div class="folderhead secthead"><h1>${icon}${esc(SECTIONS[id])}</h1><span class="note">${plural(n, ...unit)}</span>
+      <div class="folderacts" style="margin-left:auto"><a class="btn small ghost" href="#place-${esc(cc)}">Back to ${esc(c.name)}</a>${add}</div></div>
+    <div class="sectpage s-${id}page">${body}</div>`;
 }
 function renderSubfolder(cc, p){
   const el = $("#v-place"), c = COUNTRY[cc], fo = (p.folders || []).find(f => f.id === routeSub);
