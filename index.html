@@ -3,7 +3,7 @@
 <title>Travel Vault</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Poppins:wght@400;500;600&display=swap">
 <style>
 /* Layout: black vault shell with a sticky top bar and three views (Map, Places, Boarding passes).
    Countries are photo cards, flights are glass folders; both open the same country page.
@@ -589,6 +589,29 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* Scrapbook world map: cork countries pinned to a navy board, flights as slack thread */
+#worldMap{--board:#1b2740;--board-sea:#203050;--land-flat:#33425f;--land-flat-line:#46577a;--thread:#e4574e;--ocean-ink:rgba(255,255,255,.5);background:var(--board);border-color:#2b3a5a;box-shadow:inset 0 0 60px rgba(0,0,0,.45),var(--shadow-sm)}
+:root:not([data-mode="light"]) #worldMap{--board:#141d31;--board-sea:#18243d;--land-flat:#2a3650;--land-flat-line:#3a4867}
+#worldMap .sphere{fill:var(--board-sea)}
+#worldMap .grat{stroke:#fff;opacity:.05}
+#worldMap .country{fill:var(--land-flat);stroke:var(--land-flat-line);stroke-width:.5}
+#worldMap .country.visited{fill:url(#tvCork);stroke:#f0d3a2;stroke-width:.8;filter:url(#tvRaise);cursor:pointer}
+#worldMap .country.visited:hover{fill:url(#tvCork);filter:url(#tvRaise) brightness(1.12)}
+:root:not([data-mode="light"]) #worldMap .country.visited{filter:url(#tvRaise) brightness(.88)}
+:root:not([data-mode="light"]) #worldMap .country.visited:hover{filter:url(#tvRaise) brightness(1)}
+#worldMap .ocean{font-family:"Caveat",cursive;font-weight:600;fill:var(--ocean-ink);letter-spacing:.06em;pointer-events:none;text-anchor:middle}
+#worldMap .arc{fill:none;stroke:var(--thread);stroke-width:1.4;stroke-dasharray:none;opacity:.95;stroke-linecap:round;filter:url(#tvThread);vector-effect:non-scaling-stroke}
+#worldMap .archit{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke}
+#worldMap .pin{cursor:pointer}
+#worldMap .pin .head{stroke:rgba(0,0,0,.25);stroke-width:.6}
+#worldMap .pin.flag .head{fill:#fbf7ee;stroke:#c9a46c;stroke-width:1.4}
+#worldMap .pin text{font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
+#worldMap .legend{background:rgba(13,20,36,.72);border-color:rgba(255,255,255,.12);color:#e6ebf5;backdrop-filter:blur(4px)}
+#worldMap .legend i.cork{background:#c89a63;box-shadow:1px 2px 2px rgba(0,0,0,.5)}
+#worldMap .legend i.cpin{background:radial-gradient(circle at 35% 35%,#ffd0cc 0 20%,#e4574e 21%);border-radius:50%}
+#worldMap .legend i.thread{height:0;width:18px;border-radius:0;border-top:2px solid #e4574e;vertical-align:3px}
+@media (max-width:560px){#worldMap .legend{left:6px;bottom:6px;gap:8px;padding:4px 6px;font-size:10px}#worldMap .legend i{width:8px;height:8px;margin-right:3px}#worldMap .mapctl{right:6px;top:6px;gap:4px}#worldMap .mapctl button{width:28px;height:28px;font-size:14px}}
+
 /* dark mode keeps the light-mode colours: only page background and neutral surfaces change */
 :root:not([data-mode="light"]){--primary:#7cadf9;--primary-hover:#9cc1fb;--primary-pressed:#b9d3fc;--on-primary:#ffffff;--primary-soft:#bac5d8;--primary-soft-hover:#c6d0e0;--primary-soft-pressed:#aab7cc;--on-primary-soft:#122f70;--focus:#7cadf9;--visited:#779ed4;--visited-line:#3f78e0;--accent:#1a4fbe;--accent-ink:#ffffff;--soft:#bac5d8;--dim:88%}
 :root:not([data-mode="light"]) :is(.pass[class*="pc-"],.banner,.ntile,.cchip,.chip){--primary:#1a4fbe}
@@ -746,7 +769,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
     <div class="stats" id="stats"></div>
     <div class="mapbox" id="worldMap">
       <div class="mapctl"><button type="button" data-z="in" aria-label="Zoom in">+</button><button type="button" data-z="out" aria-label="Zoom out">−</button><button type="button" data-z="reset" aria-label="Reset map">⟲</button></div>
-      <div class="legend"><span><i style="background:var(--visited)"></i>Visited country</span><span><i style="background:var(--ink);border-radius:50%"></i>City</span><span><i style="border-top:2px dashed var(--ink);height:0;width:16px;border-radius:0;vertical-align:3px"></i>Flight</span></div>
+      <div class="legend"><span><i class="cork"></i>Visited country</span><span><i class="cpin"></i>City</span><span><i class="thread"></i>Flight</span></div>
     </div>
     <div class="below-map">
       <div>
@@ -1389,20 +1412,32 @@ function renderMapView(){
 }
 
 let world = null;
+const PIN_COLORS = ["#e4574e", "#f2b632", "#3fa7d6", "#59b36b", "#b57edc", "#f28b3c"];
+const OCEANS = [["Atlantic Ocean", -38, 24], ["Pacific Ocean", -142, 4], ["Pacific Ocean", 168, 22], ["Indian Ocean", 78, -24], ["Southern Ocean", 30, -60], ["Arctic Ocean", 20, 80]];
 function drawWorld(){
   const box = $("#worldMap");
   const W = 960, H = 500;
   if (!world) {
     const svg = d3.select(box).insert("svg", ":first-child").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img").attr("aria-label", "World map of visited countries, cities and flights");
+    svg.append("defs").html(`
+      <filter id="tvCorkNoise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .42  0 0 0 0 .26  0 0 0 0 .11  0 0 0 1.6 -.62"/></filter>
+      <filter id="tvCorkSpeck" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .72  0 0 0 .9 -.38"/></filter>
+      <pattern id="tvCork" patternUnits="userSpaceOnUse" width="140" height="140"><rect width="140" height="140" fill="#c8995f"/><rect width="140" height="140" filter="url(#tvCorkSpeck)" opacity=".5"/><rect width="140" height="140" filter="url(#tvCorkNoise)"/></pattern>
+      <filter id="tvRaise" x="-10%" y="-10%" width="125%" height="130%"><feDropShadow dx="1.2" dy="2.4" stdDeviation="1.6" flood-color="#000" flood-opacity=".6"/></filter>
+      <filter id="tvThread" x="-5%" y="-20%" width="110%" height="160%"><feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000" flood-opacity=".45"/></filter>
+      <filter id="tvPinShadow" x="-60%" y="-60%" width="240%" height="240%"><feDropShadow dx="1.4" dy="2.2" stdDeviation="1.2" flood-color="#000" flood-opacity=".55"/></filter>
+      <radialGradient id="tvShine" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>`);
     const proj = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], {type: "Sphere"});
     const path = d3.geoPath(proj);
     const g = svg.append("g");
     g.append("path").attr("class", "sphere").attr("d", path({type: "Sphere"}));
     g.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule10()));
+    g.append("g").selectAll("text").data(OCEANS).join("text").attr("class", "ocean").attr("font-size", 20)
+      .attr("x", d => proj([d[1], d[2]])[0]).attr("y", d => proj([d[1], d[2]])[1]).text(d => d[0]);
     const gc = g.append("g"), ga = g.append("g"), gp = g.append("g");
     gc.selectAll("path").data(WORLD).join("path").attr("class", "country").attr("d", path);
     const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
-    const zoom = d3.zoom().scaleExtent([1, 12]).translateExtent([[0, 0], [W, H]]).on("zoom", e => { g.attr("transform", e.transform); gp.selectAll("circle").attr("r", function(){ return (+this.dataset.r) / e.transform.k; }); });
+    const zoom = d3.zoom().scaleExtent([1, 12]).translateExtent([[0, 0], [W, H]]).on("zoom", e => { g.attr("transform", e.transform); sizePins(); });
     svg.call(zoom);
     box.querySelector(".mapctl").addEventListener("click", e => {
       const z = e.target.closest("button"); if (!z) return;
@@ -1412,36 +1447,59 @@ function drawWorld(){
     });
     const show = (e, text) => { const r = box.getBoundingClientRect(); tip.textContent = text; tip.hidden = false; tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; };
     svg.on("pointermove", e => {
-      const t = e.target;
-      if (t.classList.contains("country")) { const cc = BY_NUM[t.__data__.id]; const c = COUNTRY[cc]; if (!c) return (tip.hidden = true); show(e, state.places[cc] ? `${c.flag} ${c.name} · ${(state.places[cc].cities || []).length} cities` : c.name); }
-      else if (t.classList.contains("city")) show(e, t.dataset.label);
-      else if (t.classList.contains("arc")) show(e, t.dataset.label);
+      const t = e.target, pin = t.closest(".pin");
+      if (pin) show(e, pin.dataset.label);
+      else if (t.classList.contains("country")) { const cc = BY_NUM[t.__data__.id]; const c = COUNTRY[cc]; if (!c) return (tip.hidden = true); show(e, state.places[cc] ? `${c.flag} ${c.name} · ${(state.places[cc].cities || []).length} cities` : c.name); }
+      else if (t.classList.contains("archit")) show(e, t.dataset.label);
       else tip.hidden = true;
     }).on("pointerleave", () => tip.hidden = true)
       .on("click", e => {
-        const t = e.target; let cc = null;
-        if (t.classList.contains("country")) cc = BY_NUM[t.__data__.id];
-        if (t.classList.contains("city")) cc = t.dataset.cc;
+        const t = e.target, pin = t.closest(".pin"); let cc = null;
+        if (pin) cc = pin.dataset.cc;
+        else if (t.classList.contains("country")) cc = BY_NUM[t.__data__.id];
         if (cc && state.places[cc]) location.hash = "place-" + cc;
       });
+    addEventListener("resize", () => sizePins());
     world = {svg, proj, path, gc, ga, gp};
   }
-  const {proj, path, gc, ga, gp} = world;
-  gc.selectAll("path").attr("class", d => "country" + (state.places[BY_NUM[d.id]] ? " visited" : ""));
+  const {proj, gc, ga, gp} = world;
+  gc.selectAll("path").attr("class", d => "country" + (state.places[BY_NUM[d.id]] ? " visited" : "")).filter(".visited").raise();
+  /* Flights hang between their airports as slack thread, sagging a little under their own weight */
   const fs = flights().filter(f => AIRPORT[f.from] && AIRPORT[f.to]);
-  ga.selectAll("path").data(fs, f => f.id).join("path").attr("class", "arc")
-    .attr("d", f => path({type: "LineString", coordinates: [[AIRPORT[f.from].lng, AIRPORT[f.from].lat], [AIRPORT[f.to].lng, AIRPORT[f.to].lat]]}))
-    .attr("data-label", f => `${f.from} → ${f.to} · ${fmtDate(f.date)}`);
-  const pts = [];
-  for (const p of places()) {
+  const thread = f => {
+    const [x1, y1] = proj([AIRPORT[f.from].lng, AIRPORT[f.from].lat]), [x2, y2] = proj([AIRPORT[f.to].lng, AIRPORT[f.to].lat]);
+    const d = Math.hypot(x2 - x1, y2 - y1), sag = Math.min(60, 6 + d * .16);
+    return `M${x1},${y1}Q${(x1 + x2) / 2},${(y1 + y2) / 2 + sag} ${x2},${y2}`;
+  };
+  const label = f => `${f.from} → ${f.to} · ${fmtDate(f.date)}`;
+  ga.selectAll("path.arc").data(fs, f => f.id).join("path").attr("class", "arc").attr("d", thread);
+  ga.selectAll("path.archit").data(fs, f => f.id).join("path").attr("class", "archit").attr("d", thread).attr("data-label", label);
+  /* One flag pin per visited country, a small coloured push pin per city */
+  const pins = [];
+  places().forEach((p, i) => {
     const c = COUNTRY[p.id];
-    if (!FEATURE[p.id] && !(p.cities || []).length) pts.push({cc: p.id, lat: c.latlng[0], lng: c.latlng[1], label: c.name, r: 4});
-    for (const ct of p.cities || []) pts.push({cc: p.id, lat: ct.lat, lng: ct.lng, label: `${ct.name}, ${c.name}`, r: 3.4});
-  }
-  const k = d3.zoomTransform(world.svg.node()).k;
-  gp.selectAll("circle").data(pts).join("circle").attr("class", "city")
-    .attr("cx", d => proj([d.lng, d.lat])[0]).attr("cy", d => proj([d.lng, d.lat])[1])
-    .attr("data-r", d => d.r).attr("r", d => d.r / k).attr("data-label", d => d.label).attr("data-cc", d => d.cc);
+    pins.push({key: "c-" + p.id, cc: p.id, flag: c.flag, lat: c.latlng[0], lng: c.latlng[1], label: `${c.flag} ${c.name}`});
+    (p.cities || []).forEach((ct, j) => pins.push({key: `t-${p.id}-${ct.name}`, cc: p.id, lat: ct.lat, lng: ct.lng, label: `${ct.name}, ${c.name}`, color: PIN_COLORS[(i * 2 + j) % PIN_COLORS.length]}));
+  });
+  pins.sort((a, b) => (!!a.flag - !!b.flag) || (a.lat < b.lat ? 1 : -1));
+  gp.selectAll("g.pin").data(pins, d => d.key).join(enter => {
+    const e = enter.append("g").attr("filter", "url(#tvPinShadow)");
+    e.each(function(d){
+      const n = d3.select(this);
+      if (d.flag) { n.append("circle").attr("class", "head").attr("r", 10); n.append("text").attr("y", .5).text(d.flag); n.append("circle").attr("r", 10).attr("fill", "url(#tvShine)").attr("opacity", .55).attr("pointer-events", "none"); }
+      else { n.append("circle").attr("class", "head").attr("r", 4.6).attr("fill", d.color); n.append("circle").attr("r", 4.6).attr("fill", "url(#tvShine)").attr("pointer-events", "none"); }
+    });
+    return e;
+  }).attr("class", d => "pin" + (d.flag ? " flag" : "")).attr("data-cc", d => d.cc).attr("data-label", d => d.label)
+    .each(function(d){ const [x, y] = proj([d.lng, d.lat]); this.dataset.x = x; this.dataset.y = y; }).order();
+  sizePins();
+}
+/* Pins keep the same size on screen while the map zooms, and grow a little on narrow screens so they stay tappable */
+function sizePins(){
+  if (!world) return;
+  const k = d3.zoomTransform(world.svg.node()).k, w = world.svg.node().clientWidth || 960;
+  const s = Math.min(2, Math.max(1, 640 / w)) / k;
+  world.gp.selectAll("g.pin").attr("transform", function(){ return `translate(${this.dataset.x},${this.dataset.y}) scale(${s})`; });
 }
 
 const EADD_ONE = () => placeMode === "cities" ? `<button class="btn primary" type="button" data-eadd="city">Add city</button>` : `<button class="btn primary" type="button" data-eadd="country">Add country</button>`;
