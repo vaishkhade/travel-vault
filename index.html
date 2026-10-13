@@ -154,12 +154,16 @@ main{padding-block:16px;margin-block:32px 96px}
 .ffolder .back .sheet{position:absolute;left:-13px;top:-34px;width:293px;height:225px;background:var(--fc,#B5B0E3)}
 .ffolder .back img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ffolder .front{position:absolute;left:0;top:23px;width:291px;height:195px;clip-path:path("M110.068 0H16C7.16344 0 0 7.16344 0 16V179C0 187.837 7.16345 195 16 195H275C283.837 195 291 187.837 291 179V42.5C291 33.6634 283.837 26.5 275 26.5H136.239C131.09 26.5 126.515 23.2147 124.869 18.3353L121.438 8.1647C119.792 3.2853 115.217 0 110.068 0Z");
-  overflow:hidden;background:#141218}
+  overflow:hidden;background:rgba(20,18,24,.18);-webkit-backdrop-filter:blur(30px) saturate(.7) brightness(.5);backdrop-filter:blur(30px) saturate(.7) brightness(.5)}
+.ffolder .front .glass{display:none}
+/* Figma GLASS frost is radius 88; one CSS backdrop blur that wide renders unreliably, so a second blurred layer underneath widens it */
+.ffolder .frost{position:absolute;left:0;top:23px;width:291px;height:195px;clip-path:path("M110.068 0H16C7.16344 0 0 7.16344 0 16V179C0 187.837 7.16345 195 16 195H275C283.837 195 291 187.837 291 179V42.5C291 33.6634 283.837 26.5 275 26.5H136.239C131.09 26.5 126.515 23.2147 124.869 18.3353L121.438 8.1647C119.792 3.2853 115.217 0 110.068 0Z");-webkit-backdrop-filter:blur(36px);backdrop-filter:blur(36px);pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.ffolder:hover .frost,.ffolder:focus-visible .frost{transform:translateY(2px)}
 /* Figma GLASS effect: the sheet behind, blurred through the front panel */
 .ffolder .front .glass{position:absolute;left:12.9113px;top:-23px;width:265.177px;height:193px;border-radius:20px;overflow:hidden;background:#F5F5F5;filter:blur(30px);opacity:.75}
 .ffolder .front .glass .sheet{position:absolute;inset:0;background:var(--fc,#B5B0E3)}
 .ffolder .front .glass img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.ffolder .front::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(51,51,51,.1),rgba(51,51,51,.1)),linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 100%)}
+.ffolder .front::after{content:"";position:absolute;inset:0;background:radial-gradient(60% 55% at 22% 18%,rgba(255,255,255,.16),rgba(255,255,255,0) 70%),linear-gradient(rgba(51,51,51,.1),rgba(51,51,51,.1)),linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.58) 100%)}
 .ffolder .edge{position:absolute;left:0;top:23px;width:291px;height:195px;pointer-events:none}
 .ffolder .when{position:absolute;right:20px;top:65px;display:flex;align-items:center;gap:4px;font-size:14px;line-height:var(--lh-body);white-space:nowrap}
 .ffolder .when b{font-weight:600}
@@ -882,7 +886,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
       <stop offset="0" stop-color="#8F8AAD"/><stop offset=".55" stop-color="#4A465E"/><stop offset="1" stop-color="#1D1B25"/>
     </radialGradient>
     <linearGradient id="folderEdge" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/><stop offset=".45" stop-color="#FFFFFF" stop-opacity=".08"/><stop offset=".8" stop-color="#FFFFFF" stop-opacity=".02"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".25"/>
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".7"/><stop offset=".4" stop-color="#FFFFFF" stop-opacity=".12"/><stop offset=".75" stop-color="#FFFFFF" stop-opacity=".04"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".35"/>
     </linearGradient>
   </defs>
 </svg>
@@ -1279,7 +1283,7 @@ function folderHTML({href, label, month, code, meta, title, pics, key, color, in
   return `<div class="fwrap${openPal === key && key ? " open" : ""}"${color ? ` style="--fc:${esc(color)}"` : ""}><a class="ffolder" href="${esc(href)}" aria-label="${esc(label)}">
     <span class="back"><span class="sheet"></span></span>
     ${insideHTML(inside || {pics: pics || []})}
-    <span class="front"><span class="glass"><span class="sheet"></span></span></span>
+    <span class="frost"></span><span class="front"><span class="glass"><span class="sheet"></span></span></span>
     <svg class="edge" viewBox="0 0 291 195" aria-hidden="true"><path d="${FOLDER_PATH}" fill="none" stroke="url(#folderEdge)" stroke-width="1"/></svg>
     ${y ? `<span class="when"><b>${esc(mo ? MONTHS_FULL[+mo - 1] : "")}</b><span>${esc(y)}</span></span>` : ""}
     <span class="info"><span class="fno"><b>${esc(code)}</b><span>${esc(meta)}</span></span><span class="rt">${esc(title)}</span></span>
