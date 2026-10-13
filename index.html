@@ -968,6 +968,19 @@ button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rg
 .ffolders.four .ffolder .mpass{top:-24px}.ffolders.four .ffolder .letter{top:-14px}
 .ffolders .month,.ffolders .year.nodate{margin-bottom:var(--mmb,60px)}
 .ffolders.tall .month,.ffolders.tall .year.nodate{margin-bottom:var(--mmbt,60px)}
+/* one shadow system: a soft resting lift and a soft bluish glow on hover */
+:root,:root[data-mode="light"]{--sh-rest:0 1px 3px rgba(13,29,66,.04),0 10px 30px rgba(13,29,66,.07);--sh-hover:0 2px 6px rgba(29,90,216,.07),0 14px 34px rgba(29,90,216,.17);
+  --dsh-rest:drop-shadow(0 1px 2px rgba(13,29,66,.05)) drop-shadow(0 8px 20px rgba(13,29,66,.09));--dsh-hover:drop-shadow(0 2px 5px rgba(29,90,216,.09)) drop-shadow(0 12px 26px rgba(29,90,216,.22));--softsh:var(--sh-rest)}
+:root:not([data-mode="light"]){--sh-rest:0 1px 3px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.32);--sh-hover:0 2px 6px rgba(70,110,255,.14),0 14px 34px rgba(70,110,255,.24);
+  --dsh-rest:drop-shadow(0 1px 2px rgba(0,0,0,.3)) drop-shadow(0 8px 20px rgba(0,0,0,.35));--dsh-hover:drop-shadow(0 2px 5px rgba(70,110,255,.16)) drop-shadow(0 12px 26px rgba(70,110,255,.28));--softsh:var(--sh-rest)}
+html body .stat,html body .vcard,html body .addtile,html body .drop,html body .ntile,html body .bcard .files.hrow>.file,html body .empty,html body .photo{box-shadow:var(--sh-rest)}
+html body .stat:hover,html body .vcard:hover,html body .vcard.open,html body .addtile:hover,html body .drop:hover,html body .ntile:hover,html body .bcard .files.hrow>.file:hover,html body .photo:hover{box-shadow:var(--sh-hover)}
+html body .drop.over{box-shadow:0 0 0 2px var(--primary),var(--sh-hover)}
+html body button.pass{filter:var(--dsh-rest)!important}
+html body button.pass:hover,html body button.pass:focus-visible{filter:var(--dsh-hover)!important}
+html body .vcard .content{box-shadow:none}
+/* scroll rows get room on every side so blur and hover glow never hit the scroll edge */
+.sbento .bcard>.hrow{padding:20px 32px 40px 28px;margin:-20px -32px -28px -28px;scroll-padding-inline:28px 32px}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
