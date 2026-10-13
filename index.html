@@ -946,11 +946,14 @@ button.pass:hover,:root[data-mode="light"] button.pass:hover{filter:drop-shadow(
 @media (max-width:719px){.foot-bar,.foot-bar:is(*){margin:64px -8px -8px}.foot-bar .footin{padding:24px 16px}}
 .foot-bar .footin{grid-template-columns:1fr auto;min-height:100px}
 @media (max-width:719px){.foot-bar .footin{grid-template-columns:1fr;align-content:center;min-height:120px}}
-/* footer pinned to the bottom of the viewport; the page leaves room for it */
-.foot-bar,.foot-bar:is(*){position:fixed;left:0;right:0;bottom:0;z-index:28;margin:0;padding-bottom:env(safe-area-inset-bottom,0px)}
-body{padding-bottom:calc(100px + 48px + env(safe-area-inset-bottom,0px))}
-.toast{bottom:calc(120px + env(safe-area-inset-bottom,0px))}
-@media (max-width:719px){body{padding-bottom:calc(120px + 32px + env(safe-area-inset-bottom,0px))}.toast{bottom:calc(140px + env(safe-area-inset-bottom,0px))}}
+/* footer closes the page: after the content on long pages, at the screen bottom on short ones */
+body{display:flex;flex-direction:column;min-height:calc(100vh - 16px);min-height:calc(100dvh - 16px)}
+body>main{width:100%;box-sizing:border-box}
+body>.top,body>.top:is(*){width:calc(100% - 32px);box-sizing:border-box;align-self:center}
+@media (max-width:719px){body>.top,body>.top:is(*){width:calc(100% - 16px)}}
+.foot-bar,.foot-bar:is(*){margin-top:auto!important}
+body>main{margin-bottom:96px}
+@media (max-width:719px){body>main{margin-bottom:64px}}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
