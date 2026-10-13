@@ -832,6 +832,10 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 4px 12p
 .profmenu .who{padding:8px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:4px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .profmenu .who span{font-size:11px;color:var(--ink-muted)}.profmenu .who b{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:240px}
 .profmenu #signOutBtn{color:var(--danger,#d64545)}
+body>.vmenu.portal{position:fixed;right:auto;z-index:70;margin:0}
+.sbento .bcard .photos.hrow>.drop:hover{box-shadow:var(--soft)}
+/* a hovered card paints above its neighbours, so the next card in the row never covers its shadow */
+.vcard:hover,.vcard.open,button.pass:hover,.ntile:hover,.drop:hover,.addtile:hover,.photo:hover,.fwrap:hover,.file:hover,.stat:hover{position:relative;z-index:3}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
@@ -1440,12 +1444,20 @@ function fixCityRow(){
   const sc = $(".s-cities .vcards"); if (!sc) return;
   const ps = $(".s-flights .pass"), side = ps && Math.abs($(".s-cities").getBoundingClientRect().top - $(".s-flights").getBoundingClientRect().top) < 1;
   sc.style.setProperty("--pass-h", side ? ps.getBoundingClientRect().height + "px" : "auto"); // city cards match the pass height when the two cards sit side by side
-  const m = sc.querySelector(".vcard.open .vmenu"); if (!m) return;
-  const k = m.closest(".vcard").querySelector(".kebab").getBoundingClientRect();
-  m.style.position = "fixed"; m.style.top = (k.top + 2) + "px"; m.style.left = Math.max(8, Math.min(innerWidth - m.offsetWidth - 8, k.right - 8)) + "px";
 }
-document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".sbento .hrow")) rowScroll[e.target.closest(".bcard").className] = e.target.scrollLeft; if (openMenu) fixCityRow(); }, true);
-addEventListener("resize", () => { if (route === "place") fixCityRow(); });
+/* a card's ⋮ menu lives on <body>, so no scrolling row, card or hover lift can clip it */
+function placeMenu(){
+  const old = $("body > .vmenu.portal"), m = $(".vcard.open .vmenu") || old;
+  if (old && old !== m) old.remove();
+  if (!m || !openMenu) { if (m && m.classList.contains("portal")) m.remove(); return; }
+  const k = document.querySelector(`.kebab[data-menu="${CSS.escape(openMenu)}"]`); if (!k) { m.remove(); return; }
+  if (m.parentElement !== document.body) { m.classList.add("portal"); document.body.appendChild(m); }
+  const r = k.getBoundingClientRect(), h = m.offsetHeight, w = m.offsetWidth;
+  const top = r.bottom + 4 + h > innerHeight - 8 ? Math.max(8, r.top - 4 - h) : r.bottom + 4;
+  m.style.top = top + "px"; m.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
+}
+document.addEventListener("scroll", e => { if (e.target.matches && e.target.matches(".sbento .hrow")) rowScroll[e.target.closest(".bcard").className] = e.target.scrollLeft; if (openMenu) placeMenu(); }, true);
+addEventListener("resize", () => { if (route === "place") fixCityRow(); placeMenu(); });
 function renderAll(){
   parseHash();
   const needAuth = state.mode === "supabase" && !sbUser;
@@ -1460,6 +1472,7 @@ function renderAll(){
   if (route === "places") renderPlaces();
   if (route === "passes") renderPasses();
   if (route === "place") { renderPlace(routeArg); fixCityRow(); }
+  placeMenu();
 }
 function renderBanner(){
   const ex = [...Object.values(state.places), ...Object.values(state.flights)].filter(x => x.example);
