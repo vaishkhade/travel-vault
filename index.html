@@ -523,6 +523,31 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 :root{--card-grey:#F5F6F8}
 :root:not([data-mode="light"]){--card-grey:#111114}
 :root[data-mode="light"]{--card-grey:#F5F6F8}
+/* Compact country page */
+.hero{gap:16px}
+.hero-card{padding:16px}
+.hero .flag{font-size:32px}
+.hero h1{font-size:clamp(28px,4vw,36px);line-height:1.2}
+.heroedit{right:16px;top:16px}
+.facts{gap:8px 16px;margin-top:16px}
+.facts div{padding-top:8px}
+.facts b{font-size:14px}
+.hero .mini-map{min-height:200px}
+.sbento{gap:16px;margin-top:16px}
+.bcard{padding:16px;border-radius:16px}
+.bcard .section-head{margin-bottom:16px;gap:8px}
+.bcard h2{font-size:16px;line-height:24px}
+.bcard .vcards{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.bcard .vcard .img{height:48px}
+.bcard .vcard .content{padding:8px 16px}
+.bcard .vcard .title{font-size:16px}
+.bcard .passes{grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.bcard .photos{grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+.bcard .drop{font-size:13px}
+.bcard .empty{padding:16px}
+.bcard.notes textarea{min-height:96px}
+.bcard .file{padding:8px 16px}
+@media (max-width:420px){.bcard .passes{grid-template-columns:minmax(0,1fr)}}
 .top .wrap{max-width:none;padding-inline:24px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
@@ -1418,9 +1443,9 @@ function renderPlace(cc){
     <div class="sbento">
     ${bentoOpen(cc, p, "cities")}
       <div class="section-head"><h2>${BICON.pin}Cities</h2>
-        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form><button class="btn small" type="button" id="newFolder">New folder</button></div>
+        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form></div>
       </div>
-      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>Add a city you visited, or make a folder for things like visas or hotel bookings.</p><div class="eacts"><button class="btn primary" type="button" data-newfolder>New folder</button></div></div>`}</div>
+      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`}</div>
     ${bentoClose(cc, p, "cities")}
 
     ${bentoOpen(cc, p, "flights")}
