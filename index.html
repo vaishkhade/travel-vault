@@ -500,7 +500,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
 .form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
 @keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
-[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,#cityHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
+[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,#cityHere::before,#noteHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .sortwrap .addmenu{min-width:180px}
@@ -589,6 +589,32 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* rows: a little air above the scrollbar, and they run to the card's right edge so the peeking item is cut by the card itself */
+.sbento .bcard{overflow:hidden}
+.sbento .bcard>.hrow{padding-bottom:12px;margin-right:-16px;padding-right:16px;scroll-padding-inline-end:16px}
+.sbento .bcard>.hrow:has(>.empty),.sbento .bcard>.hrow:has(>.fempty){margin-right:0;padding-right:0}
+/* note tiles: the Figma sheet stack, front sheet carries the note */
+.ntile{position:relative;display:block;width:136px;height:146px;border:0;padding:0;background:none;cursor:pointer;text-align:left;color:inherit;border-radius:8px}
+.ntile:focus-visible{outline:2px solid var(--focus,#1C2FC2);outline-offset:2px}
+.ntile .nstack{position:absolute;left:0;top:0;width:173.837px;height:186.541px;transform:scale(.78);transform-origin:0 0}
+.ntile .sh{position:absolute;top:7.97px;width:123.1px;height:170.6px;box-sizing:border-box;background:#fff;border:.581px solid #EDEDED;border-radius:6.973px;padding:16.249px 6.392px 12.203px;display:flex;flex-direction:column;gap:6.973px;overflow:hidden}
+.ntile .sh0{left:6.75px;transform:rotate(-7.67deg) skewX(-2.99deg)}
+.ntile .sh1{left:28.85px;transform:rotate(-3.84deg) skewX(-1.5deg)}
+.ntile .sh2{left:50.71px;transition:transform .2s ease}
+.ntile:hover .sh2{transform:translateY(-4px)}
+.ntile .sh .g1{display:flex;flex-direction:column;gap:4.649px;width:104.614px}
+.ntile .sh .r{display:flex;gap:4.068px}
+.ntile .sh i{display:block;flex:1 0 0;height:9.297px;border-radius:18.595px;background:#EDEDED}
+.ntile .sh .g1>i{flex:none;width:100%}
+.ntile .nfront{color:#0D1D42;padding:14px 10px 12px}
+.ntile .nt{font-size:12px;line-height:16px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ntile .nb{flex:1;font-size:10px;line-height:14px;color:#5B6478;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical}
+.ntile .dots{display:flex;align-items:center;gap:4px;width:52.095px;height:15.331px;flex:none}
+.ntile .dots b{width:15.331px;height:15.331px;border-radius:50%;flex:none}
+.ntile .dots i{flex:none;width:32.697px;height:8.499px;border-radius:4.25px}
+.sbento .ntiles.hrow{grid-auto-columns:136px;gap:16px}
+.ntiles:not(.hrow){display:grid;grid-template-columns:repeat(auto-fill,136px);gap:24px}
+.sbento .s-notes .hrow:has(>.empty){display:block}
 /* count chips on card headings; a third city / pass peeks in so the row reads as scrollable */
 .cchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 8px;border-radius:999px;background:var(--primary-soft);color:var(--on-primary-soft);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums}
 .sbento .s-cities{grid-column:span 5}.sbento .s-flights{grid-column:span 7}
@@ -1174,7 +1200,7 @@ function countryFolderHTML(p){
   const c = COUNTRY[p.id], n = (p.cities || []).length, fl = flightsFor(p.id).length;
   return folderHTML({href: "#place-" + p.id, label: `${c.name}, ${plural(n, "city", "cities")}, ${plural(fl, "flight", "flights")}`, month: p.firstVisit,
     code: c.cca2, meta: `${plural(n, "city", "cities")} · ${plural(fl, "flight", "flights")}`, title: c.name, key: p.id, color: p.color,
-    inside: {sheets: n, pass: flightsFor(p.id)[0] || null, note: !!(p.notes || "").trim(), pics: placeImages(p, 3)}});
+    inside: {sheets: n, pass: flightsFor(p.id)[0] || null, note: notesOf(p).length > 0, pics: placeImages(p, 3)}});
 }
 /* every city across the vault, as {place, folder|null, name} */
 function allCities(){
@@ -1272,7 +1298,6 @@ let rowScroll = {};
 function fixCityRow(){
   for (const r of $$(".sbento .hrow")) {
     const k = r.closest(".bcard").className; r.scrollLeft = rowScroll[k] || 0;
-    r.style.marginBottom = -(r.offsetHeight - r.clientHeight) + "px"; // a visible scrollbar sits in the bottom padding, so card bottoms still line up
   }
   const sc = $(".s-cities .vcards"); if (!sc) return;
   const ps = $(".s-flights .pass"), side = ps && Math.abs($(".s-cities").getBoundingClientRect().top - $(".s-flights").getBoundingClientRect().top) < 1;
@@ -1567,8 +1592,6 @@ function renderPlace(cc){
   if (routeSub) return renderSubfolder(cc, p);
   if (routeView) return renderSection(cc, p, routeView);
   const fl = flightsFor(cc);
-  const notesFocused = document.activeElement && document.activeElement.id === "notes";
-  if (notesFocused) return; // don't clobber typing
   el.innerHTML = `
     <div class="crumbs"><a href="#places">Places</a> / ${esc(COUNTRY[cc].region)} / ${esc(c.name)}</div>
     <div class="hero">
@@ -1615,9 +1638,9 @@ function renderPlace(cc){
       <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>${viewMore(cc, "files", (p.files || []).length)}
     ${bentoClose(cc, p, "files")}
 
-    ${bentoOpen(cc, p, "notes", "notes")}
-      <div class="section-head"><h2>${BICON.note}Notes</h2><span class="note" id="notesSaved"></span></div>
-      <textarea id="notes" placeholder="Favourite food, where you stayed, who you went with…" aria-label="Notes">${esc(p.notes || "")}</textarea>
+    ${bentoOpen(cc, p, "notes")}
+      <div class="section-head"><h2>${BICON.note}Notes${cchip(notesOf(p).length)}</h2><div class="hacts"><button class="btn small" type="button" id="noteHere">Add note</button></div></div>
+      <div class="ntiles hrow">${sectionItems(cc, p, "notes")}</div>${viewMore(cc, "notes", notesOf(p).length)}
     ${bentoClose(cc, p, "notes")}
     </div>
 
@@ -1633,25 +1656,54 @@ function renderPlace(cc){
     if (t) { t.classList.add("flash"); setTimeout(() => t.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}), 50); }
   }
 }
+/* notes: a list of separate notes; older vaults kept one notes string, read as a single note */
+const notesOf = p => p.noteList || ((p.notes || "").trim() ? [{id: "n-legacy", text: p.notes, at: p.createdAt || ""}] : []);
+const saveNotes = (p, list) => store.put("places", {...p, noteList: list, notes: ""});
+function noteTileHTML(n, i){
+  const lines = n.text.trim().split("\n").filter(Boolean), title = (lines[0] || "Note").slice(0, 60), body = lines.slice(1).join(" ").slice(0, 220);
+  return `<button type="button" class="ntile" data-note="${esc(n.id)}" aria-label="Open note: ${esc(title)}">
+    <span class="nstack"><span class="sh sh0 nsh"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span></span><span class="sh sh1 nsh"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span></span>
+    <span class="sh sh2 nfront"><b class="nt">${esc(title)}</b><span class="nb">${esc(body)}</span><span class="dots"><b style="background:${SHEET_DOT[i % 3]}"></b><i></i></span></span></span>
+  </button>`;
+}
+function openNote(cc, id){
+  const p = state.places[cc]; if (!p) return;
+  const list = notesOf(p), n = id ? list.find(x => x.id === id) : null;
+  const ov = modal(`<h2>${n ? "Note" : "New note"}</h2>
+    <form class="form" id="fNote"><label class="full">Note<textarea id="nText" rows="9" required placeholder="Favourite food, where you stayed, who you went with…">${esc(n ? n.text : "")}</textarea></label></form>
+    <div class="foot" id="nFoot">${n ? `<button class="btn small danger" type="button" id="nDel" style="margin-right:auto">Delete</button>` : ""}<button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fNote">Save note</button></div>`);
+  setTimeout(() => { const t = $("#nText"); if (t) { t.focus(); t.setSelectionRange(t.value.length, t.value.length); } }, 50);
+  $("#fNote", ov).addEventListener("submit", e => {
+    e.preventDefault(); const text = $("#nText").value.trim(); if (!text) return;
+    const cur = notesOf(state.places[cc]);
+    saveNotes(state.places[cc], n ? cur.map(x => x.id === n.id ? {...x, id: x.id === "n-legacy" ? uid() : x.id, text, at: new Date().toISOString()} : x) : [{id: uid(), text, at: new Date().toISOString()}, ...cur]);
+    closeModal(); toast(n ? "Note saved" : "Note added");
+  });
+  const del = $("#nDel", ov); if (del) del.onclick = () => {
+    $("#nFoot").innerHTML = `<span class="err">Delete this note?</span><button class="btn small danger" type="button" id="nDelYes">Delete note</button><button class="btn small ghost" type="button" data-close>Cancel</button>`;
+    $("#nDelYes").onclick = () => { saveNotes(state.places[cc], notesOf(state.places[cc]).filter(x => x.id !== n.id)); closeModal(); toast("Note deleted"); };
+  };
+}
 const cchip = n => `<span class="cchip" aria-label="${n} ${n === 1 ? "item" : "items"}">${n}</span>`;
-const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents"};
-const viewMore = (cc, id, n) => n ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
+const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents", notes: "Notes"};
+const viewMore = (cc, id, n) => n > 2 ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
 function sectionItems(cc, p, id){
   if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
   if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
+  if (id === "notes") { const ns = notesOf(p); return ns.length ? ns.map(noteTileHTML).join("") : `<div class="empty"><p>No notes yet. Write down favourite food, where you stayed, who you went with.</p></div>`; }
   if (id === "photos") return (p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("");
   return (p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
     : `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`;
 }
 /* View more: one section of a country on its own page, every item in a grid */
 function renderSection(cc, p, id){
-  const c = COUNTRY[cc], n = {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length}[id];
-  const icon = {cities: BICON.pin, flights: BICON.plane, photos: BICON.photo, files: BICON.file}[id];
+  const c = COUNTRY[cc], n = {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length, notes: notesOf(p).length}[id];
+  const icon = {cities: BICON.pin, flights: BICON.plane, photos: BICON.photo, files: BICON.file, notes: BICON.note}[id];
   const add = {cities: `<button class="btn small" type="button" id="cityHere">Add city</button>`, flights: `<button class="btn small" type="button" id="flightHere">Add flight</button>`,
-    photos: `<button class="btn small" type="button" data-upload="photos">Add photos</button>`, files: `<button class="btn small" type="button" data-upload="files">Add files</button>`}[id];
-  const unit = {cities: ["city", "cities"], flights: ["flight", "flights"], photos: ["photo", "photos"], files: ["file", "files"]}[id];
+    photos: `<button class="btn small" type="button" data-upload="photos">Add photos</button>`, files: `<button class="btn small" type="button" data-upload="files">Add files</button>`, notes: `<button class="btn small" type="button" id="noteHere">Add note</button>`}[id];
+  const unit = {cities: ["city", "cities"], flights: ["flight", "flights"], photos: ["photo", "photos"], files: ["file", "files"], notes: ["note", "notes"]}[id];
   const body = id === "photos" ? `<div class="photos">${sectionItems(cc, p, id)}<button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button></div>`
-    : `<div class="${{cities: "vcards", flights: "passes", files: "files"}[id]}">${sectionItems(cc, p, id)}</div>`;
+    : `<div class="${{cities: "vcards", flights: "passes", files: "files", notes: "ntiles"}[id]}">${sectionItems(cc, p, id)}</div>`;
   $("#v-place").innerHTML = `
     <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${esc(SECTIONS[id])}</div>
     <div class="folderhead secthead"><h1>${icon}${esc(SECTIONS[id])}</h1><span class="note">${plural(n, ...unit)}</span>
@@ -1718,9 +1770,7 @@ function drawMini(cc, p){
 $("#v-place").addEventListener("change", e => {
   const p = state.places[routeArg]; if (!p) return;
   if (e.target.id === "firstVisit") store.put("places", {...p, firstVisit: e.target.value});
-  if (e.target.id === "notes") { store.put("places", {...p, notes: e.target.value}); }
 });
-$("#v-place").addEventListener("focusout", e => { if (e.target.id === "notes") setTimeout(renderAll, 0); });
 $("#v-place").addEventListener("submit", e => {
   if (e.target.id !== "addCity") return;
   e.preventDefault();
@@ -1743,6 +1793,8 @@ $("#v-place").addEventListener("click", async e => {
   if (t.dataset.delitem) { const fo = p.folders.find(f => f.id === routeSub); const gone = fo.items.find(x => x.id === t.dataset.delitem); await store.put("places", {...p, folders: p.folders.map(f => f.id === fo.id ? {...f, items: f.items.filter(x => x.id !== gone.id)} : f)}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
   if (t.dataset.delfile != null) { const files = [...p.files]; const [gone] = files.splice(+t.dataset.delfile, 1); await store.put("places", {...p, files}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
   if (t.id === "flightHere" || t.dataset.flighthere != null) openFlightForm(null, routeArg);
+  if (t.id === "noteHere") openNote(routeArg);
+  if (t.dataset.note) openNote(routeArg, t.dataset.note);
   if (t.id === "cityHere") { openCityForm(routeArg); setTimeout(() => { const n = $("#cName"); if (n) n.focus(); }, 50); }
   if (t.id === "delPlace") { placeConfirm = true; renderAll(); }
   if (t.id === "delPlaceNo") { placeConfirm = false; renderAll(); }
@@ -1835,10 +1887,9 @@ function openPlaceForm(editCc){
     const ov = modal(`<h2>Edit ${esc(c.name)}</h2>
       <form class="form" id="fEdit">
         <label>First visited<input id="eWhen" type="month" value="${esc(p.firstVisit || "")}"></label>
-        <label class="full">Notes<textarea id="eNotes" rows="4">${esc(p.notes || "")}</textarea></label>
       </form>
       <div class="foot"><a class="btn ghost" href="#place-${esc(editCc)}" data-close>Open country page</a><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fEdit">Save</button></div>`);
-    $("#fEdit", ov).addEventListener("submit", e => { e.preventDefault(); store.put("places", {...state.places[editCc], firstVisit: $("#eWhen").value, notes: $("#eNotes").value}); closeModal(); toast(`Saved ${c.name}`); });
+    $("#fEdit", ov).addEventListener("submit", e => { e.preventDefault(); store.put("places", {...state.places[editCc], firstVisit: $("#eWhen").value}); closeModal(); toast(`Saved ${c.name}`); });
     return;
   }
   if (!$("#dlCountries").options.length) $("#dlCountries").innerHTML = Object.values(COUNTRY).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}">`).join("");
@@ -1858,7 +1909,7 @@ function openPlaceForm(editCc){
     const names = $("#pCities").value.split(",").map(s => s.trim()).filter(Boolean).filter(n => !(prev.cities || []).some(c => c.name.toLowerCase() === n.toLowerCase()));
     const recs = names.map(n => cityRecord(cc, n));
     const folders = [...(prev.folders || (prev.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))), ...recs.map(r => ({id: uid(), name: r.name, city: true, items: []}))];
-    store.put("places", {...prev, firstVisit: $("#pWhen").value || prev.firstVisit || "", notes: [prev.notes, $("#pNotes").value].filter(Boolean).join("\n"), cities: [...(prev.cities || []), ...recs], folders});
+    store.put("places", {...prev, firstVisit: $("#pWhen").value || prev.firstVisit || "", ...($("#pNotes").value.trim() ? {noteList: [{id: uid(), text: $("#pNotes").value.trim(), at: new Date().toISOString()}, ...notesOf(prev)], notes: ""} : {}), cities: [...(prev.cities || []), ...recs], folders});
     closeModal(); location.hash = "place-" + cc; toast(`${COUNTRY[cc].name} is in your vault`);
   });
 }
