@@ -959,6 +959,15 @@ body>main{margin-bottom:96px}
 button.pass,:root[data-mode="light"] button.pass{filter:drop-shadow(0 1px 2px rgba(13,29,66,.07)) drop-shadow(0 8px 22px rgba(13,29,66,.13))}
 /* footer: plain content on the page, no fill, border, blur or shadow */
 .foot-bar,.foot-bar:is(*),:root:not([data-mode="light"]) .foot-bar,:root:not([data-mode="light"]) .foot-bar:is(*){background:none;box-shadow:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* folder grid: Add tile lines up with the folder body; hover lift is gentler so the row can sit closer to its month */
+.ffolders .addtile{margin-top:23px;height:195px}
+.ffolders.four .ffolder:hover .mpass,.ffolders.four .ffolder:focus-visible .mpass{transform:translateY(-16px) rotate(-6deg)}
+.ffolders.four .ffolder:hover .pics,.ffolders.four .ffolder:focus-visible .pics{transform:translateY(-10px) rotate(12.89deg)}
+.ffolders.four .ffolder:hover .letter,.ffolders.four .ffolder:focus-visible .letter{transform:translate(4px,-10px) rotate(10deg)}
+.ffolders.four .ffolder:hover .back,.ffolders.four .ffolder:focus-visible .back{transform:translate(2px,-12px) rotate(3.02deg)}
+.ffolders.four .ffolder .mpass{top:-24px}.ffolders.four .ffolder .letter{top:-14px}
+.ffolders .month,.ffolders .year.nodate{margin-bottom:var(--mmb,60px)}
+.ffolders.tall .month,.ffolders.tall .year.nodate{margin-bottom:var(--mmbt,60px)}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
