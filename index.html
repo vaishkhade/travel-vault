@@ -589,6 +589,45 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* folder contents (Figma Image Containers), placed in folder coordinates; inside-folder origin is y=23 */
+.ffolder .in{position:absolute;display:block;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.ffolder .docs{left:25px;top:-13px;width:173.837px;height:186.541px}
+.ffolder .sh{position:absolute;top:7.97px;width:123.1px;height:170.6px;box-sizing:border-box;background:#fff;border:.581px solid #EDEDED;border-radius:6.973px;padding:16.249px 6.392px 12.203px;display:flex;flex-direction:column;gap:6.973px;overflow:hidden}
+.ffolder .sh0{left:6.75px;transform:rotate(-7.67deg) skewX(-2.99deg)}
+.ffolder .sh1{left:28.85px;transform:rotate(-3.84deg) skewX(-1.5deg)}
+.ffolder .sh2{left:50.71px}
+.ffolder .sh .g1,.ffolder .sh .g2{display:flex;flex-direction:column;width:104.614px}
+.ffolder .sh .g1{gap:4.649px}.ffolder .sh .g2{gap:4.068px}
+.ffolder .sh .r{display:flex;gap:4.068px}
+.ffolder .sh i{display:block;flex:1 0 0;height:9.297px;border-radius:18.595px;background:#EDEDED}
+.ffolder .sh .g1>i,.ffolder .sh .g2>i{flex:none;width:100%}
+.ffolder .sh .dots{display:flex;align-items:center;gap:4px;width:52.095px;height:15.331px}
+.ffolder .sh .dots b{width:15.331px;height:15.331px;border-radius:50%;flex:none}
+.ffolder .sh .dots i{flex:none;width:32.697px;height:8.499px;border-radius:4.25px}
+.ffolder .pics{left:110.69px;top:.87px;width:169.29px;height:159.822px;transform:rotate(12.89deg)}
+.ffolder .pics .pin3{position:absolute;inset:0}
+.ffolder .ph{position:absolute;width:134.27px;height:134.27px;border-radius:9.591px;overflow:hidden;background:#F5F5F5}
+.ffolder .ph img{width:100%;height:100%;object-fit:cover;display:block}
+.ffolder .ph0{left:0;top:22.09px}
+.ffolder .ph1{left:19.82px;top:7.76px;transform:rotate(-7.08deg);box-shadow:-1.918px 3.836px 3.836px rgba(45,45,45,.2)}
+.ffolder .ph2{left:33.3px;top:23.82px;transform:rotate(1.5deg);box-shadow:-1.918px 3.836px 3.836px rgba(0,0,0,.5)}
+.ffolder .mpass{left:62px;top:-44px;width:168px;height:72px;display:flex;transform:rotate(-4deg);filter:drop-shadow(0 2px 4px rgba(0,0,0,.25))}
+.ffolder .mpass .mm,.ffolder .mpass .ms{background:var(--pc,#fff);display:block}
+.ffolder .mpass .mm{flex:1;border-radius:8px 0 0 8px;padding:8px 10px;border-right:1.5px dashed #D5D9E2;color:#0D1D42;display:flex;flex-direction:column;gap:2px}
+.ffolder .mpass .ms{width:36px;border-radius:0 8px 8px 0;background-image:repeating-linear-gradient(90deg,#0D1D42 0 1.5px,transparent 1.5px 3.5px);background-size:20px 22px;background-position:8px 40px;background-repeat:no-repeat;background-color:var(--pc,#fff)}
+.ffolder .mpass .ma{font-size:8px;line-height:10px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ffolder .mpass .mr{display:flex;align-items:center;gap:6px;font-size:18px;line-height:22px;font-weight:600;letter-spacing:-.01em}
+.ffolder .mpass .mr svg{width:12px;height:12px;color:#1C2FC2}
+.ffolder .letter{left:166px;top:-30px;width:112px;height:140px;background:#FFFDF5;border:.581px solid #EDEDED;border-radius:4px;box-sizing:border-box;padding:12px 10px;color:#3A4B8C;transform:rotate(7deg);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.ffolder .letter svg{width:100%;height:auto;display:block}
+.ffolder:hover .docs,.ffolder:focus-visible .docs{transform:translate(-2.04px,-26.98px) rotate(-8.16deg)}
+.ffolder:hover .pics,.ffolder:focus-visible .pics{transform:translateY(-21px) rotate(12.89deg)}
+.ffolder:hover .mpass,.ffolder:focus-visible .mpass{transform:translateY(-34px) rotate(-6deg)}
+.ffolder:hover .letter,.ffolder:focus-visible .letter{transform:translate(4px,-20px) rotate(10deg)}
+.ffolder:hover .back,.ffolder:focus-visible .back{transform:translate(2px,-25px) rotate(3.02deg)}
+.ffolders{padding-top:56px;row-gap:72px}
+.fwrap:hover,.fwrap:focus-within{z-index:2}
+@media (prefers-reduced-motion:reduce){.ffolder .in{transition:none}}
 /* boarding pass colours: very light pastels, muted darks in dark mode */
 .pc-lilac{--pc:#EEEBFC}.pc-blue{--pc:#E3EFFE}.pc-mint{--pc:#E0F5EA}.pc-peach{--pc:#FFEADB}.pc-rose{--pc:#FDE6F0}.pc-butter{--pc:#FCF3CF}.pc-sky{--pc:#DDF3F7}
 :root[data-mode="dark"] .pc-lilac{--pc:#1D1B26}:root[data-mode="dark"] .pc-blue{--pc:#171D28}:root[data-mode="dark"] .pc-mint{--pc:#16201B}:root[data-mode="dark"] .pc-peach{--pc:#241D18}:root[data-mode="dark"] .pc-rose{--pc:#241A1F}:root[data-mode="dark"] .pc-butter{--pc:#232117}:root[data-mode="dark"] .pc-sky{--pc:#152124}
@@ -1099,12 +1138,23 @@ function bentoOpen(cc, p, id, extra){
   return `<section class="bcard block s-${id}${extra ? " " + extra : ""}">`;
 }
 function bentoClose(){ return `</section>`; }
-function folderHTML({href, label, month, code, meta, title, pics, key, color}){
+/* what's inside a folder peeks out above the front panel: Figma "Image Container" stacks (sheets per city, photos), plus a mini pass and a scribbled letter */
+const SHEET_DOT = ["#EA3E83", "#BF7AF0", "#3291FF"];
+const sheetHTML = i => `<span class="sh sh${i}"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span><span class="g2"><i></i><i></i><i></i></span><span class="dots"><b style="background:${SHEET_DOT[i]}"></b><i></i></span></span>`;
+const SCRIBBLE = '<svg viewBox="0 0 96 110" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10c4-4 7 3 11-1s6-4 9 0 6 1 9-2"/><path d="M6 24c5-3 8 2 13-1s8-3 12 1 9-2 13 0 8 3 12-1 8 1 11 0 6-2 9 0"/><path d="M6 36c4-2 9 3 14 0s7-4 12 0 8 1 12-2 9 2 13 1 7-3 11 0"/><path d="M6 48c6-3 9 2 14-1s9-2 13 1 7-3 12 0 8 2 12-1 9 1 13-1"/><path d="M6 60c5-2 7 3 12 0s9-3 13 0 8-2 12 1 6-1 10-2"/><path d="M6 72c4-3 8 2 13 0s8-3 12 1 9-1 13-1 7 2 12 0 8-2 11 1"/><path d="M52 92c4-5 7 2 10-2s5-3 8 1 5-2 7 0c2 2 4 4 9-1"/></g></svg>';
+function insideHTML({sheets = 0, pass = null, note = false, pics = []}){
+  const pc = pass && PCOLORS.some(([k]) => k === pass.color) ? " pc-" + pass.color : "";
+  return (note ? `<span class="in letter">${SCRIBBLE}</span>` : "")
+    + (pass ? `<span class="in mpass${pc}"><span class="mm"><span class="ma">${esc(pass.airline || "Flight")}</span><span class="mr"><b>${esc(pass.from)}</b><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="rotate(90 12 12)"/></svg><b>${esc(pass.to)}</b></span></span><span class="ms"></span></span>` : "")
+    + (sheets ? `<span class="in docs">${[0, 1, 2].slice(3 - Math.min(sheets, 3)).map(sheetHTML).join("")}</span>` : "")
+    + (pics.length ? `<span class="in pics"><span class="pin3">${pics.slice(0, 3).map((u, i, a) => `<span class="ph ph${3 - a.length + i}"><img src="${esc(u)}" alt="" loading="lazy"></span>`).join("")}</span></span>` : "");
+}
+function folderHTML({href, label, month, code, meta, title, pics, key, color, inside}){
   const [y, mo] = (month || "").split("-");
   const pick = key ? `<button type="button" class="fcolor" data-fcolor="${esc(key)}" aria-label="Change colour of ${esc(title)}" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color) : ""}` : "";
   return `<div class="fwrap${openPal === key && key ? " open" : ""}"${color ? ` style="--fc:${esc(color)}"` : ""}><a class="ffolder" href="${esc(href)}" aria-label="${esc(label)}">
     <span class="back"><span class="sheet"></span></span>
-    ${(pics || []).slice(0, 2).map((u, i) => `<span class="peek p${i + 1}"><img src="${esc(u)}" alt="" loading="lazy"></span>`).join("")}
+    ${insideHTML(inside || {pics: pics || []})}
     <span class="front"><span class="glass"><span class="sheet"></span></span></span>
     <svg class="edge" viewBox="0 0 291 195" aria-hidden="true"><path d="${FOLDER_PATH}" fill="none" stroke="url(#folderEdge)" stroke-width="1"/></svg>
     ${y ? `<span class="when"><b>${esc(mo ? MONTHS_FULL[+mo - 1] : "")}</b><span>${esc(y)}</span></span>` : ""}
@@ -1115,7 +1165,8 @@ const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
 function countryFolderHTML(p){
   const c = COUNTRY[p.id], n = (p.cities || []).length, fl = flightsFor(p.id).length;
   return folderHTML({href: "#place-" + p.id, label: `${c.name}, ${plural(n, "city", "cities")}, ${plural(fl, "flight", "flights")}`, month: p.firstVisit,
-    code: c.cca2, meta: `${plural(n, "city", "cities")} · ${plural(fl, "flight", "flights")}`, title: c.name, pics: placeImages(p, 2), key: p.id, color: p.color});
+    code: c.cca2, meta: `${plural(n, "city", "cities")} · ${plural(fl, "flight", "flights")}`, title: c.name, key: p.id, color: p.color,
+    inside: {sheets: n, pass: flightsFor(p.id)[0] || null, note: !!(p.notes || "").trim(), pics: placeImages(p, 3)}});
 }
 /* every city across the vault, as {place, folder|null, name} */
 function allCities(){
@@ -1130,7 +1181,7 @@ function allCities(){
 function cityFolderHTML({p, fo, name}){
   const c = COUNTRY[p.id], n = fo ? (fo.items || []).length : 0;
   return folderHTML({href: "#place-" + p.id + (fo ? "." + fo.id : ""), label: `${name}, ${c.name}, ${plural(n, "item", "items")}`, month: p.firstVisit,
-    code: c.cca2, meta: `${c.name} · ${plural(n, "item", "items")}`, title: name, pics: fo ? images(fo.items || [], 2) : [], key: fo ? p.id + "." + fo.id : "", color: fo && fo.color});
+    code: c.cca2, meta: `${c.name} · ${plural(n, "item", "items")}`, title: name, inside: {sheets: fo ? (fo.items || []).filter(it => !(it.type || "").startsWith("image/")).length : 0, pics: fo ? images(fo.items || [], 3) : []}, key: fo ? p.id + "." + fo.id : "", color: fo && fo.color});
 }
 /* Folder card inside a country: Figma "vert-card" with its options menu */
 let openMenu = null, menuConfirm = false;
