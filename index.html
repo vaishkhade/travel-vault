@@ -2678,19 +2678,20 @@ boot();
 /* Side-gutter dot grid: dots only show near the cursor, in pastels, fading toward the content column. */
 (() => {
   const cv = document.getElementById("dotgrid"); if (!cv || !cv.getContext) return;
-  const ctx = cv.getContext("2d"), GAP = 22, R = 1.6, HOVER = 150, COL = 1212;
+  const ctx = cv.getContext("2d"), GAP = 22, R = 1.6, HOVER = 150, COL = 1180;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   let W = 0, H = 0, dpr = 1, gut = 0, dots = [], mx = -9999, my = -9999, glow = 0, target = 0, raf = 0;
   function size() {
     dpr = Math.min(devicePixelRatio || 1, 2); W = innerWidth; H = innerHeight;
     cv.width = W * dpr; cv.height = H * dpr; ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    gut = Math.max(0, (W - Math.min(COL, W - 16)) / 2); dots = [];
+    const mw = document.querySelector("main.wrap"), mr = mw && mw.getBoundingClientRect();
+    gut = Math.max(0, mr && mr.width ? Math.min(mr.left, W - mr.right) + (parseFloat(getComputedStyle(mw).paddingLeft) || 0) : (W - Math.min(COL, W - 16)) / 2); dots = [];   // up to the content edge, past the frame line
     if (gut < 24 || W < 720) { ctx.clearRect(0, 0, W, H); return; }
     for (let y = GAP / 2; y < H; y += GAP) for (let x = GAP / 2; x < W; x += GAP) {
       const d = x < gut ? gut - x : x > W - gut ? x - (W - gut) : -1;
       if (d <= 0) continue;
       const m = Math.min(1, d / gut);                       // 0 at the content edge, 1 at the screen edge
-      dots.push({ x, y, ox: 0, oy: 0, m: m * m * (3 - 2 * m), h: (x * 2.6 + y * 1.9) % 360 });
+      dots.push({ x, y, ox: 0, oy: 0, m: m * (2 - m), h: (x * 2.6 + y * 1.9) % 360 });
     }
   }
   function draw() {
