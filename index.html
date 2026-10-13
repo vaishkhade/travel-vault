@@ -678,6 +678,8 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .pcolors .swatch{width:24px;height:24px;flex:none;background:var(--pc,var(--surface-raised,#fff));border:1px solid var(--line)}
 .pcolors .swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--card),0 0 0 4px var(--primary)}
 .pcfield .plabel{font-weight:500;font-size:13px;line-height:18px;color:var(--ink);margin-bottom:6px}
+.pvmeta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.pvmeta .note{flex:1;min-width:0}
+.pvcountry{font-size:13px;font-weight:500;color:var(--primary);text-decoration:none;white-space:nowrap}.pvcountry:hover{text-decoration:underline}
 .pvcolor{display:flex;align-items:center;gap:12px;margin-top:12px}
 
 /* one-row sideways scroll in every country card, View more opens the full section */
@@ -1859,14 +1861,10 @@ async function uploadTo(kind, files){
   toast(failed.length ? `Added ${added}. Couldn't add ${failed.join(", ")}` : `Added ${added} ${added === 1 ? "file" : "files"}`);
 }
 
-/* pass clicks: every boarding pass leads to its destination country page */
+/* pass clicks open the pass itself; its country is a link inside */
 document.addEventListener("click", e => {
   const b = e.target.closest("button.pass"); if (!b) return;
-  const f = state.flights[b.dataset.flight]; if (!f) return;
-  const destCc = (AIRPORT[f.to] || {}).cc;
-  if (route === "place") { openPassView(f); return; }
-  if (destCc && state.places[destCc]) { highlightFlight = f.id; location.hash = "place-" + destCc; }
-  else openPassView(f);
+  const f = state.flights[b.dataset.flight]; if (f) openPassView(f);
 });
 
 /* ---------- modals ---------- */
@@ -2191,7 +2189,7 @@ function openPassView(f, retry){
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
     <div class="pvcolor"><span class="note">Colour</span>${passPaletteHTML(f.color)}</div>
-    <div class="note" style="margin-top:10px">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</div>
+    <div class="pvmeta"><span class="note">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</span>${(() => { const cc = b && b.cc; return cc && state.places[cc] && !(route === "place" && routeArg === cc) ? `<a class="pvcountry" href="#place-${esc(cc)}" data-close>${COUNTRY[cc].flag} ${esc(COUNTRY[cc].name)} →</a>` : ""; })()}</div>
     <div class="foot" id="pvFoot"></div>`, "passview");
   const foot = () => {
     $("#pvFoot").innerHTML = passConfirm
