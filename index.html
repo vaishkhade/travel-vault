@@ -518,7 +518,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sbento .s-cities{grid-column:span 4;order:1}.sbento .s-flights{grid-column:span 8;order:2}
 .s-cities .section-head .folderacts{flex:1 1 220px;justify-content:flex-end}.s-cities .addcity{width:100%}.s-cities .addcity input{flex:1;min-width:0}
 .bcard.s-flights .passes{gap:8px}
-@media (max-width:980px){.sbento .s-cities,.sbento .s-flights{grid-column:span 12}}
+@media (max-width:1100px){.sbento .s-cities,.sbento .s-flights{grid-column:span 12}}
 .sbento .s-photos{grid-column:span 7;order:3}.sbento .s-notes{grid-column:span 5;order:4}.sbento .s-files{order:5}
 @media (max-width:860px){.sbento .s-photos,.sbento .s-notes{grid-column:span 12}}
 .bcard{position:relative;background:var(--card-grey);border:0;border-radius:20px;padding:24px;min-width:0}
@@ -589,6 +589,14 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* count chips on card headings; a third city / pass peeks in so the row reads as scrollable */
+.cchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 8px;border-radius:999px;background:var(--primary-soft);color:var(--on-primary-soft);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums}
+.sbento .s-cities{grid-column:span 5}.sbento .s-flights{grid-column:span 7}
+.sbento .s-cities .vcards{grid-auto-columns:max(120px,calc((100% - 16px) / 2.3))}
+.sbento .bcard .passes.hrow{grid-auto-columns:max(272px,calc((100% - 16px) / 2.2))}
+.sbento .bcard .passes.hrow .fields{grid-template-columns:repeat(2,max-content);column-gap:16px}
+.bcard .passes.hrow>.pass{min-width:0}.bcard .passes.hrow .pass .main{min-width:0}
+@media (max-width:1100px){.sbento .s-cities,.sbento .s-flights{grid-column:span 12}}
 /* folder contents (Figma Image Containers), placed in folder coordinates; inside-folder origin is y=23 */
 .ffolder .in{position:absolute;display:block;pointer-events:none;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .ffolder .docs{left:25px;top:-13px;width:173.837px;height:186.541px}
@@ -1583,19 +1591,19 @@ function renderPlace(cc){
 
     <div class="sbento">
     ${bentoOpen(cc, p, "cities")}
-      <div class="section-head"><h2>${BICON.pin}Cities</h2>
+      <div class="section-head"><h2>${BICON.pin}Cities${cchip((p.folders || []).length)}</h2>
         <div class="hacts"><button class="btn small" type="button" id="cityHere">Add city</button></div>
       </div>
       <div class="vcards hrow">${sectionItems(cc, p, "cities")}</div>${viewMore(cc, "cities", (p.folders || []).length)}
     ${bentoClose(cc, p, "cities")}
 
     ${bentoOpen(cc, p, "flights")}
-      <div class="section-head"><h2>${BICON.plane}Flights</h2><div class="hacts"><button class="btn small" type="button" id="flightHere">Add flight</button></div></div>
+      <div class="section-head"><h2>${BICON.plane}Flights${cchip(fl.length)}</h2><div class="hacts"><button class="btn small" type="button" id="flightHere">Add flight</button></div></div>
       <div class="passes hrow" id="placePasses">${sectionItems(cc, p, "flights")}</div>${viewMore(cc, "flights", fl.length)}
     ${bentoClose(cc, p, "flights")}
 
     ${bentoOpen(cc, p, "photos")}
-      <div class="section-head"><h2>${BICON.photo}Photos</h2><div class="hacts"><span class="note">${plural((p.photos || []).length, "photo", "photos")}</span></div></div>
+      <div class="section-head"><h2>${BICON.photo}Photos${cchip((p.photos || []).length)}</h2></div>
       <div class="photos hrow" id="photos">
         <button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button>
         ${sectionItems(cc, p, "photos")}
@@ -1603,7 +1611,7 @@ function renderPlace(cc){
     ${bentoClose(cc, p, "photos")}
 
     ${bentoOpen(cc, p, "files")}
-      <div class="section-head"><h2>${BICON.file}Files &amp; documents</h2><div class="hacts"><button class="btn small" type="button" data-upload="files">Add files</button></div></div>
+      <div class="section-head"><h2>${BICON.file}Files &amp; documents${cchip((p.files || []).length)}</h2><div class="hacts"><button class="btn small" type="button" data-upload="files">Add files</button></div></div>
       <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>${viewMore(cc, "files", (p.files || []).length)}
     ${bentoClose(cc, p, "files")}
 
@@ -1625,6 +1633,7 @@ function renderPlace(cc){
     if (t) { t.classList.add("flash"); setTimeout(() => t.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}), 50); }
   }
 }
+const cchip = n => `<span class="cchip" aria-label="${n} ${n === 1 ? "item" : "items"}">${n}</span>`;
 const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents"};
 const viewMore = (cc, id, n) => n ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
 function sectionItems(cc, p, id){
