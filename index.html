@@ -496,7 +496,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
 .form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
 @keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
-[data-eadd]::before,#flightHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
+[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .sortwrap .addmenu{min-width:180px}
@@ -1179,7 +1179,7 @@ function drawWorld(){
 }
 
 const EADD_ONE = () => placeMode === "cities" ? `<button class="btn primary" type="button" data-eadd="city">Add city</button>` : `<button class="btn primary" type="button" data-eadd="country">Add country</button>`;
-const EADD_PLACE = `<button class="btn primary" type="button" data-eadd="country">+ Add country</button><button class="btn" type="button" data-eadd="city">+ Add city</button>`;
+const EADD_PLACE = `<button class="btn primary" type="button" data-eadd="country">Add country</button><button class="btn" type="button" data-eadd="city">Add city</button>`;
 document.addEventListener("click", e => {
   const t = e.target.closest("[data-eadd]"); if (!t) return;
   const k = t.dataset.eadd;
@@ -1393,7 +1393,7 @@ function renderPlace(cc){
     </div>
 
     <div class="block">
-      <div class="section-head"><h2>Files &amp; documents</h2><button class="btn small" type="button" data-upload="files">+ Add files</button></div>
+      <div class="section-head"><h2>Files &amp; documents</h2><button class="btn small" type="button" data-upload="files">Add files</button></div>
       <div class="files" id="files">
         ${(p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
           : `<div class="file" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`}
@@ -1424,7 +1424,7 @@ function renderSubfolder(cc, p){
   el.innerHTML = `
     <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${esc(fo.name)}</div>
     <div class="folderhead"><h1>${esc(fo.name)}</h1><span class="note">${items.length} ${items.length === 1 ? "item" : "items"}${fo.city ? " · pinned on your map" : ""}</span>
-      <div class="folderacts" style="margin-left:auto"><button class="btn small" type="button" data-renamefolder>Rename</button><button class="btn small primary" type="button" data-upload="folder">+ Add photos or files</button></div></div>
+      <div class="folderacts" style="margin-left:auto"><button class="btn small" type="button" data-renamefolder>Rename</button><button class="btn small primary" type="button" data-upload="folder">Add photos or files</button></div></div>
     <div class="block">
       <div class="photos">
         ${imgs.map((it, i) => { const u = srcUrl(it.src); return `<button type="button" class="photo" data-fphoto="${i}" aria-label="Open ${esc(it.name || "photo")}">${u ? `<img src="${esc(u)}" alt="${esc(it.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("")}
