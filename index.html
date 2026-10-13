@@ -2678,7 +2678,7 @@ boot();
 /* Side-gutter dot grid: dots only show near the cursor, in pastel blues, fading toward the content column. */
 (() => {
   const cv = document.getElementById("dotgrid"); if (!cv || !cv.getContext) return;
-  const ctx = cv.getContext("2d"), GAP = 22, R = 1.6, HOVER = 150, COL = 1180;
+  const ctx = cv.getContext("2d"), GAP = 26, R = 2.4, HOVER = 150, COL = 1180;
   const still = matchMedia("(prefers-reduced-motion: reduce)");
   let W = 0, H = 0, dpr = 1, gut = 0, dots = [], mx = -9999, my = -9999, glow = 0, target = 0, raf = 0;
   function size() {
@@ -2710,7 +2710,7 @@ boot();
       }
       const a = f * f * p.m * glow * A; if (a < 0.01) continue;
       ctx.fillStyle = `hsla(${p.h},${S}%,${L}%,${a})`;
-      ctx.beginPath(); ctx.arc(p.x + p.ox, p.y + p.oy, R + f * 0.8, 0, 6.2832); ctx.fill();
+      ctx.beginPath(); ctx.arc(p.x + p.ox, p.y + p.oy, R + f * 1, 0, 6.2832); ctx.fill();
     }
     if (busy) kick();
   }
