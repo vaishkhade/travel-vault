@@ -574,7 +574,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .bcard .passes{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
 .s-cities .vcards{display:grid;grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:calc((100% - 8px) / 2);gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .s-cities .vcards>.vcard{scroll-snap-align:start;height:var(--pass-h,auto)}
-.s-cities .vcard .content{flex:1}
+.s-cities .vcard .img{height:auto;flex:1 1 auto;min-height:48px}
+.s-cities .vcard .content{flex:none}
+.s-cities .vcard .img .pin{display:none}
 .s-cities .vcards:has(>.empty){display:block}
 .s-cities .vcard:hover{transform:none}
 .vmenu .palette .swatch{width:24px;height:24px;flex:none;padding:0;border-radius:999px}
