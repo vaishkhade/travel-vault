@@ -837,7 +837,16 @@ body>.vmenu.portal{position:fixed;right:auto;z-index:70;margin:0}
 /* a hovered card paints above its neighbours, so the next card in the row never covers its shadow */
 .vcard:hover,.vcard.open,button.pass:hover,.ntile:hover,.drop:hover,.addtile:hover,.photo:hover,.fwrap:hover,.file:hover,.stat:hover{position:relative;z-index:3}
 /* the first year heading on the Countries tab starts level with Cities and Flights (its taller row gap was pushing it down) */
-.ffolders.tall:has(>.year:first-child){margin-top:calc(43px - 72px * var(--fz,1))}
+/* date headings: fixed spacing, identical on Countries, Cities and Flights. Rows have no grid gap; cards carry their own bottom space */
+.ffolders.four,.ffolders.four.tall,#allPasses{row-gap:0}
+.ffolders.four>.fwrap,.ffolders.four>.addtile{margin-bottom:48px}
+.ffolders.four.tall>.fwrap,.ffolders.four.tall>.addtile{margin-bottom:72px}
+#allPasses>.pass,#allPasses>.addtile{margin-bottom:24px}
+.ffolders .year,.ffolders .month,#allPasses .year,#allPasses .month{align-self:start;justify-self:stretch;margin:0 0 16px}
+.ffolders .year,#allPasses .year{margin-top:8px}
+.ffolders .year:first-child,#allPasses .year:first-child{margin-top:0}
+.ffolders.tall .year{margin-bottom:16px}.ffolders .year.nodate{margin-bottom:16px}
+.ffolders.tall .month,.ffolders.tall .year.nodate{margin-bottom:64px}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
