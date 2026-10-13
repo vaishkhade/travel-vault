@@ -213,7 +213,7 @@ button.pass:hover{transform:translateY(-2px)}
 .year:first-child{margin-top:0}
 .month{grid-column:1/-1;display:flex;align-items:baseline;gap:8px;font-size:14px;font-weight:500;line-height:20px;color:var(--ink-muted);margin-top:-4px}
 .month span{font-size:12px;font-weight:400;color:var(--ink-faint,var(--ink-muted));opacity:.8}
-.ffolders .year,.ffolders .month{align-self:end;justify-self:stretch}.ffolders .year{margin-top:8px;margin-bottom:calc(8px - 48px * var(--fz,1))}.ffolders.tall .year{margin-bottom:calc(8px - 72px * var(--fz,1))}.ffolders .month{margin-bottom:calc(16px - 48px * var(--fz,1))}.ffolders.tall .month{margin-bottom:calc(64px - 72px * var(--fz,1))}.ffolders.four:has(>.year:first-child){padding-top:0}.ffolders .year:first-child{margin-top:0}
+.ffolders .year,.ffolders .month{align-self:end;justify-self:stretch}.ffolders .year{margin-top:8px;margin-bottom:calc(8px - 48px * var(--fz,1))}.ffolders.tall .year{margin-bottom:calc(8px - 72px * var(--fz,1))}.ffolders .month{margin-bottom:calc(16px - 48px * var(--fz,1))}.ffolders.tall .month{margin-bottom:calc(64px - 72px * var(--fz,1))}.ffolders.four:has(>.year:first-child){padding-top:0}.ffolders .year:first-child{margin-top:0}.ffolders .year.nodate{margin-bottom:calc(16px - 48px * var(--fz,1))}.ffolders.tall .year.nodate{margin-bottom:calc(64px - 72px * var(--fz,1))}
 .fields{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;gap:4px 8px;margin-top:12px}
 .fields div{min-width:0}
 .fields b{display:block;font-weight:600;font-size:13px;white-space:nowrap;line-height:var(--lh-body)}
@@ -520,7 +520,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 4px 12p
 .scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
 .form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
 @keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
-[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,#cityHere::before,#noteHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
+[data-eadd]::before,.btn[data-upload]::before,.btn[data-addmenu]::before,#flightHere::before,#cityHere::before,#noteHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .sortwrap .addmenu{min-width:180px}
@@ -609,6 +609,14 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 4px 12p
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+#addMenu{position:fixed;z-index:60;min-width:240px;padding:6px;border-radius:12px;background:var(--card);border:1px solid var(--line);box-shadow:0 8px 28px rgba(13,29,66,.18)}
+#addMenu button{display:flex;align-items:center;gap:12px;width:100%;border:0;background:transparent;font:inherit;color:var(--ink);text-align:left;padding:8px 10px;border-radius:8px;cursor:pointer}
+#addMenu button:hover,#addMenu button:focus-visible{background:var(--surface-sunken,var(--card2));outline:none}
+#addMenu button>svg{flex:none;color:var(--primary)}#addMenu b{display:block;font-size:14px;font-weight:600}#addMenu small{display:block;font-size:12px;color:var(--ink-muted)}
+.sbento .bcard .drop.duo,.drop.duo{cursor:default;gap:6px;padding:10px;justify-content:center}
+.drop.duo>button{white-space:nowrap;display:flex;align-items:center;gap:6px;width:100%;justify-content:center;border:1px solid var(--line);background:var(--card);color:var(--primary);font:inherit;font-size:12px;font-weight:500;padding:7px 8px;border-radius:8px;cursor:pointer}
+.drop.duo>button:hover{border-color:var(--primary)}.drop.duo.over{border-color:var(--primary)}
+
 /* Scrapbook world map: cork countries pinned to a navy board, flights as slack thread */
 #worldMap{--board:#141b2b;--land-line:rgba(255,255,255,.08);--grat:rgba(255,255,255,.04);--thread:#e4574e;--ocean-ink:rgba(255,255,255,.42);--mapc:#5b8def;--landmix:20%;--landbase:#222c42;background:var(--board);border-color:#263149}
 :root[data-mode="light"] #worldMap{--board:#ffffff;--land-line:rgba(40,50,80,.12);--grat:rgba(40,60,100,.05);--thread:#d2463d;--ocean-ink:rgba(70,90,130,.45);--landmix:100%;--landbase:#fff;border-color:var(--line)}
@@ -1612,7 +1620,7 @@ function datedGroups(list, dateOf, render, unit, lead = ""){
   let html = "", y0 = null, m0 = null, led = !lead;
   for (const x of list) {
     const d = dateOf(x) || "", y = d.slice(0, 4), m = d.slice(5, 7);
-    if ((y || "none") !== y0) { y0 = y || "none"; m0 = null; html += `<div class="year">${y ? esc(y) : "Date not set"}</div>`; }
+    if ((y || "none") !== y0) { y0 = y || "none"; m0 = null; html += y ? `<div class="year">${esc(y)}</div>` : `<div class="year nodate">Date not set</div>`; }
     if (m && m !== m0) { m0 = m; html += `<div class="month">${MONTHS_FULL[+m - 1]}<span>${plural(per[d.slice(0, 7)], ...unit)}</span></div>`; }
     if (!led) { html += lead; led = true; }
     html += render(x);
@@ -1762,15 +1770,16 @@ function openCityForm(cc){
     <form class="form" id="fCity">
       <label>Country<input id="cCountry" list="dlCountries" required autocomplete="off" placeholder="e.g. Japan" value="${cc && COUNTRY[cc] ? esc(COUNTRY[cc].name) : ""}"></label>
       <label>City<input id="cName" list="dlCities" required autocomplete="off" placeholder="e.g. Kyoto"></label>
-      <label>First visited<input id="cWhen" type="month"></label>
+      <label>First visited<input id="cWhen" type="month" required value="${cc && state.places[cc] ? esc(state.places[cc].firstVisit || "") : ""}"></label>
     </form>
     <div class="foot"><span class="err" id="cErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fCity">Add city</button></div>`);
-  $("#cCountry").addEventListener("change", () => { const cc = BY_NAME[$("#cCountry").value.trim().toLowerCase()]; $("#dlCities").innerHTML = (CITIES[cc] || []).slice(0, 400).map(x => `<option value="${esc(x.name)}">`).join(""); });
+  $("#cCountry").addEventListener("change", () => { const cc = BY_NAME[$("#cCountry").value.trim().toLowerCase()]; $("#dlCities").innerHTML = (CITIES[cc] || []).slice(0, 400).map(x => `<option value="${esc(x.name)}">`).join(""); if (cc && !$("#cWhen").value && state.places[cc]) $("#cWhen").value = state.places[cc].firstVisit || ""; });
   $("#fCity", ov).addEventListener("submit", e => {
     e.preventDefault();
     const cc = BY_NAME[$("#cCountry").value.trim().toLowerCase()], name = $("#cName").value.trim();
     if (!cc) return ($("#cErr").textContent = "Pick a country from the list.");
     if (!name) return;
+    if (!$("#cWhen").value) return ($("#cErr").textContent = "Add the month and year you first visited.");
     const prev = state.places[cc] || newPlace(cc);
     const folders = prev.folders || (prev.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}));
     if ((prev.cities || []).some(c => norm(c.name) === norm(name))) return ($("#cErr").textContent = `${name} is already in ${COUNTRY[cc].name}.`);
@@ -1793,7 +1802,7 @@ function renderPlace(cc){
     el.innerHTML = `<div class="crumbs"><a href="#places">Places</a> / ${esc(c.name)}</div>` + (state.ready
       ? `<div class="empty"><p>${c.flag} ${esc(c.name)} isn't in your vault yet.</p><button class="btn primary" id="addThis" type="button">Add ${esc(c.name)}</button></div>`
       : `<div class="empty">Opening your vault…</div>`);
-    const b = $("#addThis"); if (b) b.onclick = () => store.put("places", newPlace(cc));
+    const b = $("#addThis"); if (b) b.onclick = () => openPlaceForm(null, cc);
     return;
   }
   if (!p.folders) { store.put("places", {...p, folders: (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))}); return; }
@@ -1834,15 +1843,15 @@ function renderPlace(cc){
     ${bentoClose(cc, p, "flights")}
 
     ${bentoOpen(cc, p, "photos")}
-      <div class="section-head"><h2>${BICON.photo}Photos &amp; videos${cchip((p.photos || []).length)}</h2><div class="hacts">${upToggle("photos")}</div></div>
+      <div class="section-head"><h2>${BICON.photo}Photos &amp; videos${cchip((p.photos || []).length)}</h2><div class="hacts">${addBtn("photos")}</div></div>
       <div class="photos hrow" id="photos">
-        ${dropTile("photos")}
+        ${cardDrop("photos")}
         ${sectionItems(cc, p, "photos")}
       </div>${viewMore(cc, "photos", (p.photos || []).length)}
     ${bentoClose(cc, p, "photos")}
 
     ${bentoOpen(cc, p, "files")}
-      <div class="section-head"><h2>${BICON.file}Files &amp; documents${cchip((p.files || []).length)}</h2><div class="hacts">${upToggle("files")}<button class="btn small" type="button" data-upload="files">${upMode.files === "folder" ? "Add folder" : "Add files"}</button></div></div>
+      <div class="section-head"><h2>${BICON.file}Files &amp; documents${cchip((p.files || []).length)}</h2><div class="hacts">${addBtn("files")}</div></div>
       <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>${viewMore(cc, "files", (p.files || []).length)}
     ${bentoClose(cc, p, "files")}
 
@@ -1935,6 +1944,27 @@ const dropTile = kind => upMode[kind] === "folder"
   ? `<button type="button" class="drop" data-upload="${kind}"><span style="font-size:22px">+</span>Add a folder<span class="note">or drop one here</span></button>`
   : `<button type="button" class="drop" data-upload="${kind}"><span style="font-size:22px">+</span>Add photos or videos<span class="note">or drop them here</span></button>`;
 const upMode = {photos: "files", files: "files"};
+/* cards: one Add that asks Files or Folder; the Files/Folder toggle lives on the View more page */
+const FOLDER_SVG = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M1.5 4.5A1.5 1.5 0 0 1 3 3h3.2l1.5 1.5H13A1.5 1.5 0 0 1 14.5 6v5.5A1.5 1.5 0 0 1 13 13H3a1.5 1.5 0 0 1-1.5-1.5z" fill="currentColor"/></svg>`;
+const FILES_SVG = `<svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><path d="M4 1.5h5L12.5 5v8A1.5 1.5 0 0 1 11 14.5H4A1.5 1.5 0 0 1 2.5 13V3A1.5 1.5 0 0 1 4 1.5z" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M8.5 1.5V5.5h4" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>`;
+const addBtn = kind => `<button class="btn small" type="button" data-addmenu="${kind}" aria-haspopup="menu">Add</button>`;
+const cardDrop = kind => `<div class="drop duo" data-drop="${kind}"><button type="button" data-addas="${kind}:files">${FILES_SVG}<span>${kind === "photos" ? "Photos" : "Files"}</span></button><button type="button" data-addas="${kind}:folder">${FOLDER_SVG}<span>Folder</span></button><span class="note">or drop either here</span></div>`;
+function openAddMenu(btn){
+  closeAddMenu(); const kind = btn.dataset.addmenu, m = document.createElement("div");
+  m.id = "addMenu"; m.setAttribute("role", "menu");
+  m.innerHTML = `<button type="button" role="menuitem" data-addas="${kind}:files">${FILES_SVG}<span><b>Files</b><small>${kind === "photos" ? "Pick photos or videos" : "Pick one or more documents"}</small></span></button><button type="button" role="menuitem" data-addas="${kind}:folder">${FOLDER_SVG}<span><b>Folder</b><small>Add a whole folder, kept together</small></span></button>`;
+  document.body.appendChild(m); const r = btn.getBoundingClientRect();
+  m.style.top = `${r.bottom + 6}px`; m.style.left = `${Math.max(8, Math.min(r.right - m.offsetWidth, innerWidth - m.offsetWidth - 8))}px`;
+  btn.setAttribute("aria-expanded", "true"); m.querySelector("button").focus();
+}
+function closeAddMenu(){ const m = $("#addMenu"); if (m) m.remove(); document.querySelectorAll("[data-addmenu][aria-expanded]").forEach(b => b.removeAttribute("aria-expanded")); }
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-addmenu]"); if (b) { e.stopPropagation(); return $("#addMenu") ? closeAddMenu() : openAddMenu(b); }
+  const a = e.target.closest("[data-addas]"); if (a) { const [k, m] = a.dataset.addas.split(":"); closeAddMenu(); return pickFiles(k, null, m); }
+  if (!e.target.closest("#addMenu")) closeAddMenu();
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeAddMenu(); });
+addEventListener("scroll", closeAddMenu, true); addEventListener("resize", closeAddMenu);
 const upToggle = kind => `<span class="uptoggle" role="group" aria-label="Add ${kind === "photos" ? "photos and videos" : "files"} as"><button type="button" data-upmode="${kind}:files" aria-pressed="${upMode[kind] !== "folder"}">Files</button><button type="button" data-upmode="${kind}:folder" aria-pressed="${upMode[kind] === "folder"}">Folder</button></span>`;
 document.addEventListener("click", e => { const b = e.target.closest("[data-upmode]"); if (!b) return; const [k, m] = b.dataset.upmode.split(":"); upMode[k] = m; renderAll(); });
 function sectionItems(cc, p, id, dir){
@@ -2061,9 +2091,9 @@ const photosDrop = e => { const d = e.target.closest(".drop"); if (!d) return; e
 ["dragover", "dragleave", "drop"].forEach(t => $("#v-place").addEventListener(t, photosDrop));
 
 let uploadTarget = "photos", uploadDir = null;
-function pickFiles(kind, intoDir){
+function pickFiles(kind, intoDir, mode){
   uploadTarget = kind; uploadDir = intoDir || null;
-  const fp = $("#filePick"), folder = !intoDir && upMode[kind] === "folder";
+  const fp = $("#filePick"), folder = !intoDir && (mode || upMode[kind]) === "folder";
   fp.webkitdirectory = folder; // the Folder toggle picks a whole folder; its name becomes the group
   fp.accept = folder ? "" : kind === "photos" ? "image/*,video/*" : kind === "folder" ? "" : "image/*,application/pdf,text/plain,text/csv,text/markdown,application/json,video/mp4,video/webm,video/quicktime";
   fp.value = ""; fp.click();
@@ -2152,12 +2182,12 @@ document.addEventListener("click", e => {
 });
 document.addEventListener("click", e => { const b = e.target.closest("[data-editplace]"); if (b) openPlaceForm(b.dataset.editplace); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") { const open = $$(".addwrap").find(w => !w.querySelector(".addmenu").hidden); if (open) { closeAdds(); open.querySelector("[data-addtoggle]").focus(); } } });
-function openPlaceForm(editCc){
+function openPlaceForm(editCc, presetCc){
   if (editCc && state.places[editCc]) {
     const p = state.places[editCc], c = COUNTRY[editCc];
     const ov = modal(`<h2>Edit ${esc(c.name)}</h2>
       <form class="form" id="fEdit">
-        <label>First visited<input id="eWhen" type="month" value="${esc(p.firstVisit || "")}"></label>
+        <label>First visited<input id="eWhen" type="month" required value="${esc(p.firstVisit || "")}"></label>
       </form>
       <div class="foot"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fEdit">Save</button></div>`);
     $("#fEdit", ov).addEventListener("submit", e => { e.preventDefault(); store.put("places", {...state.places[editCc], firstVisit: $("#eWhen").value}); closeModal(); toast(`Saved ${c.name}`); });
@@ -2166,21 +2196,23 @@ function openPlaceForm(editCc){
   if (!$("#dlCountries").options.length) $("#dlCountries").innerHTML = Object.values(COUNTRY).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}">`).join("");
   const ov = modal(`<h2>Add a country</h2>
     <form class="form" id="fPlace">
-      <label class="full">Country<input id="pCountry" list="dlCountries" required autocomplete="off" placeholder="Start typing, e.g. Portugal"></label>
-      <label>First visited<input id="pWhen" type="month"></label>
+      <label class="full">Country<input id="pCountry" list="dlCountries" required autocomplete="off" placeholder="Start typing, e.g. Portugal" value="${presetCc && COUNTRY[presetCc] ? esc(COUNTRY[presetCc].name) : ""}"></label>
+      <label>First visited<input id="pWhen" type="month" required></label>
       <label>Cities <input id="pCities" placeholder="Lisbon, Porto"></label>
       <label class="full">Notes<textarea id="pNotes" rows="3"></textarea></label>
     </form>
     <div class="foot"><span class="err" id="pErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fPlace">Add country</button></div>`);
+  $("#pCountry").addEventListener("change", () => { const p = state.places[BY_NAME[$("#pCountry").value.trim().toLowerCase()]]; if (p && p.firstVisit && !$("#pWhen").value) $("#pWhen").value = p.firstVisit; });
   $("#fPlace", ov).addEventListener("submit", e => {
     e.preventDefault();
     const cc = BY_NAME[$("#pCountry").value.trim().toLowerCase()];
     if (!cc) return ($("#pErr").textContent = "Pick a country from the list.");
+    if (!$("#pWhen").value) return ($("#pErr").textContent = "Add the month and year you first visited.");
     const prev = state.places[cc] || newPlace(cc);
     const names = $("#pCities").value.split(",").map(s => s.trim()).filter(Boolean).filter(n => !(prev.cities || []).some(c => c.name.toLowerCase() === n.toLowerCase()));
     const recs = names.map(n => cityRecord(cc, n));
     const folders = [...(prev.folders || (prev.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))), ...recs.map(r => ({id: uid(), name: r.name, city: true, items: []}))];
-    store.put("places", {...prev, firstVisit: $("#pWhen").value || prev.firstVisit || "", ...($("#pNotes").value.trim() ? {noteList: [{id: uid(), text: $("#pNotes").value.trim(), at: new Date().toISOString()}, ...notesOf(prev)], notes: ""} : {}), cities: [...(prev.cities || []), ...recs], folders});
+    store.put("places", {...prev, firstVisit: prev.firstVisit && prev.firstVisit < $("#pWhen").value ? prev.firstVisit : $("#pWhen").value, ...($("#pNotes").value.trim() ? {noteList: [{id: uid(), text: $("#pNotes").value.trim(), at: new Date().toISOString()}, ...notesOf(prev)], notes: ""} : {}), cities: [...(prev.cities || []), ...recs], folders});
     closeModal(); location.hash = "place-" + cc; toast(`${COUNTRY[cc].name} is in your vault`);
   });
 }
