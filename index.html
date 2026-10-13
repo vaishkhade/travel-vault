@@ -589,6 +589,10 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .rleg .form{padding:0;margin:0}
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
+/* dark mode keeps the light-mode colours: only page background and neutral surfaces change */
+:root:not([data-mode="light"]){--primary:#1d5ad8;--primary-hover:#1748b0;--primary-pressed:#163b8c;--on-primary:#ffffff;--primary-soft:#dce9fe;--primary-soft-hover:#c6dafd;--primary-soft-pressed:#adc9fb;--on-primary-soft:#163b8c;--focus:#2f74ee;--visited:#8dbafb;--visited-line:#1d5ad8;--accent:#1d5ad8;--accent-ink:#ffffff;--soft:#dce9fe}
+.pass[class*="pc-"]{--ink:#0d1d42;--ink-muted:#465a85;--ink-subtle:#5c709e;--purple:#465a85;--muted:#465a85;--line:#dce9fe;--line-c:#dce9fe;color:#0d1d42}
+.pass[class*="pc-"] .main{border-right-color:#c6d3ea}
 /* rows: a little air above the scrollbar, and they run to the card's right edge so the peeking item is cut by the card itself */
 .sbento .bcard{overflow:hidden}
 .sbento .bcard>.hrow{padding-bottom:12px;margin-right:-16px;padding-right:16px;scroll-padding-inline-end:16px}
@@ -672,7 +676,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 @media (prefers-reduced-motion:reduce){.ffolder .in{transition:none}}
 /* boarding pass colours: very light pastels, muted darks in dark mode */
 .pc-lilac{--pc:#EEEBFC}.pc-blue{--pc:#E3EFFE}.pc-mint{--pc:#E0F5EA}.pc-peach{--pc:#FFEADB}.pc-rose{--pc:#FDE6F0}.pc-butter{--pc:#FCF3CF}.pc-sky{--pc:#DDF3F7}
-:root[data-mode="dark"] .pc-lilac{--pc:#1D1B26}:root[data-mode="dark"] .pc-blue{--pc:#171D28}:root[data-mode="dark"] .pc-mint{--pc:#16201B}:root[data-mode="dark"] .pc-peach{--pc:#241D18}:root[data-mode="dark"] .pc-rose{--pc:#241A1F}:root[data-mode="dark"] .pc-butter{--pc:#232117}:root[data-mode="dark"] .pc-sky{--pc:#152124}
+
 .pass[class*="pc-"] .main,.pass[class*="pc-"] .stub{background:var(--pc)}
 .pcolors{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
 .pcolors .swatch{width:24px;height:24px;flex:none;background:var(--pc,var(--surface-raised,#fff));border:1px solid var(--line)}
