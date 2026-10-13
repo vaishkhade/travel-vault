@@ -590,15 +590,12 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
 /* Scrapbook world map: cork countries pinned to a navy board, flights as slack thread */
-#worldMap{--board:#1b2740;--board-sea:#203050;--land-flat:#33425f;--land-flat-line:#46577a;--thread:#e4574e;--ocean-ink:rgba(255,255,255,.5);background:var(--board);border-color:#2b3a5a;box-shadow:inset 0 0 60px rgba(0,0,0,.45),var(--shadow-sm)}
-:root:not([data-mode="light"]) #worldMap{--board:#141d31;--board-sea:#18243d;--land-flat:#2a3650;--land-flat-line:#3a4867}
-#worldMap .sphere{fill:var(--board-sea)}
-#worldMap .grat{stroke:#fff;opacity:.05}
+#worldMap{--board:#18233a;--land-flat:#2a3650;--land-flat-line:#3a4867;--grat:rgba(255,255,255,.05);--thread:#e4574e;--ocean-ink:rgba(255,255,255,.5);--cork-dim:.88;background:var(--board);border-color:#2b3a5a}
+:root[data-mode="light"] #worldMap{--board:#f3ecdd;--land-flat:#e2d8c3;--land-flat-line:#cfc2a6;--grat:rgba(90,70,40,.07);--thread:#d2463d;--ocean-ink:rgba(96,74,48,.55);--cork-dim:1;border-color:#e3d8c2}
+#worldMap .grat{stroke:var(--grat);opacity:1}
 #worldMap .country{fill:var(--land-flat);stroke:var(--land-flat-line);stroke-width:.5}
-#worldMap .country.visited{fill:url(#tvCork);stroke:#f0d3a2;stroke-width:.8;filter:url(#tvRaise);cursor:pointer}
-#worldMap .country.visited:hover{fill:url(#tvCork);filter:url(#tvRaise) brightness(1.12)}
-:root:not([data-mode="light"]) #worldMap .country.visited{filter:url(#tvRaise) brightness(.88)}
-:root:not([data-mode="light"]) #worldMap .country.visited:hover{filter:url(#tvRaise) brightness(1)}
+#worldMap .country.visited{fill:url(#tvCork);stroke:rgba(255,236,200,.55);stroke-width:.6;filter:url(#tvRaise) brightness(var(--cork-dim));cursor:pointer}
+#worldMap .country.visited:hover{filter:url(#tvRaise) brightness(calc(var(--cork-dim) + .1))}
 #worldMap .ocean{font-family:"Caveat",cursive;font-weight:600;fill:var(--ocean-ink);letter-spacing:.06em;pointer-events:none;text-anchor:middle}
 #worldMap .arc{fill:none;stroke:var(--thread);stroke-width:1.4;stroke-dasharray:none;opacity:.95;stroke-linecap:round;filter:url(#tvThread);vector-effect:non-scaling-stroke}
 #worldMap .archit{fill:none;stroke:transparent;stroke-width:10;vector-effect:non-scaling-stroke}
@@ -606,7 +603,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 #worldMap .pin .head{stroke:rgba(0,0,0,.25);stroke-width:.6}
 #worldMap .pin.flag .head{fill:#fbf7ee;stroke:#c9a46c;stroke-width:1.4}
 #worldMap .pin text{font-size:12px;text-anchor:middle;dominant-baseline:central;pointer-events:none}
-#worldMap .legend{background:rgba(13,20,36,.72);border-color:rgba(255,255,255,.12);color:#e6ebf5;backdrop-filter:blur(4px)}
+#worldMap .legend{background:rgba(13,20,36,.72);border-color:rgba(255,255,255,.12);color:#e6ebf5}
+#worldMap .legend{}
+:root[data-mode="light"] #worldMap .legend{background:rgba(255,251,242,.85);border-color:#e3d8c2;color:#5a4630}
 #worldMap .legend i.cork{background:#c89a63;box-shadow:1px 2px 2px rgba(0,0,0,.5)}
 #worldMap .legend i.cpin{background:radial-gradient(circle at 35% 35%,#ffd0cc 0 20%,#e4574e 21%);border-radius:50%}
 #worldMap .legend i.thread{height:0;width:18px;border-radius:0;border-top:2px solid #e4574e;vertical-align:3px}
@@ -1413,29 +1412,29 @@ function renderMapView(){
 
 let world = null;
 const PIN_COLORS = ["#e4574e", "#f2b632", "#3fa7d6", "#59b36b", "#b57edc", "#f28b3c"];
-const OCEANS = [["Atlantic Ocean", -38, 24], ["Pacific Ocean", -142, 4], ["Pacific Ocean", 168, 22], ["Indian Ocean", 78, -24], ["Southern Ocean", 30, -60], ["Arctic Ocean", 20, 80]];
+const OCEANS = [["Atlantic Ocean", -38, 24], ["Pacific Ocean", -142, 4], ["Pacific Ocean", 158, 18], ["Indian Ocean", 78, -24], ["Southern Ocean", 40, -50], ["Arctic Ocean", -158, 74]];
 function drawWorld(){
   const box = $("#worldMap");
-  const W = 960, H = 500;
+  const W = 960, LAT = [80, -56];
+  const proj0 = d3.geoMercator().scale(W / (2 * Math.PI)).translate([W / 2, 0]), H = Math.round(proj0([0, LAT[1]])[1] - proj0([0, LAT[0]])[1]);
   if (!world) {
     const svg = d3.select(box).insert("svg", ":first-child").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img").attr("aria-label", "World map of visited countries, cities and flights");
     svg.append("defs").html(`
       <filter id="tvCorkNoise" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="3" seed="7" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 .42  0 0 0 0 .26  0 0 0 0 .11  0 0 0 1.6 -.62"/></filter>
       <filter id="tvCorkSpeck" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".09" numOctaves="2" seed="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 .9  0 0 0 0 .72  0 0 0 .9 -.38"/></filter>
       <pattern id="tvCork" patternUnits="userSpaceOnUse" width="140" height="140"><rect width="140" height="140" fill="#c8995f"/><rect width="140" height="140" filter="url(#tvCorkSpeck)" opacity=".5"/><rect width="140" height="140" filter="url(#tvCorkNoise)"/></pattern>
-      <filter id="tvRaise" x="-10%" y="-10%" width="125%" height="130%"><feDropShadow dx="1.2" dy="2.4" stdDeviation="1.6" flood-color="#000" flood-opacity=".6"/></filter>
+      <filter id="tvRaise" filterUnits="userSpaceOnUse" x="-50" y="-50" width="1100" height="800"><feGaussianBlur in="SourceAlpha" stdDeviation="1.8"/><feOffset dx=".6" dy="1.4" result="b"/><feFlood flood-color="#2a1a08" flood-opacity=".32"/><feComposite in2="b" operator="in"/><feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <filter id="tvThread" x="-5%" y="-20%" width="110%" height="160%"><feDropShadow dx="1" dy="2" stdDeviation="1" flood-color="#000" flood-opacity=".45"/></filter>
       <filter id="tvPinShadow" x="-60%" y="-60%" width="240%" height="240%"><feDropShadow dx="1.4" dy="2.2" stdDeviation="1.2" flood-color="#000" flood-opacity=".55"/></filter>
       <radialGradient id="tvShine" cx="35%" cy="32%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".35" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".25"/></radialGradient>`);
-    const proj = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], {type: "Sphere"});
+    const proj = d3.geoMercator().scale(W / (2 * Math.PI)).translate([W / 2, -proj0([0, LAT[0]])[1]]);
     const path = d3.geoPath(proj);
     const g = svg.append("g");
-    g.append("path").attr("class", "sphere").attr("d", path({type: "Sphere"}));
-    g.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule10()));
+    g.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule().extentMajor([[-180, -80], [180, 85]]).step([20, 20])()));
     g.append("g").selectAll("text").data(OCEANS).join("text").attr("class", "ocean").attr("font-size", 20)
       .attr("x", d => proj([d[1], d[2]])[0]).attr("y", d => proj([d[1], d[2]])[1]).text(d => d[0]);
     const gc = g.append("g"), ga = g.append("g"), gp = g.append("g");
-    gc.selectAll("path").data(WORLD).join("path").attr("class", "country").attr("d", path);
+    gc.selectAll("path").data(WORLD.filter(d => +d.id !== 10)).join("path").attr("class", "country").attr("d", path);
     const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
     const zoom = d3.zoom().scaleExtent([1, 12]).translateExtent([[0, 0], [W, H]]).on("zoom", e => { g.attr("transform", e.transform); sizePins(); });
     svg.call(zoom);
