@@ -847,6 +847,8 @@ body>.vmenu.portal{position:fixed;right:auto;z-index:70;margin:0}
 .ffolders .year:first-child,#allPasses .year:first-child{margin-top:0}
 .ffolders.tall .year{margin-bottom:16px}.ffolders .year.nodate{margin-bottom:16px}
 .ffolders .month,.ffolders .year.nodate,.ffolders.tall .month,.ffolders.tall .year.nodate,#allPasses .month,#allPasses .year.nodate{margin-bottom:64px}
+/* date-grouped grids start a little higher under the toolbar, same on all three tabs */
+#folders:has(>.year:first-child),#allPasses:has(>.year:first-child){margin-top:-16px}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
