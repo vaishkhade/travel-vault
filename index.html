@@ -580,6 +580,10 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .s-cities .vcards:has(>.empty){display:block}
 .s-cities .vcard:hover{transform:none}
 .vmenu .palette .swatch{width:24px;height:24px;flex:none;padding:0;border-radius:999px}
+.rleg{border:0;margin:0;padding:16px;border-radius:12px;background:var(--card-grey,#F5F6F8);min-width:0}
+.rlegt{font-weight:600;font-size:14px;line-height:20px;margin-bottom:8px}
+.rleg .form{padding:0;margin:0}
+.drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
 @media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
@@ -1754,14 +1758,21 @@ function parseBCBP(s){
   s = String(s || "").replace(/^\]\w\d/, "");
   const i = s.search(/M[1-4]/); if (i < 0) return null; s = s.slice(i);
   if (!/^M[1-4]/.test(s) || s.length < 58) return null;
-  const leg = s.slice(23), t = x => x.trim();
-  const from = t(leg.slice(7, 10)), to = t(leg.slice(10, 13)), carrier = t(leg.slice(13, 16)), num = t(leg.slice(16, 21)).replace(/^0+(?=\d)/, "");
-  if (!/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) return null;
-  const doy = parseInt(leg.slice(21, 24), 10), seat = t(leg.slice(25, 29)).replace(/^0+(?=\d)/, "");
+  const t = x => x.trim(), n = +s[1] || 1;
   const name = t(s.slice(2, 22)).split("/").map(x => x.trim()).filter(Boolean);
-  return {from, to, airline: AIRLINE_NAMES[carrier] || carrier, flightNo: carrier && num ? `${carrier} ${num}` : "", date: doy ? julianNear(doy) : "",
-    cabin: CABIN_OF(leg[24] || "Y"), seat: /^\d{1,3}[A-Z]$/.test(seat) ? seat : "", pnr: t(leg.slice(0, 7)),
-    passenger: name.length ? [name[1], name[0]].filter(Boolean).join(" ").toLowerCase().replace(/(^|[\s-])\S/g, c => c.toUpperCase()) : "", legs: +s[1] || 1};
+  const passenger = name.length ? [name[1], name[0]].filter(Boolean).join(" ").toLowerCase().replace(/(^|[\s-])\S/g, c => c.toUpperCase()) : "";
+  const legAt = at => { // each leg: PNR 7, from 3, to 3, carrier 3, flight 5, day-of-year 3, cabin 1, seat 4, check-in no. 5, status 1, then a hex size for its extra data
+    const leg = s.slice(at); if (leg.length < 35) return null;
+    const from = t(leg.slice(7, 10)), to = t(leg.slice(10, 13)), carrier = t(leg.slice(13, 16)), num = t(leg.slice(16, 21)).replace(/^0+(?=\d)/, "");
+    if (!/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) return null;
+    const doy = parseInt(leg.slice(21, 24), 10), seat = t(leg.slice(25, 29)).replace(/^0+(?=\d)/, "");
+    return {leg: {from, to, airline: AIRLINE_NAMES[carrier] || carrier, flightNo: carrier && num ? `${carrier} ${num}` : "", date: doy ? julianNear(doy) : "",
+      cabin: CABIN_OF(leg[24] || "Y"), seat: /^\d{1,3}[A-Z]$/.test(seat) ? seat : "", pnr: t(leg.slice(0, 7))}, next: at + 37 + (parseInt(leg.slice(35, 37), 16) || 0)};
+  };
+  const legs = []; let at = 23;
+  for (let k = 0; k < n; k++) { const r = legAt(at); if (!r) break; legs.push(r.leg); at = r.next; }
+  if (!legs.length) return null;
+  return {...legs[0], passenger, legs: legs.length, ret: legs[1] || null};
 }
 const MAIN_AIRPORT = {London: "LHR", "New York": "JFK", Paris: "CDG", Tokyo: "HND", Milan: "MXP", Rome: "FCO", Moscow: "SVO", Istanbul: "IST", Dubai: "DXB", Bangkok: "BKK", Seoul: "ICN", Shanghai: "PVG", Beijing: "PEK", Chicago: "ORD", Washington: "IAD", Stockholm: "ARN", "São Paulo": "GRU", "Buenos Aires": "EZE", Osaka: "KIX", Jakarta: "CGK", "Kuala Lumpur": "KUL", Toronto: "YYZ", Montreal: "YUL", Houston: "IAH", Berlin: "BER", Oslo: "OSL", Mumbai: "BOM", Delhi: "DEL", "New Delhi": "DEL"};
 let cityAirports = null;
@@ -1792,9 +1803,18 @@ function parsePassText(txt){ // best-effort read of a PDF's text when it has no 
   else if ((m = T.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/))) out.date = `${m[1]}-${m[2]}-${m[3]}`;
   if ((m = T.match(/\bSeat(?: No\.?| number)?\s*:?\s*(\d{1,2}[A-K])\b/i))) out.seat = m[1].toUpperCase();
   else if (/\bSeat\b/i.test(T) && (m = T.match(/\b([1-9]\d?[A-K])\b/))) out.seat = m[1];
-  if ((m = T.match(/\b(?:PNR|Booking (?:ref(?:erence)?|code)|Confirmation(?: code| number)?|Record locator)\s*(?:No\.?)?\s*:?\s*([A-Z0-9]{5,8})\b/i))) out.pnr = m[1].toUpperCase();
+  for (const x of [/\bPNR/gi, /\bBooking (?:ref(?:erence)?|code)/gi, /\bConfirmation(?: code| number)?/gi, /\bRecord locator/gi].flatMap(re => [...T.matchAll(new RegExp(re.source + "\\s*(?:No\\.?)?\\s*:?\\s*([A-Za-z0-9]{5,8})\\b", "gi"))]))
+    if (/^[A-Z0-9]+$/.test(x[1]) && (/\d/.test(x[1]) || x[1].length === 6) && !/^(NUMBER|BOOKING|DETAIL)/.test(x[1])) { out.pnr = x[1]; break; } // codes are printed in capitals
   if ((m = T.match(/\bGate\s*:?\s*([A-Z]?\d{1,3}[A-Z]?)\b/i))) out.gate = m[1].toUpperCase();
   if ((m = T.match(/\bBoarding(?: time)?\s*:?\s*(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i))) { let h = +m[1]; if (m[3]) h = (h % 12) + (/pm/i.test(m[3]) ? 12 : 0); out.boarding = `${String(h).padStart(2, "0")}:${m[2]}`; }
+  // a second leg: another flight number or date on a two-airport itinerary (a round trip)
+  const fnos = [...new Set([...T.matchAll(/\b([A-Z0-9]{2})\s?-?(\d{1,4})\b/g)].filter(x => AIRLINE_NAMES[x[1]] && /[A-Z]/.test(x[1])).map(x => `${x[1]} ${+x[2]}`))];
+  const dates = [...new Set([...T.matchAll(/\b(\d{1,2})[\s\-\/]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)[a-z]*[\s\-\/,]*(\d{4})\b/gi)].map(x => iso(new Date(+x[3], MON_NUM[x[2].toLowerCase()] - 1, +x[1]))))];
+  const seats = [...T.matchAll(/\bSeat(?: No\.?| number)?\s*:?\s*(\d{1,2}[A-K])\b/gi)].map(x => x[1].toUpperCase());
+  if (out.from && out.to && (fnos.length > 1 || dates.length > 1)) {
+    const back = codes.indexOf(out.to, codes.indexOf(out.from) + 1) >= 0 && codes.lastIndexOf(out.from) > codes.indexOf(out.to);
+    if (back || fnos.length > 1) out.ret = {from: out.to, to: out.from, date: dates[1] || "", flightNo: fnos[1] || "", airline: fnos[1] ? AIRLINE_NAMES[fnos[1].split(" ")[0]] : out.airline, seat: seats[1] || ""};
+  }
   if ((m = T.match(/\b(First|Business|Premium Economy|Economy)\b/i))) out.cabin = {first: "First", business: "Business", "premium economy": "Premium Economy", economy: "Economy"}[m[1].toLowerCase()];
   return out;
 }
@@ -1859,6 +1879,7 @@ async function readBoardingPass(file, onStep){
   }
   const fromCode = raw ? parseBCBP(raw) : null, fromText = text ? parsePassText(text) : {};
   const out = {...fromText, ...(fromCode || {})};
+  if (!out.ret && fromText.ret) out.ret = fromText.ret;
   for (const k of ["gate", "boarding"]) if (fromText[k]) out[k] = fromText[k]; // only printed on the pass, never in the barcode
   return {data: out, source: fromCode ? "barcode" : Object.keys(fromText).length ? "text" : null};
 }
@@ -1883,12 +1904,26 @@ function openFlightForm(existing, toCc){
       <label>Booking reference<input id="fPnr" placeholder="X7K2PQ" value="${esc(f.pnr || "")}" style="text-transform:uppercase"></label>
       <label>Boarding time<input id="fBoard" type="time" value="${esc(f.boarding || "")}"></label>
       <label>Gate<input id="fGate" placeholder="B12" value="${esc(f.gate || "")}"></label>
-      ${existing ? "" : `<label class="full check"><input type="checkbox" id="fAddPlace" checked> Add the destination country and city to my places</label>`}
+      ${existing ? "" : `<label class="full check"><input type="checkbox" id="fRound"> Round trip (adds the return flight too)</label>
+      <div class="full rleg" id="fRet" role="group" aria-labelledby="fRetT" hidden><div class="rlegt" id="fRetT">Return flight</div><div class="form">
+        <label>From<input id="rFrom" list="dlAirports" maxlength="3" autocomplete="off" style="text-transform:uppercase"></label>
+        <label>To<input id="rTo" list="dlAirports" maxlength="3" autocomplete="off" style="text-transform:uppercase"></label>
+        <label>Date<input id="rDate" type="date"></label>
+        <label>Airline<input id="rAirline" placeholder="Same as above"></label>
+        <label>Flight number<input id="rNo" placeholder="AI 130"></label>
+        <label>Seat<input id="rSeat" placeholder="18C"></label>
+        <label>Boarding time<input id="rBoard" type="time"></label>
+        <label>Gate<input id="rGate" placeholder="C4"></label>
+      </div></div>
+      <label class="full check"><input type="checkbox" id="fAddPlace" checked> Add the destination country and city to my places</label>`}
     </form>
     <div class="foot"><span class="err" id="fErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fFlight" id="fSave">${existing ? "Save flight" : "Add flight"}</button></div>`);
   const routeNote = () => { const a = AIRPORT[$("#fFrom").value.trim().toUpperCase()], b = AIRPORT[$("#fTo").value.trim().toUpperCase()];
     if (a || b) $("#fRoute").textContent = `${a ? `${a.name}, ${a.city}` : "…"}  →  ${b ? `${b.name}, ${b.city}` : "…"}${a && b ? `  ·  ${Math.round(km(a, b)).toLocaleString()} km` : ""}`; };
   $("#fFrom").addEventListener("input", routeNote); $("#fTo").addEventListener("input", routeNote); routeNote();
+  const showRet = on => { if (!$("#fRet")) return; $("#fRound").checked = on; $("#fRet").hidden = !on;
+    if (on) { if (!$("#rFrom").value) $("#rFrom").value = $("#fTo").value.trim().toUpperCase(); if (!$("#rTo").value) $("#rTo").value = $("#fFrom").value.trim().toUpperCase(); } };
+  if ($("#fRound")) $("#fRound").addEventListener("change", () => showRet($("#fRound").checked));
   $("#fScan").addEventListener("change", async () => {
     const file = $("#fScan").files[0], note = $("#fScanNote"); if (!file) return;
     note.className = "note"; note.textContent = "Reading your boarding pass…";
@@ -1898,11 +1933,14 @@ function openFlightForm(existing, toCc){
     const n = set("#fFrom", d.from) + set("#fTo", d.to) + set("#fDate", d.date) + set("#fAirline", d.airline) + set("#fNo", d.flightNo) + set("#fSeat", d.seat)
       + set("#fCabin", d.cabin) + set("#fPnr", d.pnr) + set("#fBoard", d.boarding) + set("#fGate", d.gate);
     routeNote();
+    let rn = 0;
+    if (d.ret && $("#fRet")) { showRet(true); const r2 = d.ret;
+      rn = set("#rFrom", r2.from) + set("#rTo", r2.to) + set("#rDate", r2.date) + set("#rAirline", r2.airline) + set("#rNo", r2.flightNo) + set("#rSeat", r2.seat); }
     if (!n) { note.className = "note bad"; note.textContent = "Couldn't read the details from this file. It'll still be saved with the flight, so fill in the rest below."; return; }
     const missing = [["#fFrom", "from"], ["#fTo", "to"], ["#fDate", "date"]].filter(([sel]) => !$(sel).value).map(x => x[1]);
     note.className = "note ok";
     note.textContent = `Filled in ${n} detail${n > 1 ? "s" : ""} from the ${r.source === "barcode" ? "barcode" : "text"}${d.passenger ? ` for ${d.passenger}` : ""}. Check them and change anything that's off.`
-      + (d.legs > 1 ? " This pass has more than one flight; this is the first." : "") + (missing.length ? ` Still needed: ${missing.join(", ")}.` : "");
+      + (rn ? " It has a second flight too, so Round trip is on with the return filled in." : "") + (missing.length ? ` Still needed: ${missing.join(", ")}.` : "");
   });
   $("#fFlight", ov).addEventListener("submit", async e => {
     e.preventDefault();
@@ -1913,10 +1951,19 @@ function openFlightForm(existing, toCc){
       seat: $("#fSeat").value.trim().toUpperCase(), cabin: $("#fCabin").value, pnr: $("#fPnr").value.trim().toUpperCase(), boarding: $("#fBoard").value, gate: $("#fGate").value.trim().toUpperCase()};
     const scan = $("#fScan").files[0];
     if (scan) {
-      try { const src = await store.saveFile(scan); if (f.scan) store.dropFile(f.scan.src); rec.scan = {name: scan.name, type: scan.type, size: scan.size, src}; }
+      try { const src = await store.saveFile(scan); if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); rec.scan = {name: scan.name, type: scan.type, size: scan.size, src}; }
       catch (err) { $("#fSave").disabled = false; return ($("#fErr").textContent = "Couldn't upload that file. Try a JPG, PNG or PDF under 20 MB."); }
     }
+    let ret = null;
+    if ($("#fRound") && $("#fRound").checked) {
+      const rf = $("#rFrom").value.trim().toUpperCase() || to, rt = $("#rTo").value.trim().toUpperCase() || from;
+      if (!AIRPORT[rf] || !AIRPORT[rt]) { $("#fSave").disabled = false; return ($("#fErr").textContent = `I don't know the return airport code ${!AIRPORT[rf] ? rf : rt}. Pick one from the list.`); }
+      rec.trip = rec.trip || uid();
+      ret = {id: uid(), trip: rec.trip, from: rf, to: rt, date: $("#rDate").value, airline: $("#rAirline").value.trim() || rec.airline, flightNo: $("#rNo").value.trim().toUpperCase(),
+        seat: $("#rSeat").value.trim().toUpperCase(), cabin: rec.cabin, pnr: rec.pnr, boarding: $("#rBoard").value, gate: $("#rGate").value.trim().toUpperCase(), ...(rec.scan ? {scan: rec.scan} : {})};
+    }
     await store.put("flights", rec);
+    if (ret) await store.put("flights", ret);
     const cc = AIRPORT[to].cc;
     if (!existing && $("#fAddPlace") && $("#fAddPlace").checked && COUNTRY[cc]) {
       const p = state.places[cc] || newPlace(cc);
@@ -1928,14 +1975,16 @@ function openFlightForm(existing, toCc){
       await store.put("places", {...p, cities: has ? p.cities : [...(p.cities || []), cityRec], folders: has ? folders : [...folders, {id: uid(), name: cityRec.name, city: true, items: []}], firstVisit: !p.firstVisit || (ym && ym < p.firstVisit) ? (ym || p.firstVisit) : p.firstVisit});
     }
     closeModal();
-    toast(existing ? "Flight saved" : `Added ${from} → ${to}`);
+    toast(existing ? "Flight saved" : ret ? `Added ${from} → ${to} and ${ret.from} → ${ret.to}` : `Added ${from} → ${to}`);
     if (!existing && state.places[cc]) { highlightFlight = rec.id; location.hash = "place-" + cc; renderAll(); }
   });
 }
 
+const scanShared = (src, exceptId) => flights().some(x => x.id !== exceptId && x.scan && JSON.stringify(x.scan.src) === JSON.stringify(src)); // a round trip's two flights share one file
 let passConfirm = false;
-function openPassView(f){
+function openPassView(f, retry){
   const sUrl = f.scan ? srcUrl(f.scan.src) : "";
+  if (f.scan && !sUrl && !retry) setTimeout(() => { if ($(".passview") && srcUrl(f.scan.src)) openPassView(f, true); }, 800); // the file link is fetched on first open
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
     <div class="note" style="margin-top:10px">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</div>
@@ -1951,7 +2000,7 @@ function openPassView(f){
     const id = e.target.id;
     if (id === "pvDel") { passConfirm = true; foot(); }
     if (id === "pvDelNo") { passConfirm = false; foot(); }
-    if (id === "pvDelYes") { if (f.scan) store.dropFile(f.scan.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
+    if (id === "pvDelYes") { if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
     if (id === "pvEdit") openFlightForm(f);
   });
 }
