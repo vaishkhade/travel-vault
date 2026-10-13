@@ -269,6 +269,10 @@ button.pass:hover{transform:translateY(-2px)}
 .lightbox .bar{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
 .passview{max-width:720px}
 .scan{margin-top:14px}
+.origview{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.origbox{background:var(--card);border-radius:16px;padding:16px;max-width:min(900px,100%);max-height:100%;display:flex;flex-direction:column;gap:12px;min-width:0}
+.orighead{display:flex;align-items:center;gap:8px}.orighead b{margin-right:auto}
+.origbox img{max-width:100%;max-height:calc(100vh - 120px);object-fit:contain;border-radius:8px;display:block;margin:0 auto}
 .scan img{border-radius:12px;border:1px solid var(--line)}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;z-index:60;box-shadow:var(--shadow);line-height:var(--lh-tight)}
 .confirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
@@ -2029,16 +2033,14 @@ const scanShared = (src, exceptId) => flights().some(x => x.id !== exceptId && x
 let passConfirm = false;
 function openPassView(f, retry){
   const sUrl = f.scan ? srcUrl(f.scan.src) : "";
-  if (f.scan && !sUrl && !retry) setTimeout(() => { if ($(".passview") && srcUrl(f.scan.src)) openPassView(f, true); }, 800); // the file link is fetched on first open
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
     <div class="note" style="margin-top:10px">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</div>
-    ${f.scan ? `<div class="scan"><div class="label">Original boarding pass</div>${f.scan.type && f.scan.type.startsWith("image/") && sUrl ? `<img src="${esc(sUrl)}" alt="Scan of boarding pass">` : sUrl ? `<a class="btn small" href="${esc(sUrl)}" target="_blank" rel="noopener">Open ${esc(f.scan.name)}</a>` : ""}</div>` : ""}
     <div class="foot" id="pvFoot"></div>`, "passview");
   const foot = () => {
     $("#pvFoot").innerHTML = passConfirm
       ? `<span class="err">Delete this flight and its boarding pass?</span><button class="btn small danger" type="button" id="pvDelYes">Delete flight</button><button class="btn small ghost" type="button" id="pvDelNo">Cancel</button>`
-      : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button><button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
+      : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button>${f.scan ? `<button class="btn small ghost" type="button" id="pvOrig">View original</button>` : ""}<button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
   };
   passConfirm = false; foot();
   $("#pvFoot", ov).addEventListener("click", async e => {
@@ -2047,7 +2049,21 @@ function openPassView(f, retry){
     if (id === "pvDelNo") { passConfirm = false; foot(); }
     if (id === "pvDelYes") { if (f.scan && !scanShared(f.scan.src, f.id)) store.dropFile(f.scan.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
     if (id === "pvEdit") openFlightForm(f);
+    if (id === "pvOrig") openOriginal(f.scan);
   });
+}
+/* the uploaded boarding pass stays hidden until asked for */
+function openOriginal(scan, tries = 0){
+  const u = srcUrl(scan.src);
+  if (!u) { if (tries < 10) setTimeout(() => openOriginal(scan, tries + 1), 300); else toast("Couldn't open the original right now"); return; } // the file link is fetched on first use
+  if (!(scan.type || "").startsWith("image/")) { window.open(u, "_blank", "noopener"); return; }
+  const ov = document.createElement("div"); ov.className = "origview"; ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Original boarding pass");
+  ov.innerHTML = `<div class="origbox"><div class="orighead"><b>Original boarding pass</b><a class="btn small ghost" href="${esc(u)}" target="_blank" rel="noopener">Open in new tab</a><button class="btn small" type="button" data-origclose>Close</button></div><img src="${esc(u)}" alt="Original boarding pass ${esc(scan.name || "")}"></div>`;
+  const close = () => { ov.remove(); document.removeEventListener("keydown", esc_, true); };
+  const esc_ = e => { if (e.key === "Escape") { e.stopPropagation(); e.preventDefault(); close(); } };
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-origclose]")) close(); });
+  document.addEventListener("keydown", esc_, true);
+  document.body.appendChild(ov); ov.querySelector("[data-origclose]").focus();
 }
 
 function openLightbox(i, folderId){
