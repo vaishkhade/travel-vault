@@ -587,6 +587,8 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .top .wrap{max-width:none;padding-inline:24px}
 /* one-row sideways scroll in every country card, View more opens the full section */
 .hacts{display:flex;align-items:center;gap:8px;margin-left:auto}
+.sbento .bcard{display:flex;flex-direction:column;min-width:0}.sbento .bcard>.hrow{min-width:0}
+.bfoot{margin-top:auto;padding-top:8px;display:flex;justify-content:flex-end}.bfoot .viewmore{margin-right:-8px;margin-bottom:-4px}
 .bcard .section-head:has(.hacts){flex-wrap:nowrap}.bcard .section-head:has(.hacts) h2{min-width:0;white-space:nowrap}.hacts .note{white-space:nowrap}
 .bcard .hrow{display:grid;grid-template-columns:none;grid-auto-flow:column;gap:8px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:thin}
 .bcard .hrow>*{scroll-snap-align:start}
@@ -1515,27 +1517,27 @@ function renderPlace(cc){
     <div class="sbento">
     ${bentoOpen(cc, p, "cities")}
       <div class="section-head"><h2>${BICON.pin}Cities</h2>
-        <div class="hacts">${viewMore(cc, "cities", (p.folders || []).length)}<button class="btn small" type="button" id="cityHere">Add city</button></div>
+        <div class="hacts"><button class="btn small" type="button" id="cityHere">Add city</button></div>
       </div>
-      <div class="vcards hrow">${sectionItems(cc, p, "cities")}</div>
+      <div class="vcards hrow">${sectionItems(cc, p, "cities")}</div>${viewMore(cc, "cities", (p.folders || []).length)}
     ${bentoClose(cc, p, "cities")}
 
     ${bentoOpen(cc, p, "flights")}
-      <div class="section-head"><h2>${BICON.plane}Flights</h2><div class="hacts">${viewMore(cc, "flights", fl.length)}<button class="btn small" type="button" id="flightHere">Add flight</button></div></div>
-      <div class="passes hrow" id="placePasses">${sectionItems(cc, p, "flights")}</div>
+      <div class="section-head"><h2>${BICON.plane}Flights</h2><div class="hacts"><button class="btn small" type="button" id="flightHere">Add flight</button></div></div>
+      <div class="passes hrow" id="placePasses">${sectionItems(cc, p, "flights")}</div>${viewMore(cc, "flights", fl.length)}
     ${bentoClose(cc, p, "flights")}
 
     ${bentoOpen(cc, p, "photos")}
-      <div class="section-head"><h2>${BICON.photo}Photos</h2><div class="hacts"><span class="note">${plural((p.photos || []).length, "photo", "photos")}</span>${viewMore(cc, "photos", (p.photos || []).length)}</div></div>
+      <div class="section-head"><h2>${BICON.photo}Photos</h2><div class="hacts"><span class="note">${plural((p.photos || []).length, "photo", "photos")}</span></div></div>
       <div class="photos hrow" id="photos">
         <button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button>
         ${sectionItems(cc, p, "photos")}
-      </div>
+      </div>${viewMore(cc, "photos", (p.photos || []).length)}
     ${bentoClose(cc, p, "photos")}
 
     ${bentoOpen(cc, p, "files")}
-      <div class="section-head"><h2>${BICON.file}Files &amp; documents</h2><div class="hacts">${viewMore(cc, "files", (p.files || []).length)}<button class="btn small" type="button" data-upload="files">Add files</button></div></div>
-      <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>
+      <div class="section-head"><h2>${BICON.file}Files &amp; documents</h2><div class="hacts"><button class="btn small" type="button" data-upload="files">Add files</button></div></div>
+      <div class="files hrow" id="files">${sectionItems(cc, p, "files")}</div>${viewMore(cc, "files", (p.files || []).length)}
     ${bentoClose(cc, p, "files")}
 
     ${bentoOpen(cc, p, "notes", "notes")}
@@ -1557,7 +1559,7 @@ function renderPlace(cc){
   }
 }
 const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos", files: "Files & documents"};
-const viewMore = (cc, id, n) => n ? `<a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a>` : "";
+const viewMore = (cc, id, n) => n ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
 function sectionItems(cc, p, id){
   if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
   if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
