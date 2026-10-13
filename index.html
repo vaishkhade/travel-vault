@@ -511,6 +511,9 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sbento h2 svg{width:18px;height:18px}
 .sbento{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:16px;margin-top:40px}
 .sbento .bcard{grid-column:span 12;margin:0}
+.sbento .s-cities{grid-column:span 4;order:1}.sbento .s-flights{grid-column:span 8;order:2}
+.s-cities .section-head .folderacts{flex:1 1 220px;justify-content:flex-end}.s-cities .addcity{width:100%}.s-cities .addcity input{flex:1;min-width:0}
+@media (max-width:980px){.sbento .s-cities,.sbento .s-flights{grid-column:span 12}}
 .sbento .s-photos{grid-column:span 7;order:3}.sbento .s-notes{grid-column:span 5;order:4}.sbento .s-files{order:5}
 @media (max-width:860px){.sbento .s-photos,.sbento .s-notes{grid-column:span 12}}
 .bcard{position:relative;background:var(--card-grey);border:0;border-radius:20px;padding:24px;min-width:0}
