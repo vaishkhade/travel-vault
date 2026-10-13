@@ -726,6 +726,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .ffolders{padding-top:56px;row-gap:72px}
 .ffolders.four{grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));justify-content:stretch;justify-items:center;column-gap:24px;row-gap:calc(48px * var(--fz,1));padding-top:24px}
 .ffolders.four .fwrap,.ffolders.four .addtile{zoom:var(--fz,1)}
+.ffolders.four.tall{row-gap:calc(72px * var(--fz,1));padding-top:calc(56px * var(--fz,1))}
 /* "Add" tile that leads a grid once it has entries, styled like the Add photos tile */
 .addtile{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;border:1.5px dashed var(--border,var(--line));border-radius:var(--radius-lg,16px);background:transparent;color:var(--ink-muted);font:inherit;font-size:14px;font-weight:500;cursor:pointer;text-align:center;padding:16px;transition:background .15s,border-color .15s,color .15s}
 .addtile:hover{background:var(--surface-hover,var(--surface-sunken));border-color:var(--primary);color:var(--primary)}
@@ -1691,10 +1692,10 @@ $("#placeSearch").addEventListener("input", renderPlaces);
 $("#placeSort").addEventListener("change", renderPlaces);
 $("#regionChips").addEventListener("click", e => { const b = e.target.closest("[data-region]"); if (b) { regionFilter = b.dataset.region; renderPlaces(); } });
 document.addEventListener("click", e => { const b = e.target.closest("[data-pmode]"); if (b) { placeMode = b.dataset.pmode; renderPlaces(); } });
-/* Cities tab: four folders a row on desktop, scaled down from the 291px Figma size so the gaps stay tight */
+/* Both Places tabs: four folders a row on desktop, scaled down from the 291px Figma size so the gaps stay tight */
 function fitFolders(){
   const g = $("#folders"); if (!g) return;
-  const on = placeMode === "cities" && !!g.querySelector(".fwrap"); g.classList.toggle("four", on); if (!on) return;
+  const on = !!g.querySelector(".fwrap"); g.classList.toggle("four", on); g.classList.toggle("tall", on && placeMode === "countries"); if (!on) return;
   const w = g.clientWidth, cols = w >= 960 ? 4 : w >= 700 ? 3 : w >= 440 ? 2 : 1, gap = 24;
   g.style.setProperty("--cols", cols); g.style.setProperty("--fz", Math.min(1, (w - gap * (cols - 1)) / cols / 291).toFixed(4));
 }
