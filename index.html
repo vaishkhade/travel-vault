@@ -836,6 +836,8 @@ body>.vmenu.portal{position:fixed;right:auto;z-index:70;margin:0}
 .sbento .bcard .photos.hrow>.drop:hover{box-shadow:var(--soft)}
 /* a hovered card paints above its neighbours, so the next card in the row never covers its shadow */
 .vcard:hover,.vcard.open,button.pass:hover,.ntile:hover,.drop:hover,.addtile:hover,.photo:hover,.fwrap:hover,.file:hover,.stat:hover{position:relative;z-index:3}
+/* the first year heading on the Countries tab starts level with Cities and Flights (its taller row gap was pushing it down) */
+.ffolders.tall:has(>.year:first-child){margin-top:calc(43px - 72px * var(--fz,1))}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
