@@ -590,7 +590,18 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .drop .note{font-size:10px;line-height:14px}
 .top .wrap{max-width:none;padding-inline:24px}
 /* dark mode keeps the light-mode colours: only page background and neutral surfaces change */
-:root:not([data-mode="light"]){--primary:#1d5ad8;--primary-hover:#1748b0;--primary-pressed:#163b8c;--on-primary:#ffffff;--primary-soft:#dce9fe;--primary-soft-hover:#c6dafd;--primary-soft-pressed:#adc9fb;--on-primary-soft:#163b8c;--focus:#2f74ee;--visited:#8dbafb;--visited-line:#1d5ad8;--accent:#1d5ad8;--accent-ink:#ffffff;--soft:#dce9fe}
+:root:not([data-mode="light"]){--primary:#7cadf9;--primary-hover:#9cc1fb;--primary-pressed:#b9d3fc;--on-primary:#ffffff;--primary-soft:#bac5d8;--primary-soft-hover:#c6d0e0;--primary-soft-pressed:#aab7cc;--on-primary-soft:#122f70;--focus:#7cadf9;--visited:#779ed4;--visited-line:#3f78e0;--accent:#1a4fbe;--accent-ink:#ffffff;--soft:#bac5d8;--dim:88%}
+:root:not([data-mode="light"]) :is(.pass[class*="pc-"],.banner,.ntile,.cchip,.chip){--primary:#1a4fbe}
+/* dark mode: same hues as light, dimmed a little */
+:root:not([data-mode="light"]) .btn.primary{background:#1a4fbe;color:#fff}
+:root:not([data-mode="light"]) .cabin.Business,:root:not([data-mode="light"]) .cabin.First{background:#1a4fbe;border-color:#1a4fbe;color:#fff}
+:root:not([data-mode="light"]) .chip::before{background:#1a4fbe}
+:root:not([data-mode="light"]) .pass[class*="pc-"] .main,:root:not([data-mode="light"]) .pass[class*="pc-"] .stub,:root:not([data-mode="light"]) .ffolder .mpass[class*="pc-"] .mm,:root:not([data-mode="light"]) .ffolder .mpass[class*="pc-"] .ms,:root:not([data-mode="light"]) .pcolors .swatch[class*="pc-"]{background-color:color-mix(in srgb,var(--pc) var(--dim),#000)}
+:root:not([data-mode="light"]) .ffolder .back .sheet,:root:not([data-mode="light"]) .ffolder .front .glass .sheet,:root:not([data-mode="light"]) .vcard .img,:root:not([data-mode="light"]) .vcard .img.tint{background:color-mix(in srgb,var(--fc,#B5B0E3) var(--dim),#000)}
+:root:not([data-mode="light"]) .ffolder .in{filter:brightness(.88)}
+:root:not([data-mode="light"]) .ntile{background:#d9dbe0;border-color:#d9dbe0}
+:root:not([data-mode="light"]) .ntile i{background:#c3c6cd}
+:root:not([data-mode="light"]) .ntile .ntag{background:#bac5d8;color:#122f70}
 .pass[class*="pc-"]{--ink:#0d1d42;--ink-muted:#465a85;--ink-subtle:#5c709e;--purple:#465a85;--muted:#465a85;--line:#dce9fe;--line-c:#dce9fe;color:#0d1d42}
 .pass[class*="pc-"] .main{border-right-color:#c6d3ea}
 /* rows: a little air above the scrollbar, and they run to the card's right edge so the peeking item is cut by the card itself */
