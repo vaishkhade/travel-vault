@@ -594,26 +594,18 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sbento .bcard>.hrow{padding-bottom:12px;margin-right:-16px;padding-right:16px;scroll-padding-inline-end:16px}
 .sbento .bcard>.hrow:has(>.empty),.sbento .bcard>.hrow:has(>.fempty){margin-right:0;padding-right:0}
 /* note tiles: the Figma sheet stack, front sheet carries the note */
-.ntile{position:relative;display:block;width:136px;height:146px;border:0;padding:0;background:none;cursor:pointer;text-align:left;color:inherit;border-radius:8px}
+.ntile{display:flex;flex-direction:column;justify-content:space-between;width:124px;height:141px;box-sizing:border-box;padding:8px;background:#fff;border:.581px solid #EDEDED;border-radius:6.973px;overflow:hidden;cursor:pointer;text-align:left;transition:transform .2s ease,box-shadow .2s ease}
+.ntile:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,29,66,.08)}
 .ntile:focus-visible{outline:2px solid var(--focus,#1C2FC2);outline-offset:2px}
-.ntile .nstack{position:absolute;left:0;top:0;width:173.837px;height:186.541px;transform:scale(.78);transform-origin:0 0}
-.ntile .sh{position:absolute;top:7.97px;width:123.1px;height:170.6px;box-sizing:border-box;background:#fff;border:.581px solid #EDEDED;border-radius:6.973px;padding:16.249px 6.392px 12.203px;display:flex;flex-direction:column;gap:6.973px;overflow:hidden}
-.ntile .sh0{left:6.75px;transform:rotate(-7.67deg) skewX(-2.99deg)}
-.ntile .sh1{left:28.85px;transform:rotate(-3.84deg) skewX(-1.5deg)}
-.ntile .sh2{left:50.71px;transition:transform .2s ease}
-.ntile:hover .sh2{transform:translateY(-4px)}
-.ntile .sh .g1{display:flex;flex-direction:column;gap:4.649px;width:104.614px}
-.ntile .sh .r{display:flex;gap:4.068px}
-.ntile .sh i{display:block;flex:1 0 0;height:9.297px;border-radius:18.595px;background:#EDEDED}
-.ntile .sh .g1>i{flex:none;width:100%}
-.ntile .nfront{color:#0D1D42;padding:14px 10px 12px}
-.ntile .nt{font-size:12px;line-height:16px;font-weight:600;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ntile .nb{flex:1;font-size:10px;line-height:14px;color:#5B6478;overflow:hidden;display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical}
-.ntile .dots{display:flex;align-items:center;gap:4px;width:52.095px;height:15.331px;flex:none}
-.ntile .dots b{width:15.331px;height:15.331px;border-radius:50%;flex:none}
-.ntile .dots i{flex:none;width:32.697px;height:8.499px;border-radius:4.25px}
-.sbento .ntiles.hrow{grid-auto-columns:136px;gap:16px}
-.ntiles:not(.hrow){display:grid;grid-template-columns:repeat(auto-fill,136px);gap:24px}
+.ntile .nbars,.ntile .g1,.ntile .g2{display:flex;flex-direction:column;width:100%}
+.ntile .nbars{gap:6.973px}.ntile .g1{gap:4.649px}.ntile .g2{gap:4.068px}
+.ntile .r{display:flex;gap:4.068px}
+.ntile i{display:block;flex:1 0 0;height:9.297px;border-radius:18.595px;background:#EDEDED}
+.ntile .g1>i,.ntile .g2>i{flex:none;width:100%}
+.ntile .nname{font-family:Poppins,sans-serif;font-weight:500;font-size:14px;line-height:normal;color:#000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+@media (prefers-reduced-motion:reduce){.ntile{transition:none}}
+.sbento .ntiles.hrow{grid-auto-columns:124px;gap:8px}
+.ntiles:not(.hrow){display:grid;grid-template-columns:repeat(auto-fill,124px);gap:16px}
 .sbento .s-notes .hrow:has(>.empty){display:block}
 /* count chips on card headings; a third city / pass peeks in so the row reads as scrollable */
 .cchip{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:20px;padding:0 8px;border-radius:999px;background:var(--primary-soft);color:var(--on-primary-soft);font-size:12px;line-height:16px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -1659,11 +1651,11 @@ function renderPlace(cc){
 /* notes: a list of separate notes; older vaults kept one notes string, read as a single note */
 const notesOf = p => p.noteList || ((p.notes || "").trim() ? [{id: "n-legacy", text: p.notes, at: p.createdAt || ""}] : []);
 const saveNotes = (p, list) => store.put("places", {...p, noteList: list, notes: ""});
-function noteTileHTML(n, i){
-  const lines = n.text.trim().split("\n").filter(Boolean), title = (lines[0] || "Note").slice(0, 60), body = lines.slice(1).join(" ").slice(0, 220);
-  return `<button type="button" class="ntile" data-note="${esc(n.id)}" aria-label="Open note: ${esc(title)}">
-    <span class="nstack"><span class="sh sh0 nsh"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span></span><span class="sh sh1 nsh"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span></span>
-    <span class="sh sh2 nfront"><b class="nt">${esc(title)}</b><span class="nb">${esc(body)}</span><span class="dots"><b style="background:${SHEET_DOT[i % 3]}"></b><i></i></span></span></span>
+function noteTileHTML(n){ // Figma "Image Container only": 124x141 sheet, two bar groups, note name at the bottom
+  const title = (n.text.trim().split("\n").find(Boolean) || "Note").slice(0, 80);
+  return `<button type="button" class="ntile" data-note="${esc(n.id)}" aria-label="Open note: ${esc(title)}" title="${esc(title)}">
+    <span class="nbars"><span class="g1"><span class="r"><i style="width:38.906px;flex:none"></i><i></i></span><i></i><i></i></span><span class="g2"><i></i><i></i><i></i></span></span>
+    <span class="nname">${esc(title)}</span>
   </button>`;
 }
 function openNote(cc, id){
@@ -1690,7 +1682,7 @@ const viewMore = (cc, id, n) => n > 2 ? `<div class="bfoot"><a class="btn small 
 function sectionItems(cc, p, id){
   if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
   if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
-  if (id === "notes") { const ns = notesOf(p); return ns.length ? ns.map(noteTileHTML).join("") : `<div class="empty"><p>No notes yet. Write down favourite food, where you stayed, who you went with.</p></div>`; }
+  if (id === "notes") { const ns = notesOf(p); return ns.length ? ns.map(n => noteTileHTML(n)).join("") : `<div class="empty"><p>No notes yet. Write down favourite food, where you stayed, who you went with.</p></div>`; }
   if (id === "photos") return (p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("");
   return (p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
     : `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`;
