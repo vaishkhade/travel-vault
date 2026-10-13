@@ -738,9 +738,18 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .pcfield .plabel{font-weight:500;font-size:13px;line-height:18px;color:var(--ink);margin-bottom:6px}
 .pvmeta{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}.pvmeta .note{flex:1;min-width:0}
 .pvcountry{font-size:13px;font-weight:500;color:var(--primary);text-decoration:none;white-space:nowrap}.pvcountry:hover{text-decoration:underline}
-.pvcolor{display:flex;align-items:center;gap:12px;margin-top:12px}
-.pvphoto{display:flex;align-items:center;gap:12px;margin-top:12px;flex-wrap:wrap}
-.pvphoto .thumb{width:44px;height:44px;border-radius:6px;object-fit:cover;background:var(--surface-sunken);border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:zoom-in;padding:0}
+/* Pass details: one panel of label/value rows on a fixed label column, 16px between rows, 8px label to control */
+.pvpanel{display:grid;gap:16px;margin-top:16px;padding:16px;border-radius:var(--radius-lg,16px);background:var(--surface-sunken);border:1px solid var(--line)}
+.pvrow{display:grid;grid-template-columns:96px minmax(0,1fr);gap:8px;align-items:center;min-height:32px}
+.pvlabel{font-size:13px;font-weight:500;color:var(--ink-muted)}
+.pvval{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.pvval .note{font-size:12px}
+.pvroute{flex-direction:column;align-items:flex-start;gap:2px}.pvroute b{font-size:14px;font-weight:500;color:var(--ink)}.pvroute .note{overflow-wrap:anywhere}
+.pvcolor .pcolors{display:flex;gap:8px;flex-wrap:wrap}
+.pvfoot{margin-top:16px}.pvfoot .pvdel{margin-right:auto;color:var(--danger);padding-inline:8px}.pvfoot .pvdel:hover{background:color-mix(in srgb,var(--danger) 8%,transparent)}
+.pvfoot .err{margin-right:auto}
+@media (max-width:520px){.pvpanel{padding:12px}.pvrow{grid-template-columns:minmax(0,1fr);min-height:0}}
+.pvphoto .thumb{width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--surface-sunken);border:3px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.25);cursor:zoom-in;padding:0}
 .pvphoto .thumb img{width:100%;height:100%;object-fit:cover;display:block;border-radius:3px}
 
 /* one-row sideways scroll in every country card, View more opens the full section */
@@ -2325,20 +2334,23 @@ function openPassView(f, retry){
   const sUrl = f.scan ? srcUrl(f.scan.src) : "";
   const a = AIRPORT[f.from], b = AIRPORT[f.to];
   const ov = modal(`${passHTML(f, {static: true})}
-    <div class="pvcolor"><span class="note">Colour</span>${passPaletteHTML(f.color)}</div>
-    <div class="pvphoto" id="pvPhoto"></div><input type="file" accept="image/*" id="pvPhotoPick" hidden>
-    <div class="pvmeta"><span class="note">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</span>${(() => { const cc = b && b.cc; return cc && state.places[cc] && !(route === "place" && routeArg === cc) ? `<a class="pvcountry" href="#place-${esc(cc)}" data-close>${COUNTRY[cc].flag} ${esc(COUNTRY[cc].name)} →</a>` : ""; })()}</div>
-    <div class="foot" id="pvFoot"></div>`, "passview");
+    <div class="pvpanel">
+      <div class="pvrow"><span class="pvlabel">Colour</span><div class="pvval pvcolor">${passPaletteHTML(f.color)}</div></div>
+      <div class="pvrow"><span class="pvlabel">Map photo</span><div class="pvval pvphoto" id="pvPhoto"></div></div>
+      ${a && b ? `<div class="pvrow"><span class="pvlabel">Route</span><div class="pvval pvroute"><b>${esc(a.city || a.name)} → ${esc(b.city || b.name)} · ${Math.round(km(a, b)).toLocaleString()} km</b><span class="note">${esc(a.name)} → ${esc(b.name)}</span></div></div>` : ""}
+      ${(() => { const cc = b && b.cc; return cc && state.places[cc] && !(route === "place" && routeArg === cc) ? `<div class="pvrow"><span class="pvlabel">Country</span><div class="pvval"><a class="pvcountry" href="#place-${esc(cc)}" data-close>${COUNTRY[cc].flag} ${esc(COUNTRY[cc].name)} →</a></div></div>` : ""; })()}
+    </div><input type="file" accept="image/*" id="pvPhotoPick" hidden>
+    <div class="foot pvfoot" id="pvFoot"></div>`, "passview");
   const foot = () => {
     $("#pvFoot").innerHTML = passConfirm
       ? `<span class="err">Delete this flight and its boarding pass?</span><button class="btn small danger" type="button" id="pvDelYes">Delete flight</button><button class="btn small ghost" type="button" id="pvDelNo">Cancel</button>`
-      : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button>${f.scan ? `<button class="btn small ghost" type="button" id="pvOrig">View original</button>` : ""}<button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
+      : `<button class="btn small ghost pvdel" type="button" id="pvDel">Delete flight</button>${f.scan ? `<button class="btn small" type="button" id="pvOrig">View original</button>` : ""}<button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
   };
   passConfirm = false; foot();
   /* one photo per flight, shown on the map where its thread hangs */
   const photoRow = () => {
     const u = f.photo ? srcUrl(f.photo.src) : "";
-    $("#pvPhoto", ov).innerHTML = `<span class="note">Map photo</span>${f.photo ? `<button type="button" class="thumb" id="pvPhotoOpen" aria-label="Open photo">${u ? `<img src="${esc(u)}" alt="">` : ""}</button><button class="btn small ghost" type="button" id="pvPhotoAdd">Change</button><button class="btn small ghost" type="button" id="pvPhotoDel">Remove</button>` : `<button class="btn small" type="button" id="pvPhotoAdd">Add photo</button><span class="note">It hangs on this flight's thread on the map</span>`}`;
+    $("#pvPhoto", ov).innerHTML = f.photo ? `<button type="button" class="thumb" id="pvPhotoOpen" aria-label="Open photo">${u ? `<img src="${esc(u)}" alt="">` : ""}</button><button class="btn small" type="button" id="pvPhotoAdd">Change</button><button class="btn small ghost" type="button" id="pvPhotoDel">Remove</button>` : `<button class="btn small" type="button" id="pvPhotoAdd">Add photo</button><span class="note">Hangs on this flight's thread on the map</span>`;
   };
   photoRow();
   $("#pvPhoto", ov).addEventListener("click", async e => {
