@@ -1,6 +1,4 @@
-<!doctype html>
-<html lang="en"><head>
-<meta charset="utf-8">
+<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Travel Vault</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -153,13 +151,13 @@ main{padding-block:16px;margin-block:32px 96px}
 /* Folder: Figma "Project Folder" 291x218, measurements from dev mode */
 .ffolder{position:relative;display:block;width:291px;height:218px;flex:none;text-decoration:none;border:0;padding:0;background:none;cursor:pointer;text-align:left;color:#F9F9F9;font-variant-numeric:lining-nums tabular-nums;transition:transform .2s ease}
 .ffolder .back{position:absolute;left:12.9113px;top:0;width:265.177px;height:193px;border-radius:20px;overflow:hidden;background:#F5F5F5}
-.ffolder .back .sheet{position:absolute;left:-13px;top:-34px;width:293px;height:225px;background:var(--fc,#8dbafb)}
+.ffolder .back .sheet{position:absolute;left:-13px;top:-34px;width:293px;height:225px;background:var(--fc,#B5B0E3)}
 .ffolder .back img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ffolder .front{position:absolute;left:0;top:23px;width:291px;height:195px;clip-path:path("M110.068 0H16C7.16344 0 0 7.16344 0 16V179C0 187.837 7.16345 195 16 195H275C283.837 195 291 187.837 291 179V42.5C291 33.6634 283.837 26.5 275 26.5H136.239C131.09 26.5 126.515 23.2147 124.869 18.3353L121.438 8.1647C119.792 3.2853 115.217 0 110.068 0Z");
   overflow:hidden;background:#141218}
 /* Figma GLASS effect: the sheet behind, blurred through the front panel */
 .ffolder .front .glass{position:absolute;left:12.9113px;top:-23px;width:265.177px;height:193px;border-radius:20px;overflow:hidden;background:#F5F5F5;filter:blur(30px);opacity:.75}
-.ffolder .front .glass .sheet{position:absolute;inset:0;background:var(--fc,#8dbafb)}
+.ffolder .front .glass .sheet{position:absolute;inset:0;background:var(--fc,#B5B0E3)}
 .ffolder .front .glass img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
 .ffolder .front::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(51,51,51,.1),rgba(51,51,51,.1)),linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 100%)}
 .ffolder .edge{position:absolute;left:0;top:23px;width:291px;height:195px;pointer-events:none}
@@ -315,7 +313,7 @@ button.pass:hover{transform:translateY(-2px)}
 /* folder colour picker */
 .fwrap{position:relative;width:291px;height:218px}
 .fwrap.open{z-index:10}
-.fcolor{position:absolute;left:16px;top:35px;z-index:3;width:24px;height:24px;border-radius:999px;border:1.5px solid rgba(255,255,255,.7);background:var(--fc,#8dbafb);cursor:pointer;padding:0;opacity:0;transition:opacity .2s ease}
+.fcolor{position:absolute;left:16px;top:35px;z-index:3;width:24px;height:24px;border-radius:999px;border:1.5px solid rgba(255,255,255,.7);background:var(--fc,#B5B0E3);cursor:pointer;padding:0;opacity:0;transition:opacity .2s ease}
 .fwrap:hover .fcolor,.fwrap:focus-within .fcolor,.fwrap.open .fcolor{opacity:1}
 @media (hover:none){.fcolor{opacity:1}}
 .palette{position:absolute;left:8px;top:64px;z-index:5;display:flex;gap:8px;flex-wrap:wrap;width:max-content;max-width:275px;background:var(--menu-bg);border:1px solid var(--menu-line);border-radius:12px;padding:8px;box-shadow:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.1)}
@@ -457,7 +455,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .form input[type=file]{height:auto;padding:var(--space-2) var(--space-3)}
 .addcity{align-items:center;gap:var(--space-2)}
 .addcity input{height:32px;border-radius:var(--radius-sm);font-size:13px}
-.vcard .img{background:var(--fc,#8dbafb)}
+.vcard .img{background:var(--fc,#B5B0E3)}
 .vcard.light .kebab,.vcard.light .img .pin{color:#0d1d42}
 .vcard.light .kebab:hover{background:rgba(13,29,66,.12)}
 [hidden]{display:none!important}
@@ -471,11 +469,36 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .autherr{margin:0;min-height:16px;font-size:12px;line-height:16px;color:var(--ink-muted)}
 .autherr.bad{color:var(--danger);font-weight:500}
 .authacts{display:flex;gap:var(--space-2);flex-wrap:wrap}
+.authform,.authsent{display:grid;gap:var(--space-4)}
+.authtabs{display:flex}
+.authtabs button{flex:1;justify-content:center}
+.autherr.ok{color:var(--primary);font-weight:500}
+/* folder text: Figma "Project Folder" dev specs (leading 1.4) */
+.ffolder .when,.ffolder .info,.ffolder .fno,.ffolder .rt{line-height:1.4}
+.ffolder .when{top:65px;right:20px}
+.ffolder .info{left:20px;bottom:20px;width:251px;gap:6px}
+.ffolder .fno span{font-weight:400}
+/* boarding pass: one-line header, aligned route, fields that never wrap mid-row */
+.pass .main{container-type:inline-size}
+.pass .head{flex-wrap:nowrap;margin-bottom:var(--space-2)}
+.pass .airline{flex:1 1 auto;overflow:hidden;text-overflow:ellipsis;display:block}
+.pass .cabin{flex:none}
+.route{align-items:start;gap:var(--space-2)}
+.route .code{font-size:40px;line-height:48px}
+.route .plane{padding:0;margin-top:13px}
+.route .plane svg{display:block}
+.fields{display:grid;grid-template-columns:repeat(4,max-content);justify-content:space-between;gap:var(--space-2) var(--space-2);margin-top:var(--space-3)}
+@container (max-width:250px){.fields{grid-template-columns:repeat(2,max-content);row-gap:var(--space-2)}.route .code{font-size:32px;line-height:40px}.route .plane{margin-top:9px}}
+@media (max-width:480px){.pass{grid-template-columns:minmax(0,1fr) 88px}.fields{grid-template-columns:repeat(2,max-content)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}.btn:hover,button.pass:hover,.vcard:hover{transform:none!important}}
+.scanpick input[type=file]::file-selector-button{font:inherit;font-weight:500;padding:8px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--primary);margin-right:12px;cursor:pointer}
+.scanpick input[type=file]::file-selector-button:hover{border-color:var(--primary)}
+.scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
+.form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
+@keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
 </style>
 
-</head><body>
-<div class="rails" aria-hidden="true"></div>
+</head><body><div class="rails" aria-hidden="true"></div>
 <header class="top">
   <div class="wrap">
     <a class="brand" href="#map"><b>Travel <i>Vault</i></b></a>
@@ -541,14 +564,26 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
   <section class="view" id="v-place" hidden aria-label="Country"></section>
 
   <section class="view" id="v-auth" hidden aria-label="Sign in">
-    <form class="authcard" id="authForm" novalidate>
+    <div class="authcard" id="authCard">
       <h1>Your travel vault</h1>
-      <p class="note">Sign in to keep your places, flights and photos safe in your own account, on any device.</p>
-      <label class="tfield">Email<input id="authEmail" type="email" autocomplete="email" required></label>
-      <label class="tfield">Password<input id="authPass" type="password" autocomplete="current-password" minlength="6" required></label>
-      <p class="autherr" id="authMsg" role="status"></p>
-      <div class="authacts"><button class="btn primary" type="submit" id="authIn">Sign in</button><button class="btn" type="button" id="authUp">Create account</button></div>
-    </form>
+      <div class="seg authtabs" role="tablist" aria-label="Account">
+        <button type="button" role="tab" data-amode="in" aria-pressed="true" aria-selected="true">Sign in</button>
+        <button type="button" role="tab" data-amode="up" aria-pressed="false" aria-selected="false">Create account</button>
+      </div>
+      <form id="authForm" class="authform" novalidate>
+        <p class="note" id="authLead">Welcome back. Sign in with the email and password you signed up with.</p>
+        <label class="tfield">Email<input id="authEmail" type="email" autocomplete="email" required></label>
+        <label class="tfield">Password<input id="authPass" type="password" autocomplete="current-password" minlength="6" required></label>
+        <label class="tfield" id="authPass2Wrap" hidden>Confirm password<input id="authPass2" type="password" autocomplete="new-password" minlength="6"></label>
+        <p class="autherr" id="authMsg" role="status"></p>
+        <div class="authacts"><button class="btn primary" type="submit" id="authGo">Sign in</button><button class="btn ghost" type="button" id="authResend" hidden>Resend confirmation email</button></div>
+      </form>
+      <div class="authsent" id="authSent" hidden>
+        <p class="note">We sent a confirmation link to <b id="authSentTo"></b>. Open it to confirm your account, then come back and sign in.</p>
+        <p class="autherr" id="authSentMsg" role="status"></p>
+        <div class="authacts"><button class="btn primary" type="button" id="authBack">Back to sign in</button><button class="btn" type="button" id="authResend2">Resend email</button></div>
+      </div>
+    </div>
   </section>
 </main>
 
@@ -810,7 +845,7 @@ function srcUrl(src){
 async function boot(){
   renderAll();
   if (window.supabase && await sbReachable()) {
-    sb = window.supabase.createClient(SB_URL, SB_KEY, {auth: {storage: safeStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false}});
+    sb = window.supabase.createClient(SB_URL, SB_KEY, {auth: {storage: safeStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}});
     state.mode = "supabase";
     const {data} = await sb.auth.getSession();
     sb.auth.onAuthStateChange((ev, session) => {
@@ -881,7 +916,7 @@ function passHTML(f, opts={}){
   const cabin = f.cabin || "Economy";
   return `<${opts.static ? "div" : "button type=\"button\""} class="pass" data-flight="${esc(f.id)}" aria-label="${esc(`${f.airline||"Flight"} ${f.flightNo||""} from ${a.city} to ${b.city} on ${fmtDate(f.date)}`)}">
     <div class="main">
-      <div class="head"><span class="airline">${esc(f.airline || "Airline")}${f.example ? ' <span class="tag">Example</span>' : ""}</span><span class="cabin ${esc(cabin.split(" ")[0])}">${esc(cabin)}</span></div>
+      <div class="head"><span class="airline">${esc(f.airline || "Airline")}</span><span class="cabin ${esc(cabin.split(" ")[0])}">${esc(cabin)}</span></div>
       <div class="route">
         <div><div class="code">${esc(f.from)}</div><div class="city">${esc(a.city || a.name || "")}</div></div>
         <div class="plane" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="rotate(90 12 12)"/></svg></div>
@@ -913,7 +948,7 @@ function images(list, max){
 }
 function placeImages(p, max){ return images([...(p.photos || []), ...(p.folders || []).flatMap(f => f.items || [])], max); }
 function firstImage(p){ return placeImages(p, 1)[0] || ""; }
-const FCOLORS = [["Blue", "#8dbafb"], ["Lilac", "#B5B0E3"], ["Mint", "#A6E3C8"], ["Peach", "#FFC4A3"], ["Rose", "#F6A9CB"], ["Butter", "#F3DD8C"], ["Slate", "#AEB6C6"]];
+const FCOLORS = [["Lilac", "#B5B0E3"], ["Blue", "#8dbafb"], ["Mint", "#A6E3C8"], ["Peach", "#FFC4A3"], ["Rose", "#F6A9CB"], ["Butter", "#F3DD8C"], ["Slate", "#AEB6C6"]];
 let openPal = null;
 function paletteHTML(key, current, cls){
   const cur = current || FCOLORS[0][1];
@@ -1145,20 +1180,52 @@ document.addEventListener("click", e => {
   if (k === "flight") openFlightForm(); else if (k === "city") openCityForm(); else openPlaceForm();
 });
 /* Sign in / create account / sign out */
-async function authGo(kind){
-  const email = $("#authEmail").value.trim(), password = $("#authPass").value, msg = $("#authMsg");
-  msg.className = "autherr";
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = "Enter a valid email"; msg.classList.add("bad"); return; }
-  if (password.length < 6) { msg.textContent = "Use at least 6 characters for the password"; msg.classList.add("bad"); return; }
-  $("#authIn").disabled = $("#authUp").disabled = true; msg.textContent = kind === "up" ? "Creating your account…" : "Signing in…";
-  const r = kind === "up" ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
-  $("#authIn").disabled = $("#authUp").disabled = false;
-  if (r.error) { msg.textContent = r.error.message; msg.classList.add("bad"); return; }
-  if (kind === "up" && !r.data.session) { msg.textContent = "Check your email and open the confirmation link, then sign in here."; return; }
-  msg.textContent = "";
+let authMode = "in";
+const redirectTo = () => location.origin + location.pathname;
+function setAuthMode(m){
+  authMode = m;
+  $$("[data-amode]").forEach(b => { const on = b.dataset.amode === m; b.setAttribute("aria-pressed", on); b.setAttribute("aria-selected", on); });
+  $("#authLead").textContent = m === "in" ? "Welcome back. Sign in with the email and password you signed up with." : "New here? Create an account with your email. We'll send a link to confirm it.";
+  $("#authGo").textContent = m === "in" ? "Sign in" : "Create account";
+  $("#authPass").autocomplete = m === "in" ? "current-password" : "new-password";
+  $("#authPass2Wrap").hidden = m === "in";
+  $("#authResend").hidden = true; setMsg("#authMsg", "");
+  $("#authForm").hidden = false; $("#authSent").hidden = true;
 }
-$("#authForm").addEventListener("submit", e => { e.preventDefault(); authGo("in"); });
-$("#authUp").addEventListener("click", () => authGo("up"));
+function setMsg(sel, text, kind){ const el = $(sel); el.textContent = text; el.className = "autherr" + (kind ? " " + kind : ""); }
+async function resend(email, sel){
+  const r = await sb.auth.resend({type: "signup", email, options: {emailRedirectTo: redirectTo()}});
+  if (r.error) setMsg(sel, r.error.message, "bad"); else setMsg(sel, `Sent another confirmation link to ${email}.`, "ok");
+}
+async function authGo(){
+  const email = $("#authEmail").value.trim(), password = $("#authPass").value;
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setMsg("#authMsg", "Enter a valid email", "bad");
+  if (password.length < 6) return setMsg("#authMsg", "Use at least 6 characters for the password", "bad");
+  if (authMode === "up" && password !== $("#authPass2").value) return setMsg("#authMsg", "The two passwords don't match", "bad");
+  const btn = $("#authGo"); btn.disabled = true; $("#authResend").hidden = true;
+  setMsg("#authMsg", authMode === "up" ? "Creating your account…" : "Signing in…");
+  const r = authMode === "up" ? await sb.auth.signUp({email, password, options: {emailRedirectTo: redirectTo()}}) : await sb.auth.signInWithPassword({email, password});
+  btn.disabled = false;
+  if (r.error) {
+    const notConfirmed = /not confirmed/i.test(r.error.message) || r.error.code === "email_not_confirmed";
+    if (notConfirmed) { setMsg("#authMsg", "Confirm your email first. Open the link we sent you, or get a new one.", "bad"); $("#authResend").hidden = false; }
+    else if (/invalid login/i.test(r.error.message)) setMsg("#authMsg", authMode === "in" ? "That email and password don't match. New here? Use Create account." : r.error.message, "bad");
+    else if (/already registered/i.test(r.error.message)) setMsg("#authMsg", "That email already has an account. Use Sign in.", "bad");
+    else setMsg("#authMsg", r.error.message, "bad");
+    return;
+  }
+  if (authMode === "up" && !r.data.session) {
+    if (r.data.user && Array.isArray(r.data.user.identities) && !r.data.user.identities.length) return setMsg("#authMsg", "That email already has an account. Use Sign in.", "bad");
+    $("#authSentTo").textContent = email; setMsg("#authSentMsg", "");
+    $("#authForm").hidden = true; $("#authSent").hidden = false; return;
+  }
+  setMsg("#authMsg", "");
+}
+$$("[data-amode]").forEach(b => b.addEventListener("click", () => setAuthMode(b.dataset.amode)));
+$("#authForm").addEventListener("submit", e => { e.preventDefault(); authGo(); });
+$("#authResend").addEventListener("click", () => resend($("#authEmail").value.trim(), "#authMsg"));
+$("#authResend2").addEventListener("click", () => resend($("#authEmail").value.trim(), "#authSentMsg"));
+$("#authBack").addEventListener("click", () => { setAuthMode("in"); $("#authPass").value = ""; $("#authPass").focus(); });
 $("#signOutBtn").addEventListener("click", async () => { if (sbChannel) { sb.removeChannel(sbChannel); sbChannel = null; } await sb.auth.signOut(); });
 
 /* Tide ripple on buttons */
@@ -1536,6 +1603,99 @@ function openPlaceForm(editCc){
   });
 }
 
+// ---- Boarding pass reader: decodes the IATA BCBP barcode (PDF417 / Aztec / QR) or reads PDF text, all in the browser ----
+const AIRLINE_NAMES = {AI:"Air India",IX:"Air India Express","6E":"IndiGo",UK:"Vistara",SG:"SpiceJet",QP:"Akasa Air",G8:"Go First",BA:"British Airways",VS:"Virgin Atlantic",LH:"Lufthansa",LX:"Swiss",OS:"Austrian",SN:"Brussels Airlines",AF:"Air France",KL:"KLM",IB:"Iberia",VY:"Vueling",AZ:"ITA Airways",TP:"TAP Air Portugal",SK:"SAS",AY:"Finnair",EI:"Aer Lingus",FR:"Ryanair",U2:"easyJet",W6:"Wizz Air",LO:"LOT Polish",TK:"Turkish Airlines",PC:"Pegasus",EK:"Emirates",EY:"Etihad",QR:"Qatar Airways",GF:"Gulf Air",WY:"Oman Air",SV:"Saudia",FZ:"flydubai",G9:"Air Arabia",MS:"EgyptAir",ET:"Ethiopian",KQ:"Kenya Airways",SA:"South African",RJ:"Royal Jordanian",UL:"SriLankan",PK:"PIA",BG:"Biman",KU:"Kuwait Airways",SQ:"Singapore Airlines",TR:"Scoot",MH:"Malaysia Airlines",AK:"AirAsia",D7:"AirAsia X",TG:"Thai Airways",FD:"Thai AirAsia",VN:"Vietnam Airlines",VJ:"VietJet",PR:"Philippine Airlines","5J":"Cebu Pacific",GA:"Garuda Indonesia",CX:"Cathay Pacific",HX:"Hong Kong Airlines",CI:"China Airlines",BR:"EVA Air",CA:"Air China",MU:"China Eastern",CZ:"China Southern",HU:"Hainan Airlines",JL:"Japan Airlines",NH:"ANA",KE:"Korean Air",OZ:"Asiana",QF:"Qantas",JQ:"Jetstar",VA:"Virgin Australia",NZ:"Air New Zealand",AA:"American Airlines",DL:"Delta",UA:"United",WN:"Southwest",B6:"JetBlue",AS:"Alaska Airlines",F9:"Frontier",NK:"Spirit",HA:"Hawaiian",AC:"Air Canada",WS:"WestJet",AM:"Aeroméxico",LA:"LATAM",AV:"Avianca",CM:"Copa",AR:"Aerolíneas Argentinas",G3:"GOL",AD:"Azul",SU:"Aeroflot",A3:"Aegean",FI:"Icelandair",DY:"Norwegian",EW:"Eurowings",DE:"Condor",LG:"Luxair",RO:"TAROM",JU:"Air Serbia",OU:"Croatia Airlines",ME:"Middle East Airlines",KC:"Air Astana",HY:"Uzbekistan Airways",J2:"Azerbaijan Airlines",PG:"Bangkok Airways",QZ:"Indonesia AirAsia",KM:"KM Malta",BT:"airBaltic",MK:"Air Mauritius",HM:"Air Seychelles",KA:"Cathay Dragon",TN:"Air Tahiti Nui",FJ:"Fiji Airways"};
+const CABIN_OF = c => /[FA]/.test(c) ? "First" : /[JCDIZRP]/.test(c) ? "Business" : /[WEO]/.test(c) ? "Premium Economy" : "Economy";
+const iso = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+function julianNear(doy){ // BCBP dates carry only the day of the year: pick the year that lands closest to today
+  const now = new Date(); let best = null;
+  for (const y of [now.getFullYear() - 1, now.getFullYear(), now.getFullYear() + 1]) {
+    const d = new Date(y, 0, doy); if (d.getFullYear() !== y) continue;
+    if (!best || Math.abs(d - now) < Math.abs(best - now)) best = d;
+  }
+  return best ? iso(best) : "";
+}
+function parseBCBP(s){
+  s = String(s || "").replace(/^\]\w\d/, "");
+  const i = s.indexOf("M"); if (i < 0) return null; s = s.slice(i);
+  if (!/^M[1-4]/.test(s) || s.length < 58) return null;
+  const leg = s.slice(23), t = x => x.trim();
+  const from = t(leg.slice(7, 10)), to = t(leg.slice(10, 13)), carrier = t(leg.slice(13, 16)), num = t(leg.slice(16, 21)).replace(/^0+(?=\d)/, "");
+  if (!/^[A-Z]{3}$/.test(from) || !/^[A-Z]{3}$/.test(to)) return null;
+  const doy = parseInt(leg.slice(21, 24), 10), seat = t(leg.slice(25, 29)).replace(/^0+(?=\d)/, "");
+  const name = t(s.slice(2, 22)).split("/").map(x => x.trim()).filter(Boolean);
+  return {from, to, airline: AIRLINE_NAMES[carrier] || carrier, flightNo: carrier && num ? `${carrier} ${num}` : "", date: doy ? julianNear(doy) : "",
+    cabin: CABIN_OF(leg[24] || "Y"), seat: /^\d{1,3}[A-Z]$/.test(seat) ? seat : "", pnr: t(leg.slice(0, 7)),
+    passenger: name.length ? [name[1], name[0]].filter(Boolean).join(" ").toLowerCase().replace(/(^|[\s-])\S/g, c => c.toUpperCase()) : "", legs: +s[1] || 1};
+}
+const MON_NUM = {jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,sept:9,oct:10,nov:11,dec:12};
+function parsePassText(txt){ // best-effort read of a PDF's text when it has no readable barcode
+  const T = txt.replace(/\s+/g, " "), out = {};
+  const pair = T.match(/\b([A-Z]{3})\s*(?:→|->|–|-|to|✈)\s*([A-Z]{3})\b/);
+  if (pair && AIRPORT[pair[1]] && AIRPORT[pair[2]]) { out.from = pair[1]; out.to = pair[2]; }
+  const codes = [...T.matchAll(/\b([A-Z]{3})\b/g)].map(m => m[1]).filter(c => AIRPORT[c]);
+  const uniq = [...new Set(codes)]; if (!out.from && uniq.length >= 2) { out.from = uniq[0]; out.to = uniq[1]; }
+  for (const m of T.matchAll(/\b([A-Z0-9]{2})\s?-?(\d{1,4})\b/g)) if (AIRLINE_NAMES[m[1]] && /[A-Z]/.test(m[1])) { out.flightNo = `${m[1]} ${+m[2]}`; out.airline = AIRLINE_NAMES[m[1]]; break; }
+  let m = T.match(/\b(\d{1,2})[\s\-\/]?(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)[a-z]*[\s\-\/,]*(\d{2,4})\b/i);
+  if (m) { const y = m[3].length === 2 ? 2000 + +m[3] : +m[3]; out.date = iso(new Date(y, MON_NUM[m[2].toLowerCase()] - 1, +m[1])); }
+  else if ((m = T.match(/\b(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept?|Oct|Nov|Dec)[a-z]*\.? (\d{1,2}),? (\d{4})\b/i))) out.date = iso(new Date(+m[3], MON_NUM[m[1].toLowerCase()] - 1, +m[2]));
+  else if ((m = T.match(/\b(20\d{2})-(\d{2})-(\d{2})\b/))) out.date = `${m[1]}-${m[2]}-${m[3]}`;
+  if ((m = T.match(/\bSeat(?: No\.?| number)?\s*:?\s*(\d{1,2}[A-K])\b/i))) out.seat = m[1].toUpperCase();
+  if ((m = T.match(/\b(?:PNR|Booking (?:ref(?:erence)?|code)|Confirmation(?: code| number)?|Record locator)\s*(?:No\.?)?\s*:?\s*([A-Z0-9]{5,8})\b/i))) out.pnr = m[1].toUpperCase();
+  if ((m = T.match(/\bGate\s*:?\s*([A-Z]?\d{1,3}[A-Z]?)\b/i))) out.gate = m[1].toUpperCase();
+  if ((m = T.match(/\bBoarding(?: time)?\s*:?\s*(\d{1,2})[:.](\d{2})\s*(AM|PM)?/i))) { let h = +m[1]; if (m[3]) h = (h % 12) + (/pm/i.test(m[3]) ? 12 : 0); out.boarding = `${String(h).padStart(2, "0")}:${m[2]}`; }
+  if ((m = T.match(/\b(First|Business|Premium Economy|Economy)\b/i))) out.cabin = {first: "First", business: "Business", "premium economy": "Premium Economy", economy: "Economy"}[m[1].toLowerCase()];
+  return out;
+}
+const libLoads = {};
+function loadLib(src, global){
+  if (window[global]) return Promise.resolve(window[global]);
+  return libLoads[src] = libLoads[src] || new Promise((res, rej) => { const el = document.createElement("script"); el.src = src; el.onload = () => window[global] ? res(window[global]) : rej(new Error(global)); el.onerror = rej; document.head.appendChild(el); });
+}
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+const ZXING = "https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js";
+async function decodeCanvas(cv){
+  if ("BarcodeDetector" in window) {
+    try { const bd = new BarcodeDetector({formats: ["pdf417", "aztec", "qr_code", "data_matrix"]}); const r = await bd.detect(cv); for (const x of r) if (parseBCBP(x.rawValue)) return x.rawValue; } catch (e) {}
+  }
+  const Z = await loadLib(ZXING, "ZXing");
+  const hints = new Map([[Z.DecodeHintType.TRY_HARDER, true], [Z.DecodeHintType.POSSIBLE_FORMATS, [Z.BarcodeFormat.PDF_417, Z.BarcodeFormat.AZTEC, Z.BarcodeFormat.QR_CODE, Z.BarcodeFormat.DATA_MATRIX]]]);
+  const reader = new Z.MultiFormatReader(); reader.setHints(hints);
+  const tryOne = c => { try { const lum = new Z.HTMLCanvasElementLuminanceSource(c); return reader.decode(new Z.BinaryBitmap(new Z.HybridBinarizer(lum))).getText(); } catch (e) { return null; } };
+  const scaled = (src, f, rot) => { const c = document.createElement("canvas"), w = Math.round(src.width * f), h = Math.round(src.height * f);
+    c.width = rot ? h : w; c.height = rot ? w : h; const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+    if (rot) { g.translate(h, 0); g.rotate(Math.PI / 2); } g.drawImage(src, 0, 0, w, h); return c; };
+  const big = Math.max(cv.width, cv.height);
+  for (const f of [Math.min(1, 1800 / big), Math.min(1, 1100 / big), Math.min(2, 2400 / big)]) for (const rot of [false, true]) {
+    const txt = tryOne(scaled(cv, f, rot)); if (txt) return txt;
+  }
+  return null;
+}
+function imageCanvas(file){
+  return new Promise((res, rej) => { const u = URL.createObjectURL(file), im = new Image();
+    im.onload = () => { const c = document.createElement("canvas"); c.width = im.naturalWidth; c.height = im.naturalHeight; c.getContext("2d").drawImage(im, 0, 0); URL.revokeObjectURL(u); res(c); };
+    im.onerror = () => { URL.revokeObjectURL(u); rej(new Error("image")); }; im.src = u; });
+}
+async function readBoardingPass(file){
+  let raw = null, text = "";
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) {
+    const lib = await loadLib(PDFJS + "pdf.min.js", "pdfjsLib");
+    lib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js";
+    const doc = await lib.getDocument({data: new Uint8Array(await file.arrayBuffer())}).promise;
+    for (let n = 1; n <= Math.min(doc.numPages, 3) && !raw; n++) {
+      const page = await doc.getPage(n);
+      text += " " + (await page.getTextContent()).items.map(x => x.str).join(" ");
+      const vp = page.getViewport({scale: 3}), c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+      await page.render({canvasContext: c.getContext("2d"), viewport: vp}).promise;
+      raw = await decodeCanvas(c);
+    }
+  } else if ((file.type || "").startsWith("image/")) raw = await decodeCanvas(await imageCanvas(file));
+  const fromCode = raw ? parseBCBP(raw) : null, fromText = text ? parsePassText(text) : {};
+  const out = {...fromText, ...(fromCode || {})};
+  for (const k of ["gate", "boarding"]) if (fromText[k]) out[k] = fromText[k]; // only printed on the pass, never in the barcode
+  return {data: out, source: fromCode ? "barcode" : Object.keys(fromText).length ? "text" : null};
+}
+
 function airportOptions(){
   if (!$("#dlAirports").options.length) $("#dlAirports").innerHTML = Object.values(AIRPORT).map(a => `<option value="${a.iata}">${esc(`${a.city || a.name}, ${(COUNTRY[a.cc] || {}).name || a.cc} · ${a.name}`)}</option>`).join("");
 }
@@ -1544,6 +1704,7 @@ function openFlightForm(existing, toCc){
   const f = existing || {};
   const ov = modal(`<h2>${existing ? "Edit flight" : "Add a flight"}</h2>
     <form class="form" id="fFlight">
+      <label class="full scanpick">Boarding pass (photo or PDF)<input id="fScan" type="file" accept="image/*,application/pdf"><span class="note" id="fScanNote">${f.scan ? `Current: ${esc(f.scan.name)}. Choose a new file to replace it.` : "Add it first and the details below fill in on their own."}</span></label>
       <label>From (airport code)<input id="fFrom" list="dlAirports" required maxlength="3" autocomplete="off" placeholder="e.g. BOM" value="${esc(f.from || "")}" style="text-transform:uppercase"></label>
       <label>To (airport code)<input id="fTo" list="dlAirports" required maxlength="3" autocomplete="off" placeholder="e.g. LHR" value="${esc(f.to || "")}" style="text-transform:uppercase"></label>
       <div class="full note" id="fRoute">${toCc ? `Flights to ${esc(COUNTRY[toCc].name)} — pick the arrival airport.` : "Type a city or code to see airports."}</div>
@@ -1555,13 +1716,27 @@ function openFlightForm(existing, toCc){
       <label>Booking reference<input id="fPnr" placeholder="X7K2PQ" value="${esc(f.pnr || "")}" style="text-transform:uppercase"></label>
       <label>Boarding time<input id="fBoard" type="time" value="${esc(f.boarding || "")}"></label>
       <label>Gate<input id="fGate" placeholder="B12" value="${esc(f.gate || "")}"></label>
-      <label class="full">Photo or PDF of the real boarding pass<input id="fScan" type="file" accept="image/*,application/pdf">${f.scan ? `<span class="note">Current: ${esc(f.scan.name)}. Choose a new file to replace it.</span>` : ""}</label>
       ${existing ? "" : `<label class="full check"><input type="checkbox" id="fAddPlace" checked> Add the destination country and city to my places</label>`}
     </form>
     <div class="foot"><span class="err" id="fErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fFlight" id="fSave">${existing ? "Save flight" : "Add flight"}</button></div>`);
   const routeNote = () => { const a = AIRPORT[$("#fFrom").value.trim().toUpperCase()], b = AIRPORT[$("#fTo").value.trim().toUpperCase()];
     if (a || b) $("#fRoute").textContent = `${a ? `${a.name}, ${a.city}` : "…"}  →  ${b ? `${b.name}, ${b.city}` : "…"}${a && b ? `  ·  ${Math.round(km(a, b)).toLocaleString()} km` : ""}`; };
   $("#fFrom").addEventListener("input", routeNote); $("#fTo").addEventListener("input", routeNote); routeNote();
+  $("#fScan").addEventListener("change", async () => {
+    const file = $("#fScan").files[0], note = $("#fScanNote"); if (!file) return;
+    note.className = "note"; note.textContent = "Reading your boarding pass…";
+    let r; try { r = await readBoardingPass(file); } catch (err) { r = {data: {}, source: null}; }
+    if ($("#fScan").files[0] !== file) return;
+    const d = r.data, set = (sel, v) => { const el = $(sel); if (!el || !v) return 0; el.value = v; el.classList.remove("filled"); void el.offsetWidth; el.classList.add("filled"); return 1; };
+    const n = set("#fFrom", d.from) + set("#fTo", d.to) + set("#fDate", d.date) + set("#fAirline", d.airline) + set("#fNo", d.flightNo) + set("#fSeat", d.seat)
+      + set("#fCabin", d.cabin) + set("#fPnr", d.pnr) + set("#fBoard", d.boarding) + set("#fGate", d.gate);
+    routeNote();
+    if (!n) { note.className = "note bad"; note.textContent = "Couldn't read the details from this file. It'll still be saved with the flight, so fill in the rest below."; return; }
+    const missing = [["#fFrom", "from"], ["#fTo", "to"], ["#fDate", "date"]].filter(([sel]) => !$(sel).value).map(x => x[1]);
+    note.className = "note ok";
+    note.textContent = `Filled in ${n} detail${n > 1 ? "s" : ""} from the ${r.source === "barcode" ? "barcode" : "text"}${d.passenger ? ` for ${d.passenger}` : ""}. Check them and change anything that's off.`
+      + (d.legs > 1 ? " This pass has more than one flight; this is the first." : "") + (missing.length ? ` Still needed: ${missing.join(", ")}.` : "");
+  });
   $("#fFlight", ov).addEventListener("submit", async e => {
     e.preventDefault();
     const from = $("#fFrom").value.trim().toUpperCase(), to = $("#fTo").value.trim().toUpperCase();
@@ -1581,9 +1756,9 @@ function openFlightForm(existing, toCc){
       const cityName = AIRPORT[to].city || AIRPORT[to].name;
       const has = (p.cities || []).some(c => c.name.toLowerCase() === cityName.toLowerCase());
       const ym = rec.date ? rec.date.slice(0, 7) : "";
-      const rec = has ? null : cityRecord(cc, cityName);
+      const cityRec = has ? null : cityRecord(cc, cityName);
       const folders = p.folders || (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}));
-      await store.put("places", {...p, cities: has ? p.cities : [...(p.cities || []), rec], folders: has ? folders : [...folders, {id: uid(), name: rec.name, city: true, items: []}], firstVisit: !p.firstVisit || (ym && ym < p.firstVisit) ? (ym || p.firstVisit) : p.firstVisit});
+      await store.put("places", {...p, cities: has ? p.cities : [...(p.cities || []), cityRec], folders: has ? folders : [...folders, {id: uid(), name: cityRec.name, city: true, items: []}], firstVisit: !p.firstVisit || (ym && ym < p.firstVisit) ? (ym || p.firstVisit) : p.firstVisit});
     }
     closeModal();
     toast(existing ? "Flight saved" : `Added ${from} → ${to}`);
@@ -1651,5 +1826,4 @@ window.addEventListener("hashchange", () => { renderAll(); window.scrollTo(0, 0)
 boot();
 })();
 </script>
-
 </body></html>
