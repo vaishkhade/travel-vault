@@ -502,6 +502,35 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sortwrap .addmenu{min-width:180px}
 .sortwrap .addmenu [aria-checked=true]{color:var(--primary);font-weight:500}
 .sortwrap .addmenu [aria-checked=true]::after{content:"";margin-left:auto;width:14px;height:14px;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.5 2.5L11 4.5' fill='none' stroke='black' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
+/* Country page bento */
+.crumbrow{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.crumbrow .crumbs{margin:0}
+.crumbrow .btn svg{width:14px;height:14px;flex:none}
+.bento{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:16px;margin-top:16px;
+  grid-template-areas:"name name name name map map" "cap cap cur cur map map" "lang lang first cities flights flights"}
+.bcard{position:relative;background:var(--bc);border:0;border-radius:var(--radius-lg,20px);padding:20px;min-width:0;min-height:128px;display:flex;flex-direction:column;gap:10px;color:#151a2d}
+.bcard .label{display:flex;align-items:center;gap:6px;color:#454c63;font-size:11px;line-height:16px;font-weight:600;letter-spacing:.08em}
+.bcard .label svg{width:15px;height:15px;flex:none;color:#151a2d}
+.bcard b{font-size:18px;line-height:26px;font-weight:600;overflow-wrap:anywhere}
+.bcard b.big{font-size:40px;line-height:44px;margin-top:auto}
+.b-name{grid-area:name;justify-content:flex-end;min-height:220px}
+.b-name .flag{font-size:44px;line-height:1;margin-bottom:auto}
+.b-name h1{font-size:clamp(32px,5vw,48px);line-height:1.1;letter-spacing:-.02em;color:#151a2d}
+.b-map{grid-area:map;padding:0;overflow:hidden}
+.b-map .onmap{position:absolute;left:20px;top:20px;z-index:1}
+.b-map .mini-map{flex:1;border:0;box-shadow:none;border-radius:0;background:transparent;min-height:260px}
+.b-cap{grid-area:cap}.b-cur{grid-area:cur}.b-lang{grid-area:lang}.b-first{grid-area:first}.b-cities{grid-area:cities}.b-flights{grid-area:flights}
+.bpick{position:absolute;right:14px;top:14px;z-index:3;width:22px;height:22px;border-radius:999px;border:2px solid rgba(255,255,255,.85);background:var(--bc);box-shadow:0 0 0 1px rgba(21,26,45,.18);cursor:pointer;padding:0;opacity:0;transition:opacity .2s ease}
+.bcard:hover .bpick,.bcard:focus-within .bpick,.bcard.open .bpick{opacity:1}
+@media (hover:none){.bpick{opacity:1}}
+.bpal{left:auto;right:8px;top:44px}
+.b-map .country:not(.focus){fill:rgba(255,255,255,.8);stroke:rgba(21,26,45,.14)}
+.b-map .country.focus{fill:#8dbafb;stroke:#5b8fe0}
+.b-map .city{fill:#1d5ad8;stroke:#fff;stroke-width:1.5}
+.b-map text{fill:#151a2d!important;stroke:var(--bc)!important}
+@media (max-width:760px){.bento{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-areas:"name name" "map map" "cap cur" "lang lang" "first cities" "flights flights"}}
+.top .wrap{max-width:none;padding-inline:24px}
+@media (max-width:520px){.top .wrap{padding-inline:16px}}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
@@ -956,9 +985,23 @@ function placeImages(p, max){ return images([...(p.photos || []), ...(p.folders 
 function firstImage(p){ return placeImages(p, 1)[0] || ""; }
 const FCOLORS = [["Lilac", "#B5B0E3"], ["Blue", "#8dbafb"], ["Mint", "#A6E3C8"], ["Peach", "#FFC4A3"], ["Rose", "#F6A9CB"], ["Butter", "#F3DD8C"], ["Slate", "#AEB6C6"]];
 let openPal = null;
-function paletteHTML(key, current, cls){
-  const cur = current || FCOLORS[0][1];
-  return `<div class="palette ${cls || ""}" role="group" aria-label="Folder colour">${FCOLORS.map(([n, c]) => `<button type="button" class="swatch" style="background:${c}" data-swatch="${c}" data-key="${esc(key)}" aria-label="${n}" aria-pressed="${c === cur}"></button>`).join("")}</div>`;
+function paletteHTML(key, current, cls, list){
+  const cur = current || (list || FCOLORS)[0][1];
+  return `<div class="palette ${cls || ""}" role="group" aria-label="${list ? "Card" : "Folder"} colour">${(list || FCOLORS).map(([n, c]) => `<button type="button" class="swatch" style="background:${c}" data-swatch="${c}" data-key="${esc(key)}" aria-label="${n}" aria-pressed="${c === cur}"></button>`).join("")}</div>`;
+}
+const BCOLORS = [["Lilac", "#E6E2FA"], ["Blue", "#DCEAFE"], ["Mint", "#D9F3E6"], ["Peach", "#FFE4D2"], ["Rose", "#FCE0EC"], ["Butter", "#FBF0C4"], ["Slate", "#E5E9F0"]];
+const BDEFAULT = {name: "#FBF0C4", map: "#DCEAFE", cap: "#D9F3E6", cur: "#FFE4D2", lang: "#E6E2FA", first: "#FCE0EC", cities: "#DCEAFE", flights: "#E5E9F0"};
+const bi = d => `<svg viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" fill-rule="evenodd" d="${d}"/></svg>`;
+const BICON = {globe: bi("M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM5.6 2.9A5.5 5.5 0 0 0 2.6 7.2h2.3c.1-1.6.4-3.1.7-4.3zm4.8 0c.3 1.2.6 2.7.7 4.3h2.3a5.5 5.5 0 0 0-3-4.3zM6.4 7.2h3.2C9.4 5.1 8.8 3.3 8 2.5c-.8.8-1.4 2.6-1.6 4.7zm0 1.6c.2 2.1.8 3.9 1.6 4.7.8-.8 1.4-2.6 1.6-4.7H6.4zm-3.8 0a5.5 5.5 0 0 0 3 4.3c-.3-1.2-.6-2.7-.7-4.3H2.6zm8.5 0c-.1 1.6-.4 3.1-.7 4.3a5.5 5.5 0 0 0 3-4.3h-2.3z"),
+  map: bi("M1 3.2L5.5 1l5 2L15 .8v12L10.5 15l-5-2L1 15.2V3.2z"), capital: bi("M8 1l7 3.5V6H1V4.5L8 1zM2.5 7h2v5h-2V7zm4.5 0h2v5H7V7zm4.5 0h2v5h-2V7zM1 13h14v2H1v-2z"),
+  coin: bi("M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zm.8 3v.9c1 .2 1.7.8 1.9 1.7H9.2c-.1-.4-.5-.6-1.1-.6-.7 0-1 .3-1 .6 0 .4.4.5 1.3.7 1.3.3 2.4.7 2.4 2 0 1-.8 1.7-2 1.9v.9H7.2v-.9c-1.1-.2-1.9-.9-2-1.9h1.5c.1.5.6.8 1.3.8.7 0 1.1-.3 1.1-.7 0-.4-.4-.5-1.4-.8-1.2-.3-2.3-.6-2.3-1.9 0-.9.7-1.6 1.8-1.8V4h1.6z"),
+  chat: bi("M2 1.5h12A1.5 1.5 0 0 1 15.5 3v7.5A1.5 1.5 0 0 1 14 12H6.5L2.8 15v-3H2A1.5 1.5 0 0 1 .5 10.5V3A1.5 1.5 0 0 1 2 1.5z"),
+  cal: bi("M4.5 0.5h1.5V2h4V.5h1.5V2H14a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V3a1 1 0 0 1 1-1h2.5V.5zM2.5 6.5v7h11v-7h-11z"),
+  pin: bi("M8 .5a5.5 5.5 0 0 0-5.5 5.5c0 4 5.5 9.5 5.5 9.5s5.5-5.5 5.5-9.5A5.5 5.5 0 0 0 8 .5zm0 7.5a2 2 0 1 1 0-4 2 2 0 0 1 0 4z"),
+  plane: bi("M15.5 9.5L9.2 5.8V1.9a1.2 1.2 0 0 0-2.4 0v3.9L.5 9.5v1.6l6.3-1.9v3.5l-1.9 1.3v1.3L8 14.5l3.1.8V14l-1.9-1.3V9.2l6.3 1.9z")};
+function bentoCard(cc, p, id, inner){
+  const key = cc + "~" + id, color = ((p.bento || {})[id]) || BDEFAULT[id];
+  return `<div class="bcard b-${id}${openPal === key ? " open" : ""}" style="--bc:${color}">${inner}<button type="button" class="bpick" data-fcolor="${esc(key)}" aria-label="Change card colour" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color, "bpal", BCOLORS) : ""}</div>`;
 }
 function folderHTML({href, label, month, code, meta, title, pics, key, color}){
   const [y, mo] = (month || "").split("-");
@@ -1034,6 +1077,7 @@ document.addEventListener("click", async e => {
   }
 });
 async function setFolderColor(key, color){
+  if (key.includes("~")) { const [bc, card] = key.split("~"), bp = state.places[bc]; if (bp) await store.put("places", {...bp, bento: {...(bp.bento || {}), [card]: color}}); return; }
   const [cc, fid] = key.split("."), p = state.places[cc]; if (!p) return;
   if (!fid) return store.put("places", {...p, color});
   await store.put("places", {...p, folders: (p.folders || []).map(f => f.id === fid ? {...f, color} : f)});
@@ -1354,22 +1398,16 @@ function renderPlace(cc){
   const notesFocused = document.activeElement && document.activeElement.id === "notes";
   if (notesFocused) return; // don't clobber typing
   el.innerHTML = `
-    <div class="crumbs"><a href="#places">Places</a> / ${esc(COUNTRY[cc].region)} / ${esc(c.name)}</div>
-    <div class="hero">
-      <div class="hero-card">
-        <div class="flag" aria-hidden="true">${c.flag}</div>
-        <h1>${esc(c.name)}</h1>
-        <div class="label" style="margin-top:6px">${esc([c.subregion || c.region, c.cca2].filter(Boolean).join(" · "))}${p.example ? ' <span class="tag">Example</span>' : ""}</div>
-        <div class="facts">
-          <div><span class="label">Capital</span><b>${esc(c.capital || "—")}</b></div>
-          <div><span class="label">Currency</span><b>${esc(c.currency || "—")}</b></div>
-          <div><span class="label">Languages</span><b>${esc(c.languages || "—")}</b></div>
-          <div><span class="label">First visited</span><b><input type="month" id="firstVisit" value="${esc(p.firstVisit || "")}" aria-label="First visited"></b></div>
-          <div><span class="label">Cities visited</span><b>${(p.cities || []).length}</b></div>
-          <div><span class="label">Flights in or out</span><b>${fl.length}</b></div>
-        </div>
-      </div>
-      <div class="mini-map" id="miniMap"></div>
+    <div class="crumbrow"><div class="crumbs"><a href="#places">Places</a> / ${esc(COUNTRY[cc].region)} / ${esc(c.name)}</div><button class="btn small" type="button" data-editplace="${esc(cc)}">${ICON_EDIT}Edit</button></div>
+    <div class="bento">
+      ${bentoCard(cc, p, "name", `<div class="flag" aria-hidden="true">${c.flag}</div><h1>${esc(c.name)}</h1><div class="label">${BICON.globe}${esc([c.subregion || c.region, c.cca2].filter(Boolean).join(" · "))}${p.example ? ' <span class="tag">Example</span>' : ""}</div>`)}
+      ${bentoCard(cc, p, "map", `<div class="label onmap">${BICON.map}On the map</div><div class="mini-map" id="miniMap"></div>`)}
+      ${bentoCard(cc, p, "cap", `<div class="label">${BICON.capital}Capital</div><b>${esc(c.capital || "—")}</b>`)}
+      ${bentoCard(cc, p, "cur", `<div class="label">${BICON.coin}Currency</div><b>${esc(c.currency || "—")}</b>`)}
+      ${bentoCard(cc, p, "lang", `<div class="label">${BICON.chat}Languages</div><b>${esc(c.languages || "—")}</b>`)}
+      ${bentoCard(cc, p, "first", `<div class="label">${BICON.cal}First visited</div><b>${p.firstVisit ? esc(new Date(p.firstVisit + "-01T00:00").toLocaleDateString(undefined, {month: "short", year: "numeric"})) : "Not set"}</b>`)}
+      ${bentoCard(cc, p, "cities", `<div class="label">${BICON.pin}Cities visited</div><b class="big">${(p.cities || []).length}</b>`)}
+      ${bentoCard(cc, p, "flights", `<div class="label">${BICON.plane}Flights in or out</div><b class="big">${fl.length}</b>`)}
     </div>
 
     <div class="block">
@@ -1455,13 +1493,13 @@ function openFolderForm(id){
   });
 }
 function drawMini(cc, p){
-  const box = $("#miniMap"); const W = 480, H = 320;
+  const box = $("#miniMap"); const W = Math.max(240, Math.round(box.clientWidth) || 480), H = Math.max(200, Math.round(box.clientHeight) || 320);
   const f = FEATURE[cc];
   const pts = (p.cities || []).map(c => [c.lng, c.lat]);
   const target = f ? f : {type: "MultiPoint", coordinates: pts.length ? pts : [[COUNTRY[cc].latlng[1], COUNTRY[cc].latlng[0]]]};
   const proj = d3.geoMercator();
   if (!f && pts.length < 2) { const [lat, lng] = pts.length ? [pts[0][1], pts[0][0]] : COUNTRY[cc].latlng; proj.center([lng, lat]).scale(1400).translate([W/2, H/2]); }
-  else proj.fitExtent([[30, 30], [W - 30, H - 30]], target);
+  else proj.fitExtent([[30, 56], [W - 30, H - 30]], target);
   const path = d3.geoPath(proj);
   const svg = d3.select(box).html("").append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio", "xMidYMid slice").attr("role", "img").attr("aria-label", `Map of ${COUNTRY[cc].name}`);
   svg.append("g").selectAll("path").data(WORLD).join("path").attr("class", d => "country" + (BY_NUM[d.id] === cc ? " focus" : "")).attr("d", path);
@@ -1585,6 +1623,7 @@ document.addEventListener("click", e => {
   closeAdds();
   if (item) { const k = item.dataset.add; k === "flight" ? openFlightForm() : k === "city" ? openCityForm() : openPlaceForm(); }
 });
+document.addEventListener("click", e => { const b = e.target.closest("[data-editplace]"); if (b) openPlaceForm(b.dataset.editplace); });
 document.addEventListener("keydown", e => { if (e.key === "Escape") { const open = $$(".addwrap").find(w => !w.querySelector(".addmenu").hidden); if (open) { closeAdds(); open.querySelector("[data-addtoggle]").focus(); } } });
 function openPlaceForm(editCc){
   if (editCc && state.places[editCc]) {
