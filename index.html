@@ -496,7 +496,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .scanpick .note.ok{color:var(--primary)}.scanpick .note.bad{color:var(--danger,#c0392b)}
 .form input.filled,.form select.filled{animation:tvfill 1.6s ease-out}
 @keyframes tvfill{0%{background:color-mix(in srgb,var(--primary) 16%,transparent)}100%{background:transparent}}
-[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
+[data-eadd]::before,.btn[data-upload]::before,#flightHere::before,#cityHere::before,[data-flighthere]::before,#addCity button[type=submit]::before,#newFolder::before,[data-newfolder]::before{content:"";width:14px;height:14px;flex:none;background:currentColor;
   -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;
   mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M7 2v10M2 7h10' stroke='black' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .sortwrap .addmenu{min-width:180px}
@@ -513,6 +513,7 @@ button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px r
 .sbento .bcard{grid-column:span 12;margin:0}
 .sbento .s-cities{grid-column:span 4;order:1}.sbento .s-flights{grid-column:span 8;order:2}
 .s-cities .section-head .folderacts{flex:1 1 220px;justify-content:flex-end}.s-cities .addcity{width:100%}.s-cities .addcity input{flex:1;min-width:0}
+.bcard.s-flights .passes{gap:8px}
 @media (max-width:980px){.sbento .s-cities,.sbento .s-flights{grid-column:span 12}}
 .sbento .s-photos{grid-column:span 7;order:3}.sbento .s-notes{grid-column:span 5;order:4}.sbento .s-files{order:5}
 @media (max-width:860px){.sbento .s-photos,.sbento .s-notes{grid-column:span 12}}
@@ -1414,11 +1415,11 @@ $("#passSort").addEventListener("change", renderPasses);
 $("#cabinChips").addEventListener("click", e => { const b = e.target.closest("[data-cabin]"); if (b) { cabinFilter = b.dataset.cabin; renderPasses(); } });
 
 /* + City from anywhere: picks the country, adds the city pin and its folder */
-function openCityForm(){
+function openCityForm(cc){
   if (!$("#dlCountries").options.length) $("#dlCountries").innerHTML = Object.values(COUNTRY).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}">`).join("");
   const ov = modal(`<h2>Add a city</h2>
     <form class="form" id="fCity">
-      <label>Country<input id="cCountry" list="dlCountries" required autocomplete="off" placeholder="e.g. Japan"></label>
+      <label>Country<input id="cCountry" list="dlCountries" required autocomplete="off" placeholder="e.g. Japan" value="${cc && COUNTRY[cc] ? esc(COUNTRY[cc].name) : ""}"></label>
       <label>City<input id="cName" list="dlCities" required autocomplete="off" placeholder="e.g. Kyoto"></label>
       <label>First visited<input id="cWhen" type="month"></label>
     </form>
@@ -1482,7 +1483,7 @@ function renderPlace(cc){
     <div class="sbento">
     ${bentoOpen(cc, p, "cities")}
       <div class="section-head"><h2>${BICON.pin}Cities</h2>
-        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form></div>
+        <button class="btn small" type="button" id="cityHere">Add city</button>
       </div>
       <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`}</div>
     ${bentoClose(cc, p, "cities")}
@@ -1611,6 +1612,7 @@ $("#v-place").addEventListener("click", async e => {
   if (t.dataset.delitem) { const fo = p.folders.find(f => f.id === routeSub); const gone = fo.items.find(x => x.id === t.dataset.delitem); await store.put("places", {...p, folders: p.folders.map(f => f.id === fo.id ? {...f, items: f.items.filter(x => x.id !== gone.id)} : f)}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
   if (t.dataset.delfile != null) { const files = [...p.files]; const [gone] = files.splice(+t.dataset.delfile, 1); await store.put("places", {...p, files}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
   if (t.id === "flightHere" || t.dataset.flighthere != null) openFlightForm(null, routeArg);
+  if (t.id === "cityHere") { openCityForm(routeArg); setTimeout(() => { const n = $("#cName"); if (n) n.focus(); }, 50); }
   if (t.id === "delPlace") { placeConfirm = true; renderAll(); }
   if (t.id === "delPlaceNo") { placeConfirm = false; renderAll(); }
   if (t.id === "delPlaceYes") { placeConfirm = false; for (const x of [...(p.photos || []), ...(p.files || []), ...(p.folders || []).flatMap(f => f.items || [])]) store.dropFile(x.src); await store.del("places", p.id); location.hash = "places"; toast(`Removed ${COUNTRY[p.id].name}`); }
