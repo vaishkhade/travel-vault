@@ -1,0 +1,1655 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Travel Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap">
+<style>
+/* Layout: black vault shell with a sticky top bar and three views (Map, Places, Boarding passes).
+   Countries are photo cards, flights are glass folders; both open the same country page.
+   Styled with the Tide design system: Poppins 400/500/600, white surfaces, blue for actions. */
+/* Tide design system tokens (dark first so :root[data-mode="light"] overrides) */
+:root{
+  --surface:#000000; --surface-raised:#0c0c10; --surface-sunken:#08080b; --surface-hover:#121a2e; --surface-pressed:#1a2644;
+  --ink:#e7efff; --ink-muted:#a9bbdf; --ink-subtle:#8397c0; --line-c:rgba(141,186,251,.22); --border:rgba(141,186,251,.4); --border-hover:#8dbafb;
+  --primary:#5b98f7; --primary-hover:#7cadf9; --primary-pressed:#a0c5fb; --on-primary:#071029;
+  --primary-soft:#0f1f44; --primary-soft-hover:#16295a; --primary-soft-pressed:#264996; --on-primary-soft:#cfe0ff;
+  --focus:#8dbbfb; --disabled-bg:#18264d; --disabled-ink:#5c6f99; --ripple:rgba(7,16,41,.25); --ripple-soft:rgba(91,152,247,.25);
+  --danger-c:#f87171; --scrim-c:rgba(3,7,20,.65);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.4); --shadow-md:0 4px 14px rgba(0,0,0,.5); --shadow-lg:0 12px 32px rgba(0,0,0,.6);
+  --space-1:4px; --space-2:8px; --space-3:12px; --space-4:16px; --space-5:24px; --space-6:32px; --space-7:48px;
+  --radius-sm:8px; --radius-md:12px; --radius-lg:16px; --radius-pill:24px;
+  --duration-instant:90ms; --duration-fast:160ms; --duration-base:240ms; --duration-slow:480ms;
+  --ease-standard:cubic-bezier(.2,0,0,1); --ease-emphasized:cubic-bezier(.3,0,0,1.15); --ease-spring:cubic-bezier(.34,1.56,.64,1);
+  --press-scale:.97; --lift:-2px;
+  --font-sans:Poppins,system-ui,-apple-system,"Segoe UI",sans-serif;
+  /* app aliases onto Tide */
+  --paper:var(--surface); --card:var(--surface-raised); --card2:var(--surface-sunken); --purple:var(--ink-muted); --muted:var(--ink-muted);
+  --accent:var(--primary); --accent-ink:var(--on-primary); --line:var(--line-c); --soft:var(--primary-soft);
+  --sea:var(--surface-sunken); --land:var(--surface-raised); --land-line:var(--line-c); --visited:#5b98f7; --visited-line:#8dbafb;
+  --vc-bg:var(--surface-raised); --vc-title:var(--ink); --vc-sub:var(--ink-muted); --menu-bg:var(--surface-raised); --menu-ink:var(--ink); --menu-line:var(--line-c);
+  --danger:var(--danger-c); --scrim:var(--scrim-c); --shadow:var(--shadow-lg);
+  --f-body:var(--font-sans); --lh-tight:1.4286; --lh-body:1.5714; --r:var(--radius-lg); color-scheme:dark;
+}
+:root[data-mode="light"]{
+  --surface:#ffffff; --surface-raised:#ffffff; --surface-sunken:#f3f6fb; --surface-hover:#f0f5ff; --surface-pressed:#dce9fe;
+  --ink:#0d1d42; --ink-muted:#465a85; --ink-subtle:#5c709e; --line-c:#dce9fe; --border:#bcd6fd; --border-hover:#8dbafb;
+  --primary:#1d5ad8; --primary-hover:#1748b0; --primary-pressed:#163b8c; --on-primary:#ffffff;
+  --primary-soft:#dce9fe; --primary-soft-hover:#c6dafd; --primary-soft-pressed:#adc9fb; --on-primary-soft:#163b8c;
+  --focus:#2f74ee; --disabled-bg:#e3eaf6; --disabled-ink:#93a3c3; --ripple:rgba(255,255,255,.35); --ripple-soft:rgba(29,90,216,.18);
+  --danger-c:#c62828; --scrim-c:rgba(13,29,66,.45);
+  --shadow-sm:0 1px 2px rgba(13,29,66,.08); --shadow-md:0 4px 12px rgba(29,90,216,.14); --shadow-lg:0 12px 32px rgba(13,29,66,.18);
+  --visited:#8dbafb; --visited-line:#1d5ad8; color-scheme:light;
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:15px;font-weight:400;line-height:var(--lh-body);transition:background .2s ease,color .2s ease}
+h1,h2,h3{font-family:var(--f-body);font-weight:500;line-height:var(--lh-tight);letter-spacing:-.02em;text-wrap:balance;margin:0}
+button,input,select,textarea{font:inherit;color:inherit;line-height:var(--lh-tight)}
+textarea{line-height:var(--lh-body)}
+a{color:inherit}
+b,strong{font-weight:600}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.label{font-size:11px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;color:var(--purple);line-height:var(--lh-tight)}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px}
+@media (max-width:520px){.wrap{padding-inline:16px}}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:color-mix(in srgb,var(--paper) 88%,transparent);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px dashed var(--line)}
+.top .wrap{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:8px}
+.brand{display:flex;align-items:baseline;gap:10px;text-decoration:none;margin-right:auto;line-height:var(--lh-tight)}
+.brand b{font-size:22px;font-weight:600;letter-spacing:-.02em}
+.brand b i{font-style:normal;color:var(--purple)}
+.brand span{font-size:11px;color:var(--purple);letter-spacing:.06em;text-transform:uppercase}
+nav.tabs{display:flex;gap:4px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px}
+nav.tabs a{font-size:13px;font-weight:400;text-decoration:none;padding:8px 16px;border-radius:999px;color:var(--purple);line-height:var(--lh-tight)}
+nav.tabs a:hover{color:var(--ink)}
+nav.tabs a[aria-current="page"]{background:var(--purple);color:var(--accent-ink)}
+.top .actions{display:flex;gap:8px;align-items:center}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;cursor:pointer;font-weight:400;font-size:14px;text-decoration:none;white-space:nowrap;line-height:var(--lh-tight)}
+.btn:hover{border-color:var(--purple)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:400}
+.btn.primary:hover{filter:brightness(1.08)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 45%,transparent);background:transparent}
+.btn.small{padding:8px 16px;font-size:13px}
+.mode{width:38px;height:38px;justify-content:center;padding:0}
+.mode svg{width:18px;height:18px}
+
+main{padding-block:16px;margin-block:32px 96px}
+.view[hidden]{display:none}
+.banner{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--soft);border:1px solid color-mix(in srgb,var(--purple) 35%,transparent);border-radius:var(--r);padding:8px 16px;margin-bottom:40px;font-size:14px}
+.banner p{margin:0;flex:1;min-width:200px}
+.note{font-size:13px;color:var(--purple)}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:16px;margin-bottom:32px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px}
+.stat .n{font-weight:600;font-size:30px;line-height:var(--lh-tight);font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:4px}
+.stat .n small{font-size:15px;color:var(--purple);font-weight:400}
+@media (max-width:720px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.stat:last-child{grid-column:1/-1}}
+
+/* map */
+.mapbox{position:relative;background:var(--sea);border:1px solid var(--line);border-radius:20px;overflow:hidden}
+.mapbox svg{display:block;width:100%;height:auto;touch-action:none;cursor:grab}
+.mapbox svg:active{cursor:grabbing}
+.country{fill:var(--land);stroke:var(--land-line);stroke-width:.5;vector-effect:non-scaling-stroke}
+.country.visited{fill:var(--visited);stroke:var(--visited-line);cursor:pointer}
+.country.visited:hover{fill:var(--accent)}
+.country.focus{fill:var(--visited)}
+.sphere{fill:var(--sea)}
+.grat{fill:none;stroke:var(--land-line);stroke-width:.4;opacity:.45;vector-effect:non-scaling-stroke}
+.arc{fill:none;stroke:var(--ink);stroke-width:1.2;stroke-dasharray:4 3;opacity:.7;vector-effect:non-scaling-stroke}
+.city{fill:var(--ink);stroke:var(--paper);stroke-width:1.2;vector-effect:non-scaling-stroke;cursor:pointer}
+.mapctl{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.mapctl button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card);cursor:pointer;font-size:17px;line-height:var(--lh-tight)}
+.legend{position:absolute;left:12px;bottom:12px;display:flex;gap:12px;flex-wrap:wrap;background:color-mix(in srgb,var(--card) 88%,transparent);border:1px solid var(--line);border-radius:10px;padding:8px;font-size:12px;line-height:var(--lh-tight)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;line-height:var(--lh-tight);padding:8px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-130%);z-index:3}
+.below-map{display:grid;grid-template-columns:minmax(0,1fr);gap:64px;margin-top:64px}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px;flex-wrap:wrap}
+.section-head h2{font-size:24px}
+.section-head a{font-size:13px;font-weight:400;color:var(--purple);text-decoration:none}
+.section-head a:hover{color:var(--ink)}
+
+/* toolbar */
+.toolbar{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-bottom:40px}
+.toolbar input[type=search]{flex:1;min-width:180px;max-width:340px;padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 16px;font-size:13px;cursor:pointer;color:var(--purple)}
+.chip[aria-pressed="true"]{background:var(--purple);color:var(--accent-ink);border-color:var(--purple)}
+
+/* vert-card: one per country (Figma "vert-card") */
+.vcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:24px}
+.vcard{position:relative;display:flex;flex-direction:column;border-radius:12px;overflow:visible;transition:transform .15s ease}
+.vcard:hover{transform:translateY(-2px)}
+.vcard.open{z-index:10}
+.vcard .img{height:82px;border-radius:12px 12px 0 0;overflow:hidden;position:relative;background:linear-gradient(135deg,#1C2FC2 0%,#3B5BFF 40%,#19B6E6 100%)}
+.vcard .img.tint{background:var(--fc)}
+.vcard.light .kebab,.vcard.light .img .pin{color:#1E2230}
+.vcard .img img{width:100%;height:100%;object-fit:cover;display:block}
+.vcard .img .flag{position:absolute;left:16px;bottom:10px;font-size:28px;line-height:var(--lh-tight)}
+.vcard .content{background:var(--vc-bg);border-radius:0 0 12px 12px;padding:16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.vcard .title{font-weight:600;font-size:18px;letter-spacing:-.04em;color:var(--vc-title);line-height:var(--lh-tight);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.vcard .sub{font-size:14px;letter-spacing:-.04em;color:var(--vc-sub);line-height:var(--lh-tight)}
+.vcard .tag{position:absolute;left:10px;top:8px}
+.vcard .hit{position:absolute;inset:0;border-radius:12px;z-index:1}
+.kebab{position:absolute;right:6px;top:4px;z-index:2;width:24px;height:24px;border:0;border-radius:6px;background:transparent;color:#FFFFFF;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.kebab:hover{background:rgba(255,255,255,.18)}
+.vmenu{position:absolute;left:calc(100% - 8px);top:2px;z-index:5;background:var(--menu-bg);border:1px solid var(--menu-line);border-radius:12px;padding:8px 0;min-width:106px;box-shadow:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.1)}
+.vmenu button{display:flex;gap:8px;align-items:center;width:100%;padding:8px 16px;border:0;background:transparent;color:var(--menu-ink);font-size:12px;line-height:var(--lh-tight);cursor:pointer;text-align:left;white-space:nowrap}
+.vmenu button:hover{background:#F3F2F8}
+.vmenu svg{width:16px;height:16px;flex:none}
+.vmenu .q{padding:8px 16px;font-size:12px;color:var(--menu-ink);line-height:var(--lh-tight);max-width:180px}
+.vmenu .del{color:#C4322F}
+@media (max-width:640px){.vmenu{left:auto;right:4px;top:30px}}
+
+/* flight folder (Figma "Project Folder") */
+.ffolders{display:grid;grid-template-columns:repeat(auto-fill,291px);gap:48px 24px;justify-content:space-between;padding-top:8px}
+@media (max-width:640px){.ffolders{justify-content:center}}
+/* Folder: Figma "Project Folder" 291x218, measurements from dev mode */
+.ffolder{position:relative;display:block;width:291px;height:218px;flex:none;text-decoration:none;border:0;padding:0;background:none;cursor:pointer;text-align:left;color:#F9F9F9;font-variant-numeric:lining-nums tabular-nums;transition:transform .2s ease}
+.ffolder .back{position:absolute;left:12.9113px;top:0;width:265.177px;height:193px;border-radius:20px;overflow:hidden;background:#F5F5F5}
+.ffolder .back .sheet{position:absolute;left:-13px;top:-34px;width:293px;height:225px;background:var(--fc,#8dbafb)}
+.ffolder .back img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ffolder .front{position:absolute;left:0;top:23px;width:291px;height:195px;clip-path:path("M110.068 0H16C7.16344 0 0 7.16344 0 16V179C0 187.837 7.16345 195 16 195H275C283.837 195 291 187.837 291 179V42.5C291 33.6634 283.837 26.5 275 26.5H136.239C131.09 26.5 126.515 23.2147 124.869 18.3353L121.438 8.1647C119.792 3.2853 115.217 0 110.068 0Z");
+  overflow:hidden;background:#141218}
+/* Figma GLASS effect: the sheet behind, blurred through the front panel */
+.ffolder .front .glass{position:absolute;left:12.9113px;top:-23px;width:265.177px;height:193px;border-radius:20px;overflow:hidden;background:#F5F5F5;filter:blur(30px);opacity:.75}
+.ffolder .front .glass .sheet{position:absolute;inset:0;background:var(--fc,#8dbafb)}
+.ffolder .front .glass img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ffolder .front::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(51,51,51,.1),rgba(51,51,51,.1)),linear-gradient(180deg,rgba(0,0,0,0) 0%,rgba(0,0,0,.5) 100%)}
+.ffolder .edge{position:absolute;left:0;top:23px;width:291px;height:195px;pointer-events:none}
+.ffolder .when{position:absolute;right:20px;top:65px;display:flex;align-items:center;gap:4px;font-size:14px;line-height:var(--lh-body);white-space:nowrap}
+.ffolder .when b{font-weight:600}
+.ffolder .info{position:absolute;left:20px;bottom:20px;width:251px;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;line-height:var(--lh-body);min-width:0}
+.ffolder .fno{display:flex;gap:4px;font-size:14px;min-width:0}
+.ffolder .fno b{font-weight:600;white-space:nowrap}
+.ffolder .fno span{flex:1 0 0;min-width:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ffolder .rt{font-weight:600;font-size:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-reduced-motion:reduce){.ffolder,.vcard{transition:none}}
+.tag{display:inline-block;font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;background:var(--purple);color:var(--accent-ink);border-radius:999px;padding:0 8px;line-height:var(--lh-tight)}
+.empty{border:1.5px dashed var(--line);border-radius:var(--r);padding:16px;text-align:center;color:var(--purple);grid-column:1/-1}
+.empty .eacts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.empty p{margin:0}
+
+/* mini boarding passes */
+.passes{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:24px}
+@media (max-width:420px){.passes{grid-template-columns:minmax(0,1fr)}}
+button.pass{cursor:pointer;filter:drop-shadow(0 2px 8px rgba(0,0,0,.25));transition:transform .15s ease}
+button.pass:hover{transform:translateY(-2px)}
+.pass.flash .main,.pass.flash .stub{animation:passflash 1.6s ease 2}
+@keyframes passflash{50%{background:var(--soft)}}
+@media (prefers-reduced-motion:reduce){button.pass{transition:none}.pass.flash .main,.pass.flash .stub{animation:none;background:var(--soft)}}
+.folderhead{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.folderhead h1{font-size:clamp(32px,5vw,48px);letter-spacing:-.03em}
+.folderacts{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.vcard .img .pin{position:absolute;left:16px;bottom:8px;color:#FFFFFF;display:flex;gap:4px;align-items:center;font-size:12px;font-weight:400;line-height:var(--lh-tight)}
+.vcard .img .pin svg{width:14px;height:14px}
+/* full boarding pass */
+.pass{--notch:9px;display:grid;grid-template-columns:minmax(0,1fr) 110px;text-align:left;width:100%;border:0;padding:0;background:none}
+.pass .main,.pass .stub{background:var(--card2);position:relative}
+.pass .main{border-radius:var(--r) 0 0 var(--r);padding:16px;border-right:2px dashed var(--line);
+  -webkit-mask:radial-gradient(circle var(--notch) at 100% 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 100% 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle var(--notch) at 100% 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 100% 100%,#0000 98%,#000) bottom/100% 51% no-repeat}
+.pass .stub{border-radius:0 var(--r) var(--r) 0;padding:16px 8px;display:flex;flex-direction:column;justify-content:space-between;gap:8px;
+  -webkit-mask:radial-gradient(circle var(--notch) at 0 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 0 100%,#0000 98%,#000) bottom/100% 51% no-repeat;
+  mask:radial-gradient(circle var(--notch) at 0 0,#0000 98%,#000) top/100% 51% no-repeat,radial-gradient(circle var(--notch) at 0 100%,#0000 98%,#000) bottom/100% 51% no-repeat}
+.pass .head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.pass .airline{font-weight:600;font-size:14px;display:flex;gap:8px;align-items:center;min-width:0;white-space:nowrap}
+.cabin{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;padding:0 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap;line-height:var(--lh-tight);color:var(--purple)}
+.cabin.Business,.cabin.First{background:var(--purple);color:var(--accent-ink);border-color:var(--purple)}
+.route{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:8px}
+.route .code{font-weight:600;font-size:48px;line-height:var(--lh-tight);letter-spacing:-.03em}
+.route .city{font-size:12px;color:var(--purple);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.route .to{text-align:right}
+.route .plane{padding-bottom:16px;color:var(--purple)}
+.year{grid-column:1/-1;font-weight:500;font-size:18px;color:var(--purple);border-bottom:1px dashed var(--line);padding-bottom:8px;margin-top:16px;line-height:var(--lh-tight)}
+.year:first-child{margin-top:0}
+.fields{display:grid;grid-template-columns:repeat(4,auto);justify-content:space-between;gap:4px 8px;margin-top:12px}
+.fields div{min-width:0}
+.fields b{display:block;font-weight:600;font-size:13px;white-space:nowrap;line-height:var(--lh-body)}
+.fields .label,.stub .label{font-size:9.5px}
+.stub b{font-weight:600;font-size:14px;display:block;line-height:var(--lh-body)}
+.stub svg{width:100%;height:38px;color:var(--ink)}
+@media (max-width:480px){.pass{grid-template-columns:minmax(0,1fr) 84px}.route .code{font-size:34px}.fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* place page */
+.crumbs{font-size:13px;margin-bottom:32px;color:var(--purple)}
+.crumbs a{text-decoration:none;color:var(--purple)} .crumbs a:hover{color:var(--ink)}
+.hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:24px;align-items:stretch}
+@media (max-width:860px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero-card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:16px}
+.hero h1{font-size:clamp(36px,6vw,56px);letter-spacing:-.03em}
+.hero .flag{font-size:40px;line-height:var(--lh-tight)}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-top:32px}
+.facts div{min-width:0;border-top:1px solid var(--line);padding-top:8px}
+.facts b{display:block;font-weight:600;margin-top:2px}
+.facts input{border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--card2)}
+.mini-map{background:var(--sea);border:1px solid var(--line);border-radius:20px;overflow:hidden;min-height:220px;display:flex}
+.mini-map svg{width:100%;height:100%;display:block}
+.block{margin-top:72px}
+.block h2{font-size:22px}
+.citylist{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.citychip{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 8px 8px 16px;font-weight:400;line-height:var(--lh-tight)}
+.citychip button{border:0;background:var(--card2);border-radius:999px;width:22px;height:22px;cursor:pointer;color:var(--purple)}
+.citychip button:hover{color:var(--danger)}
+.addcity{display:flex;gap:6px}
+.addcity input{padding:8px 16px;border:1px solid var(--line);border-radius:999px;background:var(--card);width:200px;max-width:55vw}
+.photos{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px}
+.photo{position:relative;aspect-ratio:1;max-width:100%;border-radius:12px;overflow:hidden;background:var(--card2);border:0;padding:0;cursor:zoom-in}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.drop{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;aspect-ratio:1;max-width:100%;border:1.5px dashed var(--line);border-radius:12px;color:var(--purple);cursor:pointer;text-align:center;padding:8px;font-size:13px;background:transparent}
+.drop:hover,.drop.over{border-color:var(--purple);color:var(--ink);background:var(--soft)}
+.files{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:var(--r);background:var(--card);overflow:hidden}
+.file{display:grid;grid-template-columns:46px minmax(0,1fr) auto;gap:12px;align-items:center;padding:8px 16px;border-top:1px solid var(--line)}
+.file:first-child{border-top:0}
+.file .ext{font-size:10px;font-weight:400;letter-spacing:.06em;text-transform:uppercase;background:var(--card2);border:1px solid var(--line);border-radius:8px;text-align:center;padding:8px 0;color:var(--purple);line-height:var(--lh-tight)}
+.file .name{font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.file .acts{display:flex;gap:6px}
+.notes textarea{width:100%;min-height:120px;border:1px solid var(--line);border-radius:var(--r);background:var(--card);padding:16px;resize:vertical}
+.danger-zone{margin-top:80px;padding-top:16px;border-top:1px solid var(--line);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+
+/* modal */
+.overlay{position:fixed;inset:0;background:var(--scrim);z-index:50;display:flex;align-items:flex-start;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px 16px;overflow:auto;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.modal{background:var(--card);border:1px solid var(--line);border-radius:20px;width:100%;max-width:620px;padding:16px;box-shadow:var(--shadow)}
+.modal h2{font-size:24px;margin-bottom:16px}
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.form .full{grid-column:1/-1}
+.form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:400;min-width:0;line-height:var(--lh-tight);color:var(--purple)}
+.form input,.form select,.form textarea{border:1px solid var(--line);border-radius:10px;padding:8px 16px;background:var(--card2);min-width:0;width:100%;color:var(--ink);font-weight:400}
+.form .check{flex-direction:row;align-items:center;gap:8px;font-weight:400;color:var(--ink)}
+.form .check input{width:auto}
+@media (max-width:520px){.form{grid-template-columns:minmax(0,1fr)}}
+.modal .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:18px;flex-wrap:wrap;align-items:center}
+.modal .err{color:var(--danger);font-size:13px;margin-right:auto}
+.lightbox{max-width:980px;background:transparent;box-shadow:none;padding:0;border:0}
+.lightbox img{max-height:78vh;width:auto;margin:0 auto;display:block;border-radius:12px}
+.lightbox .bar{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap}
+.passview{max-width:720px}
+.scan{margin-top:14px}
+.scan img{border-radius:12px;border:1px solid var(--line)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--paper);padding:8px 16px;border-radius:999px;font-size:14px;z-index:60;box-shadow:var(--shadow);line-height:var(--lh-tight)}
+.confirm{display:inline-flex;gap:6px;align-items:center;flex-wrap:wrap}
+
+.addwrap{position:relative}
+.addmenu{left:auto;right:0;top:calc(100% + 8px);min-width:140px}
+.addmenu button{font-size:13px}
+.addmenu.left{right:auto;left:50%;transform:translateX(-50%)}
+.empty .addwrap{display:inline-block}
+/* dashed guide lines framing the content column (inspo: shadcn/studio) */
+.rails{position:fixed;inset:0;pointer-events:none;z-index:0}
+.rails::before{content:"";position:absolute;top:0;bottom:0;left:50%;width:min(1212px,calc(100% - 16px));transform:translateX(-50%);border-left:1px dashed var(--line);border-right:1px dashed var(--line)}
+.top,main{position:relative;z-index:1}
+.top{z-index:20}
+/* segmented control + sort */
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px;gap:4px}
+.seg button{border:0;background:transparent;border-radius:999px;padding:8px 16px;font-size:13px;color:var(--purple);cursor:pointer;line-height:var(--lh-tight)}
+.seg button[aria-pressed="true"]{background:var(--purple);color:var(--accent-ink)}
+.select{position:relative;display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--purple);line-height:var(--lh-tight)}
+.toolrow .select{margin-left:auto}
+.select select{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 40px 8px 16px;font-size:13px;color:var(--ink);cursor:pointer}
+.select::after{content:"";position:absolute;right:16px;top:50%;width:12px;height:12px;margin-top:-6px;pointer-events:none;background:var(--ink);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat}
+.select select:hover{border-color:var(--purple)}
+.select select:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.toolbar .grow{flex:1 1 auto}
+.toolrow{display:flex;gap:12px;flex-wrap:wrap;align-items:center;width:100%}
+/* folder hover: the sheet lifts and photos rise out of the folder */
+.ffolder .back,.ffolder .front,.ffolder .edge,.ffolder .peek{transition:transform .35s cubic-bezier(.2,.8,.2,1),opacity .25s ease,filter .25s ease}
+.ffolder .peek{position:absolute;border-radius:12px;overflow:hidden;background:#F5F5F5;box-shadow:0 8px 24px rgba(0,0,0,.35);opacity:0}
+.ffolder .peek img{width:100%;height:100%;object-fit:cover;display:block}
+.ffolder .peek.p1{left:25px;top:24px;width:174px;height:150px;transform:translateY(24px) rotate(-6deg)}
+.ffolder .peek.p2{left:120px;top:40px;width:150px;height:140px;transform:translateY(24px) rotate(5deg)}
+.ffolder:hover,.ffolder:focus-visible{transform:none}
+.ffolder:hover .back,.ffolder:focus-visible .back{transform:translateY(-10px)}
+.ffolder:hover .peek,.ffolder:focus-visible .peek{opacity:1}
+.ffolder:hover .peek.p1,.ffolder:focus-visible .peek.p1{transform:translateY(-34px) rotate(-8deg)}
+.ffolder:hover .peek.p2,.ffolder:focus-visible .peek.p2{transform:translateY(-26px) rotate(7deg)}
+.ffolder:hover .front,.ffolder:focus-visible .front{transform:translateY(2px);filter:brightness(1.12)}
+.ffolder:hover .edge,.ffolder:focus-visible .edge{transform:translateY(2px)}
+.ffolder:focus-visible{outline:2px solid var(--accent);outline-offset:6px;border-radius:20px}
+.ffolder:active .front{filter:brightness(.95)}
+/* folder colour picker */
+.fwrap{position:relative;width:291px;height:218px}
+.fwrap.open{z-index:10}
+.fcolor{position:absolute;left:16px;top:35px;z-index:3;width:24px;height:24px;border-radius:999px;border:1.5px solid rgba(255,255,255,.7);background:var(--fc,#8dbafb);cursor:pointer;padding:0;opacity:0;transition:opacity .2s ease}
+.fwrap:hover .fcolor,.fwrap:focus-within .fcolor,.fwrap.open .fcolor{opacity:1}
+@media (hover:none){.fcolor{opacity:1}}
+.palette{position:absolute;left:8px;top:64px;z-index:5;display:flex;gap:8px;flex-wrap:wrap;width:max-content;max-width:275px;background:var(--menu-bg);border:1px solid var(--menu-line);border-radius:12px;padding:8px;box-shadow:0 10px 15px rgba(0,0,0,.1),0 4px 6px rgba(0,0,0,.1)}
+.palette.inmenu{position:static;box-shadow:none;border:0;border-top:1px solid var(--menu-line);border-radius:0;padding:8px 16px 0;margin-top:8px;max-width:none}
+.swatch{width:24px;height:24px;border-radius:999px;border:1px solid rgba(0,0,0,.12);cursor:pointer;padding:0}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--menu-bg),0 0 0 4px #2F2F2F}
+@media (prefers-reduced-motion:reduce){.ffolder .back,.ffolder .front,.ffolder .edge,.ffolder .peek{transition:none}.ffolder:hover .peek.p1,.ffolder:hover .peek.p2{transform:none}}
+
+/* ---------- Tide components applied to the app ---------- */
+body{font-size:14px;line-height:22px;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-weight:600;letter-spacing:0}
+h1{font-size:32px;line-height:40px;letter-spacing:-.01em}
+h2,.section-head h2,.modal h2{font-size:24px;line-height:32px}
+h3,.block h2{font-size:18px;line-height:26px}
+.hero h1,.folderhead h1{font-size:clamp(32px,6vw,48px);line-height:1.1667;letter-spacing:-.02em}
+.label,.fields .label,.stub .label{font-size:11px;line-height:16px;font-weight:600;letter-spacing:.08em;color:var(--ink-subtle)}
+.note{font-size:12px;line-height:16px;color:var(--ink-muted)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.brand b i{color:var(--primary)}
+.brand span{color:var(--ink-subtle);font-weight:600;letter-spacing:.08em}
+
+/* Button: primary / outline (default) / ghost / small */
+.btn{position:relative;overflow:hidden;isolation:isolate;height:40px;padding:0 var(--space-4);border-radius:var(--radius-md);font-weight:500;font-size:14px;line-height:20px;letter-spacing:.01em;
+  background:var(--surface-raised);color:var(--primary);border:1.5px solid var(--border);box-shadow:var(--shadow-sm);gap:var(--space-2);justify-content:center;
+  transition:background-color var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard),color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard),transform var(--duration-fast) var(--ease-emphasized)}
+.btn:hover{background:var(--surface-hover);border-color:var(--border-hover);color:var(--primary-hover);box-shadow:var(--shadow-md);transform:translateY(var(--lift))}
+.btn:active{background:var(--surface-pressed);transform:scale(var(--press-scale));box-shadow:none;transition-duration:var(--duration-instant)}
+.btn.primary{background:var(--primary);border-color:transparent;color:var(--on-primary);font-weight:500}
+.btn.primary:hover{background:var(--primary-hover);filter:none;color:var(--on-primary)}
+.btn.primary:active{background:var(--primary-pressed)}
+.btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+.btn.ghost:hover{background:var(--surface-hover);transform:none;box-shadow:none}
+.btn.danger{color:var(--danger);border-color:var(--danger);background:var(--surface-raised)}
+.btn.small{height:32px;padding:0 var(--space-3);font-size:13px;border-radius:var(--radius-sm)}
+.btn:disabled{background:var(--disabled-bg);color:var(--disabled-ink);border-color:transparent;box-shadow:none;cursor:not-allowed;transform:none}
+.mode{width:40px;height:40px;padding:0;background:transparent;border-color:transparent;box-shadow:none;color:var(--primary)}
+.mode:hover{background:var(--surface-hover);border-color:transparent;box-shadow:none;transform:none}
+.ripple{position:absolute;border-radius:50%;background:var(--ripple-soft);pointer-events:none;z-index:-1;transform:scale(0);animation:td-ripple var(--duration-slow) var(--ease-standard) forwards}
+.btn.primary .ripple{background:var(--ripple)}
+@keyframes td-ripple{to{transform:scale(1);opacity:0}}
+
+/* Tabs: nav and the countries/cities switch */
+nav.tabs,.seg{gap:var(--space-1);padding:4px;border-radius:var(--radius-md);background:var(--surface-sunken);border:0}
+nav.tabs a,.seg button{height:34px;display:inline-flex;align-items:center;padding:0 var(--space-4);border-radius:9px;font-weight:500;font-size:14px;line-height:20px;color:var(--ink-muted);
+  transition:color var(--duration-fast) var(--ease-standard),background-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-base) var(--ease-emphasized),transform var(--duration-instant) var(--ease-standard)}
+nav.tabs a:hover:not([aria-current="page"]),.seg button:hover:not([aria-pressed="true"]){color:var(--ink);background:var(--surface-hover)}
+nav.tabs a:active,.seg button:active{transform:scale(var(--press-scale))}
+nav.tabs a[aria-current="page"],.seg button[aria-pressed="true"]{background:var(--surface-raised);color:var(--primary);box-shadow:var(--shadow-sm)}
+
+/* Text fields and selects */
+.toolbar input[type=search],.addcity input,.form input,.form select,.form textarea,.facts input,.select select,.notes textarea{
+  border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised);color:var(--ink);font-size:14px;
+  transition:border-color var(--duration-fast) var(--ease-standard),box-shadow var(--duration-fast) var(--ease-standard)}
+.toolbar input[type=search],.addcity input,.form input,.form select,.select select{height:42px;padding-block:0;padding-inline:var(--space-3)}
+.select select{padding:0 40px 0 var(--space-3);font-size:14px}
+.form textarea,.notes textarea{padding:var(--space-2) var(--space-3);line-height:22px}
+.toolbar input[type=search]::placeholder,.addcity input::placeholder,.form input::placeholder{color:var(--ink-subtle)}
+:is(.toolbar input[type=search],.addcity input,.form input,.form select,.form textarea,.facts input,.select select,.notes textarea):hover{border-color:var(--border-hover)}
+:is(.toolbar input[type=search],.addcity input,.form input,.form select,.form textarea,.facts input,.select select,.notes textarea):focus,
+.select select:focus-visible{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.form label{font-weight:500;font-size:13px;line-height:18px;color:var(--ink);gap:6px}
+.form label:focus-within{color:var(--primary)}
+.form .check{color:var(--ink)}
+.form .check input{accent-color:var(--primary);width:20px;height:20px}
+.select{font-weight:500;font-size:13px;color:var(--ink-muted)}
+.modal .err{color:var(--danger)}
+
+/* Chips: info tone, dot becomes a tick when selected */
+.chip{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 14px 0 12px;border-radius:var(--radius-pill);border:1.5px solid transparent;
+  background:var(--primary-soft);color:var(--on-primary-soft);font-weight:500;font-size:13px;line-height:18px;
+  transition:background-color var(--duration-fast) var(--ease-standard),border-color var(--duration-fast) var(--ease-standard),transform var(--duration-instant) var(--ease-standard)}
+.chip::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--primary);flex:none;transition:transform var(--duration-base) var(--ease-spring)}
+.chip:hover{background:var(--primary-soft-hover)}
+.chip:hover::before{transform:scale(1.35)}
+.chip:active{border-color:var(--border-hover);transform:scale(var(--press-scale))}
+.chip[aria-pressed="true"]{background:var(--primary-soft);color:var(--on-primary-soft);border-color:var(--border-hover)}
+.chip[aria-pressed="true"]::before{width:14px;height:14px;border-radius:0;transform:none;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.6 2.5L11 4.5' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 14'%3E%3Cpath d='M3 7.5l2.6 2.5L11 4.5' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/14px no-repeat}
+.tag{background:var(--primary-soft);color:var(--on-primary-soft);font-weight:600;border-radius:var(--radius-pill)}
+.cabin{color:var(--ink-muted);border-color:var(--line);border-radius:var(--radius-pill);font-weight:500}
+.cabin.Business,.cabin.First{background:var(--primary);color:var(--on-primary);border-color:var(--primary)}
+
+/* Surfaces */
+.stat,.hero-card,.files,.modal,.mapbox,.mini-map{background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm)}
+.mapbox,.mini-map{background:var(--surface-sunken)}
+.modal{padding:var(--space-5);box-shadow:var(--shadow-lg)}
+.hero-card{padding:var(--space-5)}
+.stat .n{font-size:32px;line-height:40px}
+.stat .n small{color:var(--ink-muted);font-size:14px}
+.banner{background:var(--primary-soft);color:var(--on-primary-soft);border:0;border-radius:var(--radius-lg);padding:var(--space-2) var(--space-4)}
+.empty{border:1.5px dashed var(--border);border-radius:var(--radius-lg);color:var(--ink-muted);background:var(--surface-sunken);padding:var(--space-5)}
+.vmenu{background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-lg);padding:var(--space-1)}
+.vmenu button{border-radius:var(--radius-sm);color:var(--ink);font-size:14px;line-height:20px;padding:var(--space-2) var(--space-3)}
+.vmenu button:hover{background:var(--surface-hover)}
+.vmenu .del{color:var(--danger)}
+.vmenu .q{color:var(--ink)}
+.palette{background:var(--surface-raised);border-color:var(--line);box-shadow:var(--shadow-lg)}
+.palette.inmenu{border-top:1px solid var(--line);padding:var(--space-2) var(--space-3) var(--space-1)}
+.swatch[aria-pressed="true"]{box-shadow:0 0 0 2px var(--surface-raised),0 0 0 4px var(--primary)}
+.toast{background:var(--ink);color:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);font-weight:500}
+.tip{background:var(--ink);color:var(--surface-raised);border-radius:var(--radius-sm);font-weight:500;padding:6px 10px}
+.mapctl button{background:var(--surface-raised);border:1.5px solid var(--border);border-radius:var(--radius-md);color:var(--primary);width:40px;height:40px}
+.mapctl button:hover{background:var(--surface-hover);border-color:var(--border-hover)}
+.legend{background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--radius-md);box-shadow:var(--shadow-sm);color:var(--ink-muted)}
+.arc{stroke:var(--primary)}
+.city{fill:var(--primary);stroke:var(--surface)}
+.file .ext{background:var(--primary-soft);color:var(--on-primary-soft);border:0;font-weight:600;border-radius:var(--radius-sm)}
+.citychip{background:var(--primary-soft);color:var(--on-primary-soft);border:0;border-radius:var(--radius-pill);font-weight:500}
+.citychip button{background:var(--surface-raised);color:var(--primary)}
+.drop{border:1.5px dashed var(--border);color:var(--ink-muted);border-radius:var(--radius-md)}
+.drop:hover,.drop.over{border-color:var(--primary);color:var(--primary);background:var(--primary-soft)}
+.photo{border-radius:var(--radius-md)}
+
+/* Links */
+.section-head a,.crumbs a,.empty a{color:var(--primary);font-weight:500;text-decoration:none;background-image:linear-gradient(currentColor,currentColor);background-size:0% 1.5px;background-position:0 100%;background-repeat:no-repeat;
+  transition:background-size var(--duration-base) var(--ease-emphasized),color var(--duration-fast) var(--ease-standard)}
+.section-head a:hover,.crumbs a:hover,.empty a:hover{color:var(--primary-hover);background-size:100% 1.5px}
+.crumbs{color:var(--ink-muted)}
+
+/* Boarding pass and in-country card */
+.pass .main,.pass .stub{background:var(--surface-raised)}
+.pass .main{border-right-color:var(--line)}
+button.pass{filter:drop-shadow(0 0 1px rgba(141,186,251,.95)) drop-shadow(0 1px 2px rgba(13,29,66,.08));transition:transform var(--duration-fast) var(--ease-emphasized),filter var(--duration-fast) var(--ease-standard)}
+button.pass:hover{transform:translateY(var(--lift));filter:drop-shadow(0 0 1px rgba(141,186,251,.95)) drop-shadow(0 4px 12px rgba(29,90,216,.18))}
+:root:not([data-mode="light"]) button.pass{filter:drop-shadow(0 0 1px rgba(141,186,251,.6)) drop-shadow(0 1px 2px rgba(0,0,0,.4))}
+.route .city{color:var(--ink-muted)}
+.route .plane{color:var(--primary)}
+.year{color:var(--ink);font-weight:600;font-size:18px;line-height:26px;border-bottom:1px solid var(--line)}
+.vcard{border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);transition:transform var(--duration-fast) var(--ease-emphasized),box-shadow var(--duration-fast) var(--ease-standard)}
+.vcard:hover{transform:translateY(var(--lift));box-shadow:var(--shadow-md)}
+.vcard .img{border-radius:var(--radius-lg) var(--radius-lg) 0 0}
+.vcard .content{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--radius-lg) var(--radius-lg)}
+.vcard .title{letter-spacing:0}
+.vcard .sub{letter-spacing:0;font-size:12px;line-height:16px}
+.ffolder:focus-visible{outline-color:var(--focus)}
+.fields{display:flex;flex-wrap:wrap;justify-content:space-between;gap:var(--space-2)}
+.pass{grid-template-columns:minmax(0,1fr) 96px}
+.pass .stub{padding:var(--space-4) var(--space-2)}
+.fields .label{letter-spacing:.06em}
+.form input[type=file]{height:auto;padding:var(--space-2) var(--space-3)}
+.addcity{align-items:center;gap:var(--space-2)}
+.addcity input{height:32px;border-radius:var(--radius-sm);font-size:13px}
+.vcard .img{background:var(--fc,#8dbafb)}
+.vcard.light .kebab,.vcard.light .img .pin{color:#0d1d42}
+.vcard.light .kebab:hover{background:rgba(13,29,66,.12)}
+[hidden]{display:none!important}
+.authcard{max-width:420px;margin:48px auto;display:grid;gap:var(--space-4);background:var(--surface-raised);border:1px solid var(--line);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);padding:var(--space-5)}
+.authcard .note{font-size:14px;line-height:22px;margin:0}
+.tfield{display:grid;gap:6px;font-weight:500;font-size:13px;line-height:18px;color:var(--ink)}
+.tfield:focus-within{color:var(--primary)}
+.tfield input{height:42px;padding:0 var(--space-3);border:1.5px solid var(--border);border-radius:var(--radius-md);background:var(--surface-raised);color:var(--ink);font-size:14px;font-weight:400}
+.tfield input:hover{border-color:var(--border-hover)}
+.tfield input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.autherr{margin:0;min-height:16px;font-size:12px;line-height:16px;color:var(--ink-muted)}
+.autherr.bad{color:var(--danger);font-weight:500}
+.authacts{display:flex;gap:var(--space-2);flex-wrap:wrap}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:1ms!important;transition-duration:1ms!important}.btn:hover,button.pass:hover,.vcard:hover{transform:none!important}}
+</style>
+
+</head><body>
+<div class="rails" aria-hidden="true"></div>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#map"><b>Travel <i>Vault</i></b></a>
+    <nav class="tabs" aria-label="Sections">
+      <a href="#map" data-tab="map">Map</a>
+      <a href="#places" data-tab="places">Places</a>
+      <a href="#passes" data-tab="passes">Boarding passes</a>
+    </nav>
+    <div class="actions">
+      <button class="btn mode" id="modeBtn" type="button" aria-label="Switch to light mode"></button>
+      <button class="btn ghost small" id="signOutBtn" type="button" hidden>Sign out</button>
+      <div class="addwrap"><button class="btn primary" id="addBtn" type="button" data-addtoggle aria-haspopup="menu" aria-expanded="false">Add <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden><button type="button" role="menuitem" data-add="country">Country</button><button type="button" role="menuitem" data-add="city">City</button><button type="button" role="menuitem" data-add="flight">Flight</button></div></div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div id="banner"></div>
+
+  <section class="view" id="v-map" aria-label="World map">
+    <div class="stats" id="stats"></div>
+    <div class="mapbox" id="worldMap">
+      <div class="mapctl"><button type="button" data-z="in" aria-label="Zoom in">+</button><button type="button" data-z="out" aria-label="Zoom out">−</button><button type="button" data-z="reset" aria-label="Reset map">⟲</button></div>
+      <div class="legend"><span><i style="background:var(--visited)"></i>Visited country</span><span><i style="background:var(--ink);border-radius:50%"></i>City</span><span><i style="border-top:2px dashed var(--ink);height:0;width:16px;border-radius:0;vertical-align:3px"></i>Flight</span></div>
+    </div>
+    <div class="below-map">
+      <div>
+        <div class="section-head"><h2>Recent flights</h2><a href="#passes">All boarding passes →</a></div>
+        <div class="passes" id="recentPasses"></div>
+      </div>
+      <div>
+        <div class="section-head"><h2>Countries</h2><a href="#places">All places →</a></div>
+        <div class="ffolders" id="recentPlaces"></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="view" id="v-places" hidden aria-label="Places">
+    <div class="section-head"><h2>Places</h2><div class="folderacts"><span class="note" id="placesCount"></span><div class="addwrap"><button class="btn" type="button" data-addtoggle aria-haspopup="menu" aria-expanded="false">Add <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button><div class="vmenu addmenu" role="menu" hidden><button type="button" role="menuitem" data-add="city">City</button><button type="button" role="menuitem" data-add="flight">Flight</button></div></div></div></div>
+    <div class="toolbar">
+      <div class="toolrow">
+        <div class="seg" role="group" aria-label="Show"><button type="button" data-pmode="countries" aria-pressed="true">Countries</button><button type="button" data-pmode="cities" aria-pressed="false">Cities</button></div>
+        <input type="search" id="placeSearch" class="grow" placeholder="Search countries or cities" aria-label="Search countries or cities">
+        <label class="select">Sort<select id="placeSort" aria-label="Sort places"></select></label>
+      </div>
+      <div class="chips" id="regionChips"></div>
+    </div>
+    <div class="ffolders" id="folders"></div>
+  </section>
+
+  <section class="view" id="v-passes" hidden aria-label="Boarding passes">
+    <div class="section-head"><h2>Boarding passes</h2><span class="note" id="passesCount"></span></div>
+    <div class="toolbar">
+      <div class="toolrow">
+        <input type="search" id="passSearch" class="grow" placeholder="Search airports, cities or airlines" aria-label="Search flights">
+        <label class="select">Sort<select id="passSort" aria-label="Sort flights"><option value="new">Newest first</option><option value="old">Oldest first</option><option value="far">Longest flight</option><option value="airline">Airline A–Z</option></select></label>
+      </div>
+      <div class="chips" id="cabinChips"></div>
+    </div>
+    <div class="passes" id="allPasses"></div>
+  </section>
+
+  <section class="view" id="v-place" hidden aria-label="Country"></section>
+
+  <section class="view" id="v-auth" hidden aria-label="Sign in">
+    <form class="authcard" id="authForm" novalidate>
+      <h1>Your travel vault</h1>
+      <p class="note">Sign in to keep your places, flights and photos safe in your own account, on any device.</p>
+      <label class="tfield">Email<input id="authEmail" type="email" autocomplete="email" required></label>
+      <label class="tfield">Password<input id="authPass" type="password" autocomplete="current-password" minlength="6" required></label>
+      <p class="autherr" id="authMsg" role="status"></p>
+      <div class="authacts"><button class="btn primary" type="submit" id="authIn">Sign in</button><button class="btn" type="button" id="authUp">Create account</button></div>
+    </form>
+  </section>
+</main>
+
+<div id="modalRoot"></div>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="folderGlass" cx="38%" cy="58%" r="78%">
+      <stop offset="0" stop-color="#8F8AAD"/><stop offset=".55" stop-color="#4A465E"/><stop offset="1" stop-color="#1D1B25"/>
+    </radialGradient>
+    <linearGradient id="folderEdge" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/><stop offset=".45" stop-color="#FFFFFF" stop-opacity=".08"/><stop offset=".8" stop-color="#FFFFFF" stop-opacity=".02"/><stop offset="1" stop-color="#FFFFFF" stop-opacity=".25"/>
+    </linearGradient>
+  </defs>
+</svg>
+<input type="file" id="filePick" hidden multiple>
+
+<datalist id="dlCountries"></datalist>
+<datalist id="dlAirports"></datalist>
+<datalist id="dlCities"></datalist>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="data.js"></script>
+<script src="examples.js"></script>
+<script>
+(function(){
+"use strict";
+const D = window.TV_DATA;
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => Array.from(r.querySelectorAll(s));
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+/* ---------- reference data ---------- */
+const COUNTRY = {}, BY_NUM = {}, BY_NAME = {};
+for (const [cca2, ccn3, name, capital, region, subregion, currency, languages, latlng, flag] of D.countries) {
+  COUNTRY[cca2] = {cca2, ccn3, name, capital, region, subregion, currency, languages, latlng, flag};
+  if (ccn3) BY_NUM[ccn3] = cca2;
+  BY_NAME[name.toLowerCase()] = cca2;
+}
+const CITIES = {};
+for (const [name, cc, lat, lng, pop] of D.cities) (CITIES[cc] ||= []).push({name, lat, lng, pop});
+const AIRPORT = {};
+for (const [iata, name, city, cc, lat, lng] of D.airports) AIRPORT[iata] = {iata, name, city, cc, lat, lng};
+const WORLD = topojson.feature(D.topo, D.topo.objects.countries).features;
+const FEATURE = {};
+for (const f of WORLD) { const cc = BY_NUM[f.id]; if (cc) FEATURE[cc] = f; }
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmtDate = d => { if (!d) return "—"; const [y,m,dd] = d.split("-"); return (dd ? +dd + " " : "") + (m ? MONTHS[+m-1] + " " : "") + y; };
+const fmtMonth = d => { if (!d) return "Not set"; const [y,m] = d.split("-"); return (m ? MONTHS[+m-1] + " " : "") + y; };
+const fmtSize = b => b < 1024 ? b + " B" : b < 1048576 ? (b/1024).toFixed(0) + " KB" : (b/1048576).toFixed(1) + " MB";
+function km(a, b) {
+  const R = 6371, t = Math.PI/180, dLa = (b.lat-a.lat)*t, dLo = (b.lng-a.lng)*t;
+  const h = Math.sin(dLa/2)**2 + Math.cos(a.lat*t)*Math.cos(b.lat*t)*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+
+/* ---------- storage: shared artifact db + assets when available, this browser otherwise ---------- */
+const state = {places:{}, flights:{}, ready:false, mode:"loading"};
+const local = {
+  db:null,
+  open(){ return new Promise((res) => {
+    try {
+      const rq = indexedDB.open("travel-vault", 1);
+      rq.onupgradeneeded = () => { rq.result.createObjectStore("docs"); rq.result.createObjectStore("blobs"); };
+      rq.onsuccess = () => { this.db = rq.result; res(true); };
+      rq.onerror = () => res(false);
+    } catch (e) { res(false); }
+  });},
+  tx(store, mode, fn){ return new Promise((res, rej) => {
+    if (!this.db) return res(null);
+    try { const t = this.db.transaction(store, mode); const os = t.objectStore(store); const r = fn(os); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); }
+    catch (e) { rej(e); }
+  });},
+  all(){ return new Promise((res) => {
+    if (!this.db) return res([]);
+    try { const out = []; const t = this.db.transaction("docs"); const c = t.objectStore("docs").openCursor();
+      c.onsuccess = () => { const cur = c.result; if (cur) { out.push([cur.key, cur.value]); cur.continue(); } else res(out); };
+      c.onerror = () => res(out);
+    } catch (e) { res([]); }
+  });}
+};
+let db = null, assets = null;
+/* ---------- Supabase: the vault's home when it can be reached ---------- */
+const SB_URL = "https://nfghhwyjrdayxogqlpsx.supabase.co", SB_KEY = "sb_publishable_jW1xIORabcGrOVuNbKzidA_ZSfKEifF", SB_BUCKET = "vault";
+let sb = null, sbUser = null, sbChannel = null;
+const sbSigned = {}, sbPending = new Set();
+const memStore = {};
+const safeStorage = {
+  getItem(k){ try { return localStorage.getItem(k); } catch (e) { return memStore[k] ?? null; } },
+  setItem(k, v){ try { localStorage.setItem(k, v); } catch (e) { memStore[k] = v; } },
+  removeItem(k){ try { localStorage.removeItem(k); } catch (e) { delete memStore[k]; } }
+};
+async function sbReachable(){
+  try {
+    const ctl = new AbortController(), t = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch(SB_URL + "/auth/v1/settings", {headers: {apikey: SB_KEY}, signal: ctl.signal});
+    clearTimeout(t); return r.ok;
+  } catch (e) { return false; }
+}
+function sbFail(e, what){ toast(`Couldn't ${what}. ${(e && e.message) || ""}`.trim()); }
+async function sbLoad(){
+  const [p, f] = await Promise.all([sb.from("places").select("cc,data"), sb.from("flights").select("id,data")]);
+  if (p.error) throw p.error; if (f.error) throw f.error;
+  const places = {}, fl = {};
+  for (const r of p.data) places[r.cc] = Object.assign({}, r.data, {id: r.cc});
+  for (const r of f.data) fl[r.id] = Object.assign({}, r.data, {id: r.id});
+  state.places = places; state.flights = fl; state.ready = true;
+}
+async function sbSignedIn(user){
+  sbUser = user; state.ready = false; renderAll();
+  try { await sbLoad(); } catch (e) { sbFail(e, "load your vault"); state.ready = true; }
+  renderAll(); offerImport();
+  if (sbChannel) sb.removeChannel(sbChannel);
+  let tmr = null; const reload = () => { clearTimeout(tmr); tmr = setTimeout(() => sbLoad().then(renderAll).catch(() => {}), 300); };
+  sbChannel = sb.channel("vault-" + user.id)
+    .on("postgres_changes", {event: "*", schema: "public", table: "places", filter: "user_id=eq." + user.id}, reload)
+    .on("postgres_changes", {event: "*", schema: "public", table: "flights", filter: "user_id=eq." + user.id}, reload)
+    .subscribe();
+}
+const sbStore = {
+  async put(col, doc){
+    const data = JSON.parse(JSON.stringify(doc));
+    const row = col === "places" ? {user_id: sbUser.id, cc: doc.id, data, updated_at: new Date().toISOString()} : {user_id: sbUser.id, id: doc.id, data, updated_at: new Date().toISOString()};
+    const {error} = await sb.from(col).upsert(row, {onConflict: col === "places" ? "user_id,cc" : "user_id,id"});
+    if (error) throw error;
+  },
+  async del(col, id){
+    const {error} = await sb.from(col).delete().eq(col === "places" ? "cc" : "id", id);
+    if (error) throw error;
+  },
+  async saveFile(file){
+    const name = (file.name || "file").replace(/[^A-Za-z0-9._-]+/g, "-").slice(-80);
+    const path = `${sbUser.id}/${uid()}-${name}`;
+    const {error} = await sb.storage.from(SB_BUCKET).upload(path, file, {contentType: file.type || "application/octet-stream", upsert: false});
+    if (error) throw error;
+    blobUrls["sb:" + path] = URL.createObjectURL(file);
+    return {kind: "sb", path};
+  },
+  async dropFile(src){ await sb.storage.from(SB_BUCKET).remove([src.path]); }
+};
+function sbUrl(path){
+  const b = blobUrls["sb:" + path]; if (b) return b;
+  const c = sbSigned[path]; if (c && c.exp > Date.now()) return c.url;
+  if (!sbPending.has(path)) {
+    sbPending.add(path);
+    queueMicrotask(async () => {
+      const paths = [...sbPending]; sbPending.clear(); if (!paths.length || !sb) return;
+      const {data, error} = await sb.storage.from(SB_BUCKET).createSignedUrls(paths, 3600);
+      if (error || !data) return;
+      for (const d of data) if (d.signedUrl) sbSigned[d.path] = {url: d.signedUrl, exp: Date.now() + 3500e3};
+      renderAll();
+    });
+  }
+  return "";
+}
+/* One-time import of what the vault held before Supabase (this browser, or the page's own store). */
+let importOffer = null;
+async function previousVault(){
+  const out = {places: [], flights: [], from: ""};
+  try {
+    const cap = window.claude && typeof window.claude.use === "function" ? await window.claude.use("db") : null;
+    if (cap) {
+      for (const col of ["places", "flights"]) { const snap = await cap.collection(col).get(); for (const d of snap.docs) out[col].push(Object.assign({id: d.id}, JSON.parse(JSON.stringify(d.data())))); }
+      out.from = "page";
+    }
+  } catch (e) {}
+  if (!out.places.length && !out.flights.length) {
+    await local.open();
+    for (const [k, v] of await local.all()) { const [col] = k.split("/"); if (out[col]) out[col].push(v); }
+    out.from = "browser";
+  }
+  out.places = out.places.filter(x => !x.example); out.flights = out.flights.filter(x => !x.example);
+  return out;
+}
+async function offerImport(){
+  if (!sbUser || Object.keys(state.places).length || Object.keys(state.flights).length || localFlag("imported-" + sbUser.id)) return;
+  const prev = await previousVault();
+  if (!prev.places.length && !prev.flights.length) return;
+  importOffer = prev; renderAll();
+}
+async function copyFile(src){
+  try {
+    let blob = null;
+    if (src.kind === "local") blob = await local.tx("blobs", "readonly", os => os.get(src.id));
+    else if (src.kind === "asset") blob = await (await fetch(src.url || ("/_blob/" + src.id))).blob();
+    else return src;
+    return blob ? await sbStore.saveFile(blob) : src;
+  } catch (e) { return src; }
+}
+async function runImport(){
+  const prev = importOffer; importOffer = null; renderAll();
+  toast("Copying your vault to Supabase…");
+  const fix = async list => { for (const it of list || []) if (it.src) it.src = await copyFile(it.src); };
+  try {
+    for (const p of prev.places) {
+      await fix(p.photos); await fix(p.files); for (const fo of p.folders || []) await fix(fo.items);
+      await sbStore.put("places", p);
+    }
+    for (const f of prev.flights) { if (f.scan && f.scan.src) f.scan.src = await copyFile(f.scan.src); await sbStore.put("flights", f); }
+    setLocalFlag("imported-" + sbUser.id);
+    await sbLoad(); renderAll(); toast(`Copied ${plural(prev.places.length, "country", "countries")} and ${plural(prev.flights.length, "flight", "flights")}`);
+  } catch (e) { sbFail(e, "finish copying"); }
+}
+
+const blobUrls = {};
+const store = {
+  async put(col, doc){
+    state[col][doc.id] = doc; renderAll();
+    if (sbUser) { try { await sbStore.put(col, doc); } catch (e) { sbFail(e, "save that change"); } return; }
+    try {
+      if (db) await db.collection(col).doc(doc.id).set(JSON.parse(JSON.stringify(doc)));
+      else await local.tx("docs", "readwrite", os => os.put(doc, col + "/" + doc.id));
+    } catch (e) { toast("Couldn't save that change. " + (e && e.message || "")); }
+  },
+  async del(col, id){
+    delete state[col][id]; renderAll();
+    if (sbUser) { try { await sbStore.del(col, id); } catch (e) { sbFail(e, "delete that"); } return; }
+    try {
+      if (db) await db.collection(col).doc(id).delete();
+      else await local.tx("docs", "readwrite", os => os.delete(col + "/" + id));
+    } catch (e) { toast("Couldn't delete that. " + (e && e.message || "")); }
+  },
+  async saveFile(file){
+    if (sbUser) return sbStore.saveFile(file);
+    if (assets) {
+      const r = await assets.upload(file);
+      return {kind:"asset", id:r.id, url:r.url};
+    }
+    const id = uid();
+    await local.tx("blobs", "readwrite", os => os.put(file, id));
+    blobUrls[id] = URL.createObjectURL(file);
+    return {kind:"local", id};
+  },
+  async dropFile(src){
+    try {
+      if (!src) return;
+      if (src.kind === "sb" && sb) await sbStore.dropFile(src);
+      if (src.kind === "asset" && assets) await assets.delete(src.id);
+      if (src.kind === "local") await local.tx("blobs", "readwrite", os => os.delete(src.id));
+    } catch (e) {}
+  }
+};
+function srcUrl(src){
+  if (!src) return "";
+  if (src.kind === "sb") return sbUrl(src.path);
+  if (src.kind === "asset") return src.url || ("/_blob/" + src.id);
+  if (src.kind === "local") {
+    if (blobUrls[src.id]) return blobUrls[src.id];
+    if (blobUrls[src.id] === null) return "";
+    blobUrls[src.id] = null;
+    local.tx("blobs", "readonly", os => os.get(src.id)).then(b => { if (b) { blobUrls[src.id] = URL.createObjectURL(b); renderAll(); } }).catch(()=>{});
+    return "";
+  }
+  return "";
+}
+
+async function boot(){
+  renderAll();
+  if (window.supabase && await sbReachable()) {
+    sb = window.supabase.createClient(SB_URL, SB_KEY, {auth: {storage: safeStorage, persistSession: true, autoRefreshToken: true, detectSessionInUrl: false}});
+    state.mode = "supabase";
+    const {data} = await sb.auth.getSession();
+    sb.auth.onAuthStateChange((ev, session) => {
+      const u = session && session.user;
+      if (u && (!sbUser || sbUser.id !== u.id)) sbSignedIn(u);
+      if (!u && sbUser) { sbUser = null; state.places = {}; state.flights = {}; importOffer = null; renderAll(); }
+    });
+    if (data && data.session) await sbSignedIn(data.session.user); else { state.ready = true; renderAll(); }
+    return;
+  }
+  state.sbDown = !!window.supabase || "nolib";
+  let cap = null;
+  if (window.claude && typeof window.claude.use === "function") {
+    try { cap = await window.claude.use("db"); } catch (e) { cap = null; }
+  }
+  if (cap) {
+    db = cap; state.mode = "cloud";
+    try { assets = await window.claude.use("assets"); } catch (e) { assets = null; }
+    let loaded = 0;
+    for (const col of ["places", "flights"]) {
+      db.collection(col).onSnapshot(snap => {
+        const next = {};
+        for (const d of snap.docs) next[d.id] = Object.assign({id:d.id}, JSON.parse(JSON.stringify(d.data())));
+        state[col] = next;
+        if (++loaded >= 2) state.ready = true;
+        renderAll();
+      }, err => { toast("Lost connection to your vault: " + (err && err.code || "")); });
+    }
+  } else {
+    await local.open();
+    state.mode = local.db ? "local" : "memory";
+    const rows = await local.all();
+    if (!rows.length && !localFlag("seeded")) { await seedExamples(); setLocalFlag("seeded"); }
+    else for (const [k, v] of rows) { const [col] = k.split("/"); if (state[col]) state[col][v.id] = v; }
+    state.ready = true; renderAll();
+  }
+}
+function localFlag(k){ try { return localStorage.getItem("tv-" + k); } catch (e) { return null; } }
+function setLocalFlag(k){ try { localStorage.setItem("tv-" + k, "1"); } catch (e) {} }
+
+/* Example trips, used only when the vault lives in this browser and is empty. */
+async function seedExamples(){
+  const ex = window.TV_EXAMPLES || [];
+  for (const [col, doc] of ex) { state[col][doc.id] = doc; try { await local.tx("docs", "readwrite", os => os.put(doc, col + "/" + doc.id)); } catch (e) {} }
+}
+
+/* ---------- derived ---------- */
+const places = () => Object.values(state.places).filter(p => COUNTRY[p.id]);
+const flights = () => Object.values(state.flights).sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+function flightsFor(cc){ return flights().filter(f => (AIRPORT[f.to]||{}).cc === cc || (AIRPORT[f.from]||{}).cc === cc); }
+function stats(){
+  const ps = places(), fs = flights();
+  const cities = ps.reduce((n, p) => n + (p.cities || []).length, 0);
+  let dist = 0; for (const f of fs) { const a = AIRPORT[f.from], b = AIRPORT[f.to]; if (a && b) dist += km(a, b); }
+  const regions = new Set(ps.map(p => COUNTRY[p.id].region));
+  return {countries: ps.length, cities, flights: fs.length, km: Math.round(dist), regions: regions.size};
+}
+
+/* ---------- rendering helpers ---------- */
+function barcode(seed){
+  let h = 2166136261; for (const c of String(seed)) { h ^= c.charCodeAt(0); h = Math.imul(h, 16777619); }
+  let x = 0, out = "";
+  while (x < 60) { h = Math.imul(h ^ (h >>> 13), 1274126177); const w = 1 + ((h >>> 3) & 3); const gap = 1 + ((h >>> 7) & 1); out += `<rect x="${x}" y="0" width="${w*.8}" height="38" fill="currentColor"/>`; x += w + gap; }
+  return `<svg viewBox="0 0 60 38" preserveAspectRatio="none" aria-hidden="true">${out}</svg>`;
+}
+function passHTML(f, opts={}){
+  const a = AIRPORT[f.from] || {city:f.from}, b = AIRPORT[f.to] || {city:f.to};
+  const cabin = f.cabin || "Economy";
+  return `<${opts.static ? "div" : "button type=\"button\""} class="pass" data-flight="${esc(f.id)}" aria-label="${esc(`${f.airline||"Flight"} ${f.flightNo||""} from ${a.city} to ${b.city} on ${fmtDate(f.date)}`)}">
+    <div class="main">
+      <div class="head"><span class="airline">${esc(f.airline || "Airline")}${f.example ? ' <span class="tag">Example</span>' : ""}</span><span class="cabin ${esc(cabin.split(" ")[0])}">${esc(cabin)}</span></div>
+      <div class="route">
+        <div><div class="code">${esc(f.from)}</div><div class="city">${esc(a.city || a.name || "")}</div></div>
+        <div class="plane" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24"><path fill="currentColor" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z" transform="rotate(90 12 12)"/></svg></div>
+        <div class="to"><div class="code">${esc(f.to)}</div><div class="city">${esc(b.city || b.name || "")}</div></div>
+      </div>
+      <div class="fields">
+        <div><span class="label">Flight</span><b>${esc(f.flightNo || "—")}</b></div>
+        <div><span class="label">Date</span><b>${esc(fmtDate(f.date))}</b></div>
+        <div><span class="label">Boards</span><b>${esc(f.boarding || "—")}</b></div>
+        <div><span class="label">Gate</span><b>${esc(f.gate || "—")}</b></div>
+      </div>
+    </div>
+    <div class="stub">
+      <div><span class="label">Seat</span><b>${esc(f.seat || "—")}</b></div>
+      <div><span class="label">Ref</span><b>${esc(f.pnr || "—")}</b></div>
+      ${barcode((f.pnr || "") + f.flightNo + f.date)}
+    </div>
+  </${opts.static ? "div" : "button"}>`;
+}
+
+
+const MONTHS_FULL = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const FOLDER_PATH = "M110.068 0H16C7.16344 0 0 7.16344 0 16V179C0 187.837 7.16345 195 16 195H275C283.837 195 291 187.837 291 179V42.5C291 33.6634 283.837 26.5 275 26.5H136.239C131.09 26.5 126.515 23.2147 124.869 18.3353L121.438 8.1647C119.792 3.2853 115.217 0 110.068 0Z";
+/* Country folder: Figma "Project Folder" */
+function images(list, max){
+  const out = [];
+  for (const it of list) { if (out.length >= max) break; if ((it.type || "image/").startsWith("image/")) { const u = srcUrl(it.src); if (u) out.push(u); } }
+  return out;
+}
+function placeImages(p, max){ return images([...(p.photos || []), ...(p.folders || []).flatMap(f => f.items || [])], max); }
+function firstImage(p){ return placeImages(p, 1)[0] || ""; }
+const FCOLORS = [["Blue", "#8dbafb"], ["Lilac", "#B5B0E3"], ["Mint", "#A6E3C8"], ["Peach", "#FFC4A3"], ["Rose", "#F6A9CB"], ["Butter", "#F3DD8C"], ["Slate", "#AEB6C6"]];
+let openPal = null;
+function paletteHTML(key, current, cls){
+  const cur = current || FCOLORS[0][1];
+  return `<div class="palette ${cls || ""}" role="group" aria-label="Folder colour">${FCOLORS.map(([n, c]) => `<button type="button" class="swatch" style="background:${c}" data-swatch="${c}" data-key="${esc(key)}" aria-label="${n}" aria-pressed="${c === cur}"></button>`).join("")}</div>`;
+}
+function folderHTML({href, label, month, code, meta, title, pics, key, color}){
+  const [y, mo] = (month || "").split("-");
+  const pick = key ? `<button type="button" class="fcolor" data-fcolor="${esc(key)}" aria-label="Change colour of ${esc(title)}" aria-expanded="${openPal === key}"></button>${openPal === key ? paletteHTML(key, color) : ""}` : "";
+  return `<div class="fwrap${openPal === key && key ? " open" : ""}"${color ? ` style="--fc:${esc(color)}"` : ""}><a class="ffolder" href="${esc(href)}" aria-label="${esc(label)}">
+    <span class="back"><span class="sheet"></span></span>
+    ${(pics || []).slice(0, 2).map((u, i) => `<span class="peek p${i + 1}"><img src="${esc(u)}" alt="" loading="lazy"></span>`).join("")}
+    <span class="front"><span class="glass"><span class="sheet"></span></span></span>
+    <svg class="edge" viewBox="0 0 291 195" aria-hidden="true"><path d="${FOLDER_PATH}" fill="none" stroke="url(#folderEdge)" stroke-width="1"/></svg>
+    ${y ? `<span class="when"><b>${esc(mo ? MONTHS_FULL[+mo - 1] : "")}</b><span>${esc(y)}</span></span>` : ""}
+    <span class="info"><span class="fno"><b>${esc(code)}</b><span>${esc(meta)}</span></span><span class="rt">${esc(title)}</span></span>
+  </a>${pick}</div>`;
+}
+const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+function countryFolderHTML(p){
+  const c = COUNTRY[p.id], n = (p.cities || []).length, fl = flightsFor(p.id).length;
+  return folderHTML({href: "#place-" + p.id, label: `${c.name}, ${plural(n, "city", "cities")}, ${plural(fl, "flight", "flights")}`, month: p.firstVisit,
+    code: c.cca2, meta: `${plural(n, "city", "cities")} · ${plural(fl, "flight", "flights")}`, title: c.name, pics: placeImages(p, 2), key: p.id, color: p.color});
+}
+/* every city across the vault, as {place, folder|null, name} */
+function allCities(){
+  const out = [];
+  for (const p of places()) {
+    const fos = (p.folders || []).filter(f => f.city);
+    if (p.folders) for (const fo of fos) out.push({p, fo, name: fo.name});
+    else for (const ct of p.cities || []) out.push({p, fo: null, name: ct.name});
+  }
+  return out;
+}
+function cityFolderHTML({p, fo, name}){
+  const c = COUNTRY[p.id], n = fo ? (fo.items || []).length : 0;
+  return folderHTML({href: "#place-" + p.id + (fo ? "." + fo.id : ""), label: `${name}, ${c.name}, ${plural(n, "item", "items")}`, month: p.firstVisit,
+    code: c.cca2, meta: `${c.name} · ${plural(n, "item", "items")}`, title: name, pics: fo ? images(fo.items || [], 2) : [], key: fo ? p.id + "." + fo.id : "", color: fo && fo.color});
+}
+/* Folder card inside a country: Figma "vert-card" with its options menu */
+let openMenu = null, menuConfirm = false;
+const ICON_DOTS = '<svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="3" r="1.5" fill="currentColor"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="13" r="1.5" fill="currentColor"/></svg>';
+const ICON_EDIT = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M11.3 2.3a1.6 1.6 0 0 1 2.3 2.3L7 11.3 4 12l.7-3z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 2.7H4a1.5 1.5 0 0 0-1.5 1.5V12A1.5 1.5 0 0 0 4 13.5h7.8a1.5 1.5 0 0 0 1.5-1.5V8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>';
+const ICON_X = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>';
+const ICON_PIN = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 15s5-4.6 5-8.5A5 5 0 0 0 3 6.5C3 10.4 8 15 8 15z" fill="currentColor"/><circle cx="8" cy="6.5" r="1.8" fill="#1C2FC2"/></svg>';
+function vcardHTML(cc, fo){
+  const items = fo.items || [], n = items.length;
+  const im = items.find(it => (it.type || "").startsWith("image/")), u = im ? srcUrl(im.src) : "";
+  const menu = openMenu !== fo.id ? "" : menuConfirm
+    ? `<div class="vmenu" role="menu"><div class="q">Delete ${esc(fo.name)}${n ? ` and its ${n} ${n === 1 ? "item" : "items"}` : ""}?</div><button type="button" class="del" data-vdelyes="${esc(fo.id)}">${ICON_X}Delete</button><button type="button" data-vclose>Cancel</button></div>`
+    : `<div class="vmenu" role="menu"><button type="button" role="menuitem" data-vedit="${esc(fo.id)}">${ICON_EDIT}Edit</button><button type="button" role="menuitem" data-vdel="${esc(fo.id)}">${ICON_X}Delete</button>${paletteHTML(cc + "." + fo.id, fo.color, "inmenu")}</div>`;
+  return `<div class="vcard${openMenu === fo.id ? " open" : ""}${!u ? " light" : ""}"${fo.color ? ` style="--fc:${esc(fo.color)}"` : ""}>
+    <div class="img${fo.color ? " tint" : ""}">${u ? `<img src="${esc(u)}" alt="">` : ""}${fo.city ? `<span class="pin">${ICON_PIN}On your map</span>` : ""}</div>
+    <div class="content"><div class="title">${esc(fo.name)}</div><div class="sub">${n} ${n === 1 ? "item" : "items"}</div></div>
+    <a class="hit" href="#place-${esc(cc)}.${esc(fo.id)}" aria-label="Open ${esc(fo.name)}"></a>
+    <button type="button" class="kebab" data-menu="${esc(fo.id)}" aria-label="Options for ${esc(fo.name)}" aria-haspopup="menu" aria-expanded="${openMenu === fo.id}">${ICON_DOTS}</button>
+    ${menu}
+  </div>`;
+}
+document.addEventListener("click", async e => {
+  const t = e.target.closest("[data-menu],[data-vedit],[data-vdel],[data-vdelyes],[data-vclose]");
+  if (!t) { if (openMenu && !e.target.closest(".vmenu")) { openMenu = null; menuConfirm = false; renderAll(); } return; }
+  e.preventDefault();
+  if (t.dataset.menu) { openMenu = openMenu === t.dataset.menu ? null : t.dataset.menu; menuConfirm = false; renderAll(); }
+  else if (t.dataset.vedit) { const id = t.dataset.vedit; openMenu = null; renderAll(); openFolderForm(id); }
+  else if (t.dataset.vdel) { menuConfirm = true; renderAll(); }
+  else if (t.dataset.vclose != null) { openMenu = null; menuConfirm = false; renderAll(); }
+  else if (t.dataset.vdelyes) {
+    const p = state.places[routeArg], id = t.dataset.vdelyes; openMenu = null; menuConfirm = false;
+    const fo = p && (p.folders || []).find(f => f.id === id);
+    if (fo) {
+      for (const x of fo.items || []) store.dropFile(x.src);
+      const cities = fo.city ? (p.cities || []).filter(c => c.name !== fo.name) : p.cities;
+      await store.put("places", {...p, cities, folders: p.folders.filter(f => f.id !== id)});
+      if (routeSub === id) location.hash = "place-" + p.id;
+      toast(`Deleted ${fo.name}`);
+    }
+  }
+});
+async function setFolderColor(key, color){
+  const [cc, fid] = key.split("."), p = state.places[cc]; if (!p) return;
+  if (!fid) return store.put("places", {...p, color});
+  await store.put("places", {...p, folders: (p.folders || []).map(f => f.id === fid ? {...f, color} : f)});
+}
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-fcolor],[data-swatch]");
+  if (!t) { if (openPal && !e.target.closest(".palette")) { openPal = null; renderAll(); } return; }
+  e.preventDefault(); e.stopPropagation();
+  if (t.dataset.fcolor) { openPal = openPal === t.dataset.fcolor ? null : t.dataset.fcolor; renderAll(); }
+  else { const inMenu = !!t.closest(".vmenu"); openPal = null; if (inMenu) { openMenu = null; menuConfirm = false; } setFolderColor(t.dataset.key, t.dataset.swatch); }
+}, true);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && openPal) { openPal = null; renderAll(); } });
+document.addEventListener("keydown", e => { if (e.key === "Escape" && openMenu) { openMenu = null; menuConfirm = false; renderAll(); } });
+
+/* dark / light toggle */
+const ICON_SUN = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const ICON_MOON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+function setMode(m){
+  document.documentElement.dataset.mode = m;
+  const b = $("#modeBtn"); b.innerHTML = m === "light" ? ICON_MOON : ICON_SUN;
+  b.setAttribute("aria-label", m === "light" ? "Switch to dark mode" : "Switch to light mode"); b.title = b.getAttribute("aria-label");
+}
+setMode((() => { try { return localStorage.getItem("tv-mode") || "light"; } catch (e) { return "light"; } })());
+$("#modeBtn").onclick = () => { const m = document.documentElement.dataset.mode === "light" ? "dark" : "light"; setMode(m); try { localStorage.setItem("tv-mode", m); } catch (e) {} };
+
+/* ---------- views ---------- */
+let route = "map", routeArg = null, routeSub = null, highlightFlight = null;
+function parseHash(){
+  const h = (location.hash || "#map").slice(1);
+  routeSub = null;
+  if (h.startsWith("place-")) { route = "place"; const [cc, sub] = h.slice(6).split("."); routeArg = cc.toUpperCase(); routeSub = sub || null; }
+  else if (["map", "places", "passes"].includes(h)) { route = h; routeArg = null; }
+  else { route = "map"; }
+}
+function renderAll(){
+  parseHash();
+  const needAuth = state.mode === "supabase" && !sbUser;
+  for (const v of ["map", "places", "passes", "place"]) $("#v-" + v).hidden = needAuth || v !== route;
+  $("#v-auth").hidden = !needAuth;
+  $("#signOutBtn").hidden = !sbUser;
+  $("nav.tabs").hidden = needAuth; $(".addwrap").hidden = needAuth;
+  $$("nav.tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.tab === route || (route === "place" && a.dataset.tab === "places") ? "page" : "false"));
+  renderBanner();
+  if (route === "map") renderMapView();
+  if (route === "places") renderPlaces();
+  if (route === "passes") renderPasses();
+  if (route === "place") renderPlace(routeArg);
+}
+function renderBanner(){
+  const ex = [...Object.values(state.places), ...Object.values(state.flights)].filter(x => x.example);
+  const el = $("#banner");
+  if (state.mode === "supabase" && !sbUser) { el.innerHTML = ""; return; }
+  if (importOffer) {
+    const n = importOffer.places.length, m = importOffer.flights.length;
+    el.innerHTML = `<div class="banner"><p><b>Bring your trips over.</b> ${importOffer.from === "page" ? "Your vault" : "This browser"} has ${plural(n, "country", "countries")} and ${plural(m, "flight", "flights")} saved from before Supabase. Copy them, with their photos and files, into your account?</p><span class="confirm"><button class="btn small primary" id="impYes" type="button">Copy them</button><button class="btn small ghost" id="impNo" type="button">Not now</button></span></div>`;
+    $("#impYes").onclick = runImport;
+    $("#impNo").onclick = () => { setLocalFlag("imported-" + sbUser.id); importOffer = null; renderBanner(); };
+    return;
+  }
+  if (state.sbDown && !el.dataset.sbseen) { el.innerHTML = `<div class="banner"><p>Couldn't reach Supabase from here, so this vault is saving ${state.mode === "cloud" ? "to this page" : "in this browser"} for now.</p><button class="btn small ghost" id="sbOk" type="button">OK</button></div>`; $("#sbOk").onclick = () => { el.dataset.sbseen = "1"; renderBanner(); }; return; }
+  if (state.mode === "memory") { el.innerHTML = `<div class="banner"><p>This browser is blocking storage, so anything you add disappears when you close the page.</p></div>`; return; }
+  if (!ex.length) { el.innerHTML = ""; return; }
+  if (el.dataset.confirm === "1") {
+    el.innerHTML = `<div class="banner"><p>Remove all ${ex.length} example countries and flights? Your own entries stay.</p><span class="confirm"><button class="btn small danger" id="exYes" type="button">Remove examples</button><button class="btn small ghost" id="exNo" type="button">Keep them</button></span></div>`;
+    $("#exYes").onclick = async () => { el.dataset.confirm = ""; for (const x of Object.values(state.places)) if (x.example) await store.del("places", x.id); for (const x of Object.values(state.flights)) if (x.example) await store.del("flights", x.id); toast("Examples removed"); };
+    $("#exNo").onclick = () => { el.dataset.confirm = ""; renderBanner(); };
+    return;
+  }
+  el.innerHTML = `<div class="banner"><p><b>These are example trips</b> so you can see how the vault works. Add your own countries and flights, then clear the examples.</p><button class="btn small" id="exClear" type="button">Clear examples</button></div>`;
+  $("#exClear").onclick = () => { el.dataset.confirm = "1"; renderBanner(); };
+}
+
+function renderMapView(){
+  const s = stats();
+  $("#stats").innerHTML = [
+    ["Countries", `${s.countries}<small> / 195</small>`],
+    ["Cities", s.cities],
+    ["Flights", s.flights],
+    ["Kilometres flown", s.km.toLocaleString()],
+    ["Regions", `${s.regions}<small> / 5</small>`]
+  ].map(([l, n]) => `<div class="stat"><div class="label">${l}</div><div class="n">${n}</div></div>`).join("");
+  drawWorld();
+  const fs = flights().slice(0, 4);
+  $("#recentPasses").innerHTML = fs.length ? fs.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights yet.</p><div class="eacts"><button class="btn primary" type="button" data-eadd="flight">+ Add flight</button></div></div>`;
+  const ps = places().sort((a, b) => (b.firstVisit || "").localeCompare(a.firstVisit || "")).slice(0, 8);
+  $("#recentPlaces").innerHTML = ps.length ? ps.map(countryFolderHTML).join("") : `<div class="empty"><p>No countries yet.</p><div class="eacts">${EADD_PLACE}</div></div>`;
+}
+
+let world = null;
+function drawWorld(){
+  const box = $("#worldMap");
+  const W = 960, H = 500;
+  if (!world) {
+    const svg = d3.select(box).insert("svg", ":first-child").attr("viewBox", `0 0 ${W} ${H}`).attr("role", "img").attr("aria-label", "World map of visited countries, cities and flights");
+    const proj = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], {type: "Sphere"});
+    const path = d3.geoPath(proj);
+    const g = svg.append("g");
+    g.append("path").attr("class", "sphere").attr("d", path({type: "Sphere"}));
+    g.append("path").attr("class", "grat").attr("d", path(d3.geoGraticule10()));
+    const gc = g.append("g"), ga = g.append("g"), gp = g.append("g");
+    gc.selectAll("path").data(WORLD).join("path").attr("class", "country").attr("d", path);
+    const tip = document.createElement("div"); tip.className = "tip"; tip.hidden = true; box.appendChild(tip);
+    const zoom = d3.zoom().scaleExtent([1, 12]).translateExtent([[0, 0], [W, H]]).on("zoom", e => { g.attr("transform", e.transform); gp.selectAll("circle").attr("r", function(){ return (+this.dataset.r) / e.transform.k; }); });
+    svg.call(zoom);
+    box.querySelector(".mapctl").addEventListener("click", e => {
+      const z = e.target.closest("button"); if (!z) return;
+      if (z.dataset.z === "in") svg.transition().duration(250).call(zoom.scaleBy, 1.6);
+      if (z.dataset.z === "out") svg.transition().duration(250).call(zoom.scaleBy, 1 / 1.6);
+      if (z.dataset.z === "reset") svg.transition().duration(300).call(zoom.transform, d3.zoomIdentity);
+    });
+    const show = (e, text) => { const r = box.getBoundingClientRect(); tip.textContent = text; tip.hidden = false; tip.style.left = (e.clientX - r.left) + "px"; tip.style.top = (e.clientY - r.top) + "px"; };
+    svg.on("pointermove", e => {
+      const t = e.target;
+      if (t.classList.contains("country")) { const cc = BY_NUM[t.__data__.id]; const c = COUNTRY[cc]; if (!c) return (tip.hidden = true); show(e, state.places[cc] ? `${c.flag} ${c.name} · ${(state.places[cc].cities || []).length} cities` : c.name); }
+      else if (t.classList.contains("city")) show(e, t.dataset.label);
+      else if (t.classList.contains("arc")) show(e, t.dataset.label);
+      else tip.hidden = true;
+    }).on("pointerleave", () => tip.hidden = true)
+      .on("click", e => {
+        const t = e.target; let cc = null;
+        if (t.classList.contains("country")) cc = BY_NUM[t.__data__.id];
+        if (t.classList.contains("city")) cc = t.dataset.cc;
+        if (cc && state.places[cc]) location.hash = "place-" + cc;
+      });
+    world = {svg, proj, path, gc, ga, gp};
+  }
+  const {proj, path, gc, ga, gp} = world;
+  gc.selectAll("path").attr("class", d => "country" + (state.places[BY_NUM[d.id]] ? " visited" : ""));
+  const fs = flights().filter(f => AIRPORT[f.from] && AIRPORT[f.to]);
+  ga.selectAll("path").data(fs, f => f.id).join("path").attr("class", "arc")
+    .attr("d", f => path({type: "LineString", coordinates: [[AIRPORT[f.from].lng, AIRPORT[f.from].lat], [AIRPORT[f.to].lng, AIRPORT[f.to].lat]]}))
+    .attr("data-label", f => `${f.from} → ${f.to} · ${fmtDate(f.date)}`);
+  const pts = [];
+  for (const p of places()) {
+    const c = COUNTRY[p.id];
+    if (!FEATURE[p.id] && !(p.cities || []).length) pts.push({cc: p.id, lat: c.latlng[0], lng: c.latlng[1], label: c.name, r: 4});
+    for (const ct of p.cities || []) pts.push({cc: p.id, lat: ct.lat, lng: ct.lng, label: `${ct.name}, ${c.name}`, r: 3.4});
+  }
+  const k = d3.zoomTransform(world.svg.node()).k;
+  gp.selectAll("circle").data(pts).join("circle").attr("class", "city")
+    .attr("cx", d => proj([d.lng, d.lat])[0]).attr("cy", d => proj([d.lng, d.lat])[1])
+    .attr("data-r", d => d.r).attr("r", d => d.r / k).attr("data-label", d => d.label).attr("data-cc", d => d.cc);
+}
+
+const EADD_MENU = `<div class="addwrap"><button class="btn primary" type="button" data-addtoggle aria-haspopup="menu" aria-expanded="false">Add ${'<svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'}</button><div class="vmenu addmenu left" role="menu" hidden><button type="button" role="menuitem" data-add="city">City</button><button type="button" role="menuitem" data-add="flight">Flight</button></div></div>`;
+const EADD_PLACE = `<button class="btn primary" type="button" data-eadd="country">+ Add country</button><button class="btn" type="button" data-eadd="city">+ Add city</button>`;
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-eadd]"); if (!t) return;
+  const k = t.dataset.eadd;
+  if (k === "flight") openFlightForm(); else if (k === "city") openCityForm(); else openPlaceForm();
+});
+/* Sign in / create account / sign out */
+async function authGo(kind){
+  const email = $("#authEmail").value.trim(), password = $("#authPass").value, msg = $("#authMsg");
+  msg.className = "autherr";
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { msg.textContent = "Enter a valid email"; msg.classList.add("bad"); return; }
+  if (password.length < 6) { msg.textContent = "Use at least 6 characters for the password"; msg.classList.add("bad"); return; }
+  $("#authIn").disabled = $("#authUp").disabled = true; msg.textContent = kind === "up" ? "Creating your account…" : "Signing in…";
+  const r = kind === "up" ? await sb.auth.signUp({email, password}) : await sb.auth.signInWithPassword({email, password});
+  $("#authIn").disabled = $("#authUp").disabled = false;
+  if (r.error) { msg.textContent = r.error.message; msg.classList.add("bad"); return; }
+  if (kind === "up" && !r.data.session) { msg.textContent = "Check your email and open the confirmation link, then sign in here."; return; }
+  msg.textContent = "";
+}
+$("#authForm").addEventListener("submit", e => { e.preventDefault(); authGo("in"); });
+$("#authUp").addEventListener("click", () => authGo("up"));
+$("#signOutBtn").addEventListener("click", async () => { if (sbChannel) { sb.removeChannel(sbChannel); sbChannel = null; } await sb.auth.signOut(); });
+
+/* Tide ripple on buttons */
+document.addEventListener("pointerdown", e => {
+  const b = e.target.closest(".btn"); if (!b || b.disabled || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2, sp = document.createElement("span");
+  sp.className = "ripple"; sp.style.cssText = `width:${d}px;height:${d}px;left:${e.clientX - r.left - d / 2}px;top:${e.clientY - r.top - d / 2}px`;
+  b.appendChild(sp); setTimeout(() => sp.remove(), 520);
+});
+let regionFilter = "All", placeMode = "countries";
+const SORTS = {
+  countries: [["recent", "Recently visited"], ["oldest", "First visited"], ["name", "Name A–Z"], ["cities", "Most cities"], ["flights", "Most flights"]],
+  cities: [["name", "Name A–Z"], ["country", "Country"], ["items", "Most items"], ["recent", "Recently visited"]]
+};
+function renderPlaces(){
+  const q = $("#placeSearch").value.trim().toLowerCase();
+  const all = places();
+  const regions = ["All", ...[...new Set(all.map(p => COUNTRY[p.id].region))].sort()];
+  if (!regions.includes(regionFilter)) regionFilter = "All";
+  $("#regionChips").innerHTML = regions.map(r => `<button type="button" class="chip" data-region="${esc(r)}" aria-pressed="${r === regionFilter}">${esc(r)}</button>`).join("");
+  $$("[data-pmode]").forEach(b => b.setAttribute("aria-pressed", b.dataset.pmode === placeMode));
+  const sel = $("#placeSort"), opts = SORTS[placeMode];
+  if (sel.dataset.mode !== placeMode) { sel.innerHTML = opts.map(([v, l]) => `<option value="${v}">${l}</option>`).join(""); sel.dataset.mode = placeMode; }
+  const sort = sel.value;
+  const inRegion = p => regionFilter === "All" || COUNTRY[p.id].region === regionFilter;
+  const cityTotal = allCities().length;
+  $("#placesCount").textContent = `${plural(all.length, "country", "countries")} · ${plural(cityTotal, "city", "cities")}`;
+  let html = "";
+  if (placeMode === "countries") {
+    const list = all.filter(p => inRegion(p) && (!q || COUNTRY[p.id].name.toLowerCase().includes(q) || (p.cities || []).some(c => c.name.toLowerCase().includes(q))));
+    const by = {recent: (a, b) => (b.firstVisit || "").localeCompare(a.firstVisit || ""), oldest: (a, b) => (a.firstVisit || "9999").localeCompare(b.firstVisit || "9999"),
+      name: (a, b) => COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name), cities: (a, b) => (b.cities || []).length - (a.cities || []).length,
+      flights: (a, b) => flightsFor(b.id).length - flightsFor(a.id).length};
+    list.sort((a, b) => by[sort](a, b) || COUNTRY[a.id].name.localeCompare(COUNTRY[b.id].name));
+    html = list.map(countryFolderHTML).join("");
+  } else {
+    const list = allCities().filter(x => inRegion(x.p) && (!q || x.name.toLowerCase().includes(q) || COUNTRY[x.p.id].name.toLowerCase().includes(q)));
+    const items = x => x.fo ? (x.fo.items || []).length : 0;
+    const by = {name: (a, b) => a.name.localeCompare(b.name), country: (a, b) => COUNTRY[a.p.id].name.localeCompare(COUNTRY[b.p.id].name),
+      items: (a, b) => items(b) - items(a), recent: (a, b) => (b.p.firstVisit || "").localeCompare(a.p.firstVisit || "")};
+    list.sort((a, b) => by[sort](a, b) || a.name.localeCompare(b.name));
+    html = list.map(cityFolderHTML).join("");
+  }
+  $("#folders").innerHTML = html ||
+    (all.length && placeMode === "cities" && !cityTotal ? `<div class="empty"><p>No cities yet.</p><div class="eacts">${EADD_MENU}</div></div>` : all.length ? `<div class="empty">Nothing matches${q ? ` “${esc(q)}”` : ""}${regionFilter !== "All" ? ` in ${esc(regionFilter)}` : ""}.</div>`
+      : `<div class="empty"><p>Your vault is empty. Add a city you have been to, or log a flight and its destination is added for you.</p><div class="eacts">${EADD_MENU}</div></div>`);
+}
+$("#placeSearch").addEventListener("input", renderPlaces);
+$("#placeSort").addEventListener("change", renderPlaces);
+$("#regionChips").addEventListener("click", e => { const b = e.target.closest("[data-region]"); if (b) { regionFilter = b.dataset.region; renderPlaces(); } });
+document.addEventListener("click", e => { const b = e.target.closest("[data-pmode]"); if (b) { placeMode = b.dataset.pmode; renderPlaces(); } });
+
+let cabinFilter = "All";
+function renderPasses(){
+  const all = flights(), q = $("#passSearch").value.trim().toLowerCase(), sort = $("#passSort").value;
+  const cabins = ["All", ...["Economy", "Premium Economy", "Business", "First"].filter(c => all.some(f => (f.cabin || "Economy") === c))];
+  if (!cabins.includes(cabinFilter)) cabinFilter = "All";
+  $("#cabinChips").innerHTML = cabins.length > 2 ? cabins.map(c => `<button type="button" class="chip" data-cabin="${esc(c)}" aria-pressed="${c === cabinFilter}">${esc(c)}</button>`).join("") : "";
+  const dist = f => (AIRPORT[f.from] && AIRPORT[f.to]) ? km(AIRPORT[f.from], AIRPORT[f.to]) : 0;
+  const hay = f => [f.from, f.to, f.airline, f.flightNo, (AIRPORT[f.from] || {}).city, (AIRPORT[f.to] || {}).city, (COUNTRY[(AIRPORT[f.to] || {}).cc] || {}).name].join(" ").toLowerCase();
+  const fs = all.filter(f => (cabinFilter === "All" || (f.cabin || "Economy") === cabinFilter) && (!q || hay(f).includes(q)));
+  const by = {new: (a, b) => (b.date || "").localeCompare(a.date || ""), old: (a, b) => (a.date || "").localeCompare(b.date || ""), far: (a, b) => dist(b) - dist(a), airline: (a, b) => (a.airline || "").localeCompare(b.airline || "")};
+  fs.sort(by[sort]);
+  $("#passesCount").textContent = `${plural(all.length, "flight", "flights")} · ${stats().km.toLocaleString()} km`;
+  if (!all.length) { $("#allPasses").innerHTML = `<div class="empty"><p>No boarding passes yet. You can attach a photo or PDF of the real pass to each flight.</p><div class="eacts"><button class="btn primary" type="button" data-eadd="flight">+ Add flight</button></div></div>`; return; }
+  if (!fs.length) { $("#allPasses").innerHTML = `<div class="empty">No flights match.</div>`; return; }
+  let html = "", yr = null;
+  const years = sort === "new" || sort === "old";
+  for (const f of fs) { if (years) { const y = (f.date || "").slice(0, 4) || "Undated"; if (y !== yr) { html += `<div class="year">${esc(y)}</div>`; yr = y; } } html += passHTML(f); }
+  $("#allPasses").innerHTML = html;
+}
+$("#passSearch").addEventListener("input", renderPasses);
+$("#passSort").addEventListener("change", renderPasses);
+$("#cabinChips").addEventListener("click", e => { const b = e.target.closest("[data-cabin]"); if (b) { cabinFilter = b.dataset.cabin; renderPasses(); } });
+
+/* + City from anywhere: picks the country, adds the city pin and its folder */
+function openCityForm(){
+  if (!$("#dlCountries").options.length) $("#dlCountries").innerHTML = Object.values(COUNTRY).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}">`).join("");
+  const ov = modal(`<h2>Add a city</h2>
+    <form class="form" id="fCity">
+      <label>Country<input id="cCountry" list="dlCountries" required autocomplete="off" placeholder="e.g. Japan"></label>
+      <label>City<input id="cName" list="dlCities" required autocomplete="off" placeholder="e.g. Kyoto"></label>
+      <label>First visited<input id="cWhen" type="month"></label>
+    </form>
+    <div class="foot"><span class="err" id="cErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fCity">Add city</button></div>`);
+  $("#cCountry").addEventListener("change", () => { const cc = BY_NAME[$("#cCountry").value.trim().toLowerCase()]; $("#dlCities").innerHTML = (CITIES[cc] || []).slice(0, 400).map(x => `<option value="${esc(x.name)}">`).join(""); });
+  $("#fCity", ov).addEventListener("submit", e => {
+    e.preventDefault();
+    const cc = BY_NAME[$("#cCountry").value.trim().toLowerCase()], name = $("#cName").value.trim();
+    if (!cc) return ($("#cErr").textContent = "Pick a country from the list.");
+    if (!name) return;
+    const prev = state.places[cc] || newPlace(cc);
+    const folders = prev.folders || (prev.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}));
+    if ((prev.cities || []).some(c => norm(c.name) === norm(name))) return ($("#cErr").textContent = `${name} is already in ${COUNTRY[cc].name}.`);
+    const rec = cityRecord(cc, name), when = $("#cWhen").value;
+    const fv = !prev.firstVisit || (when && when < prev.firstVisit) ? (when || prev.firstVisit) : prev.firstVisit;
+    store.put("places", {...prev, firstVisit: fv || "", cities: [...(prev.cities || []), rec], folders: [...folders, {id: uid(), name: rec.name, city: true, items: []}]});
+    closeModal(); toast(`Added ${rec.name}, ${COUNTRY[cc].name}`);
+    if (placeMode !== "cities") { placeMode = "cities"; }
+    renderAll();
+  });
+}
+
+/* the country page: where folders and boarding passes both lead */
+let cityConfirm = null, placeConfirm = false, lastPlace = null;
+function renderPlace(cc){
+  const el = $("#v-place"), c = COUNTRY[cc], p = state.places[cc];
+  if (lastPlace !== cc) { cityConfirm = null; placeConfirm = false; lastPlace = cc; }
+  if (!c) { el.innerHTML = `<div class="empty">That country isn't in the list. <a href="#places">Back to places</a></div>`; return; }
+  if (!p) {
+    el.innerHTML = `<div class="crumbs"><a href="#places">Places</a> / ${esc(c.name)}</div>` + (state.ready
+      ? `<div class="empty"><p>${c.flag} ${esc(c.name)} isn't in your vault yet.</p><button class="btn primary" id="addThis" type="button">Add ${esc(c.name)}</button></div>`
+      : `<div class="empty">Opening your vault…</div>`);
+    const b = $("#addThis"); if (b) b.onclick = () => store.put("places", newPlace(cc));
+    return;
+  }
+  if (!p.folders) { store.put("places", {...p, folders: (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))}); return; }
+  if (routeSub) return renderSubfolder(cc, p);
+  const fl = flightsFor(cc);
+  const notesFocused = document.activeElement && document.activeElement.id === "notes";
+  if (notesFocused) return; // don't clobber typing
+  el.innerHTML = `
+    <div class="crumbs"><a href="#places">Places</a> / ${esc(COUNTRY[cc].region)} / ${esc(c.name)}</div>
+    <div class="hero">
+      <div class="hero-card">
+        <div class="flag" aria-hidden="true">${c.flag}</div>
+        <h1>${esc(c.name)}</h1>
+        <div class="label" style="margin-top:6px">${esc([c.subregion || c.region, c.cca2].filter(Boolean).join(" · "))}${p.example ? ' <span class="tag">Example</span>' : ""}</div>
+        <div class="facts">
+          <div><span class="label">Capital</span><b>${esc(c.capital || "—")}</b></div>
+          <div><span class="label">Currency</span><b>${esc(c.currency || "—")}</b></div>
+          <div><span class="label">Languages</span><b>${esc(c.languages || "—")}</b></div>
+          <div><span class="label">First visited</span><b><input type="month" id="firstVisit" value="${esc(p.firstVisit || "")}" aria-label="First visited"></b></div>
+          <div><span class="label">Cities visited</span><b>${(p.cities || []).length}</b></div>
+          <div><span class="label">Flights in or out</span><b>${fl.length}</b></div>
+        </div>
+      </div>
+      <div class="mini-map" id="miniMap"></div>
+    </div>
+
+    <div class="block">
+      <div class="section-head"><h2>Cities &amp; folders</h2>
+        <div class="folderacts"><form class="addcity" id="addCity"><input id="cityInput" list="dlCities" placeholder="Add a city" autocomplete="off" aria-label="Add a city"><button class="btn small" type="submit">Add city</button></form><button class="btn small" type="button" id="newFolder">+ New folder</button></div>
+      </div>
+      <div class="vcards">${(p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>Add a city you visited, or make a folder for things like visas or hotel bookings.</p><div class="eacts"><button class="btn primary" type="button" data-newfolder>+ New folder</button></div></div>`}</div>
+    </div>
+
+    <div class="block">
+      <div class="section-head"><h2>Boarding passes</h2><button class="btn small" type="button" id="flightHere">+ Flight to ${esc(c.name)}</button></div>
+      <div class="passes" id="placePasses">${fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(c.name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>+ Add flight</button></div></div>`}</div>
+    </div>
+
+    <div class="block">
+      <div class="section-head"><h2>Photos</h2><span class="note">${(p.photos || []).length} photos</span></div>
+      <div class="photos" id="photos">
+        ${(p.photos || []).map((ph, i) => { const u = srcUrl(ph.src); return `<button type="button" class="photo" data-photo="${i}" aria-label="Open photo ${esc(ph.name || "")}">${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("")}
+        <button type="button" class="drop" data-upload="photos"><span style="font-size:22px">+</span>Add photos<span class="note">or drop them here</span></button>
+      </div>
+    </div>
+
+    <div class="block">
+      <div class="section-head"><h2>Files &amp; documents</h2><button class="btn small" type="button" data-upload="files">+ Add files</button></div>
+      <div class="files" id="files">
+        ${(p.files || []).length ? p.files.map((fi, i) => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delfile="${i}">Remove</button></div></div>`).join("")
+          : `<div class="file" style="grid-template-columns:1fr"><span class="note">Keep visas, hotel bookings, tickets and itineraries here. PDFs, images and text files work.</span></div>`}
+      </div>
+    </div>
+
+    <div class="block notes">
+      <div class="section-head"><h2>Notes</h2><span class="note" id="notesSaved"></span></div>
+      <textarea id="notes" placeholder="Favourite food, where you stayed, who you went with…" aria-label="Notes">${esc(p.notes || "")}</textarea>
+    </div>
+
+    <div class="danger-zone">
+      ${placeConfirm ? `<span>Remove ${esc(c.name)} and its photos and files from your vault? Flights stay.</span><span class="confirm"><button class="btn small danger" type="button" id="delPlaceYes">Remove ${esc(c.name)}</button><button class="btn small ghost" type="button" id="delPlaceNo">Cancel</button></span>`
+        : `<button class="btn small danger" type="button" id="delPlace">Remove ${esc(c.name)} from vault</button>`}
+    </div>`;
+  drawMini(cc, p);
+  $("#dlCities").innerHTML = (CITIES[cc] || []).slice(0, 400).map(x => `<option value="${esc(x.name)}">`).join("");
+  if (highlightFlight) {
+    const t = el.querySelector(`[data-flight="${CSS.escape(highlightFlight)}"]`);
+    highlightFlight = null;
+    if (t) { t.classList.add("flash"); setTimeout(() => t.scrollIntoView({block: "center", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth"}), 50); }
+  }
+}
+function renderSubfolder(cc, p){
+  const el = $("#v-place"), c = COUNTRY[cc], fo = (p.folders || []).find(f => f.id === routeSub);
+  if (!fo) { el.innerHTML = `<div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${esc(c.name)}</a></div><div class="empty">That folder was deleted. <a href="#place-${esc(cc)}">Back to ${esc(c.name)}</a></div>`; return; }
+  const items = fo.items || [], imgs = items.filter(it => (it.type || "").startsWith("image/")), docs = items.filter(it => !(it.type || "").startsWith("image/"));
+  el.innerHTML = `
+    <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${esc(fo.name)}</div>
+    <div class="folderhead"><h1>${esc(fo.name)}</h1><span class="note">${items.length} ${items.length === 1 ? "item" : "items"}${fo.city ? " · pinned on your map" : ""}</span>
+      <div class="folderacts" style="margin-left:auto"><button class="btn small" type="button" data-renamefolder>Rename</button><button class="btn small primary" type="button" data-upload="folder">+ Add photos or files</button></div></div>
+    <div class="block">
+      <div class="photos">
+        ${imgs.map((it, i) => { const u = srcUrl(it.src); return `<button type="button" class="photo" data-fphoto="${i}" aria-label="Open ${esc(it.name || "photo")}">${u ? `<img src="${esc(u)}" alt="${esc(it.name || "Photo")}" loading="lazy">` : ""}</button>`; }).join("")}
+        <button type="button" class="drop" data-upload="folder" data-drop="folder"><span style="font-size:22px">+</span>Add photos or files<span class="note">or drop them here</span></button>
+      </div>
+    </div>
+    ${docs.length ? `<div class="block"><div class="section-head"><h2>Files</h2></div><div class="files">${docs.map(fi => `<div class="file"><span class="ext">${esc((fi.name.split(".").pop() || "file").slice(0, 4))}</span><div style="min-width:0"><div class="name">${esc(fi.name)}</div><div class="note">${fmtSize(fi.size || 0)}</div></div><div class="acts">${srcUrl(fi.src) ? `<a class="btn small" href="${esc(srcUrl(fi.src))}" target="_blank" rel="noopener">Open</a>` : ""}<button class="btn small ghost" type="button" data-delitem="${esc(fi.id)}">Remove</button></div></div>`).join("")}</div></div>` : ""}`;
+}
+function openFolderForm(id){
+  const p = state.places[routeArg]; if (!p) return;
+  const fo = id ? (p.folders || []).find(f => f.id === id) : null;
+  const ov = modal(`<h2>${fo ? "Rename folder" : "New folder"}</h2>
+    <form class="form" id="fFolder"><label class="full">Folder name<input id="foName" required maxlength="60" value="${esc(fo ? fo.name : "")}" placeholder="e.g. Visa documents"></label></form>
+    <div class="foot"><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fFolder">${fo ? "Save" : "Create folder"}</button></div>`);
+  $("#fFolder", ov).addEventListener("submit", e => {
+    e.preventDefault();
+    const name = $("#foName").value.trim(); if (!name) return;
+    const cur = state.places[routeArg];
+    if (fo) {
+      const cities = fo.city ? (cur.cities || []).map(c => c.name === fo.name ? {...c, name} : c) : cur.cities;
+      store.put("places", {...cur, cities, folders: cur.folders.map(f => f.id === fo.id ? {...f, name} : f)});
+      toast(`Renamed to ${name}`);
+    } else {
+      store.put("places", {...cur, folders: [...(cur.folders || []), {id: uid(), name, items: []}]});
+      toast(`Created ${name}`);
+    }
+    closeModal();
+  });
+}
+function drawMini(cc, p){
+  const box = $("#miniMap"); const W = 480, H = 320;
+  const f = FEATURE[cc];
+  const pts = (p.cities || []).map(c => [c.lng, c.lat]);
+  const target = f ? f : {type: "MultiPoint", coordinates: pts.length ? pts : [[COUNTRY[cc].latlng[1], COUNTRY[cc].latlng[0]]]};
+  const proj = d3.geoMercator();
+  if (!f && pts.length < 2) { const [lat, lng] = pts.length ? [pts[0][1], pts[0][0]] : COUNTRY[cc].latlng; proj.center([lng, lat]).scale(1400).translate([W/2, H/2]); }
+  else proj.fitExtent([[30, 30], [W - 30, H - 30]], target);
+  const path = d3.geoPath(proj);
+  const svg = d3.select(box).html("").append("svg").attr("viewBox", `0 0 ${W} ${H}`).attr("preserveAspectRatio", "xMidYMid slice").attr("role", "img").attr("aria-label", `Map of ${COUNTRY[cc].name}`);
+  svg.append("g").selectAll("path").data(WORLD).join("path").attr("class", d => "country" + (BY_NUM[d.id] === cc ? " focus" : "")).attr("d", path);
+  const g = svg.append("g");
+  for (const c of p.cities || []) {
+    const [x, y] = proj([c.lng, c.lat]);
+    g.append("circle").attr("class", "city").attr("cx", x).attr("cy", y).attr("r", 5);
+    g.append("text").attr("x", x + 8).attr("y", y + 4).text(c.name).attr("fill", "var(--ink)").attr("font-size", 13).attr("font-family", "var(--f-body)").attr("font-weight", 400).attr("paint-order", "stroke").attr("stroke", "var(--sea)").attr("stroke-width", 3);
+  }
+}
+
+/* place page events */
+$("#v-place").addEventListener("change", e => {
+  const p = state.places[routeArg]; if (!p) return;
+  if (e.target.id === "firstVisit") store.put("places", {...p, firstVisit: e.target.value});
+  if (e.target.id === "notes") { store.put("places", {...p, notes: e.target.value}); }
+});
+$("#v-place").addEventListener("focusout", e => { if (e.target.id === "notes") setTimeout(renderAll, 0); });
+$("#v-place").addEventListener("submit", e => {
+  if (e.target.id !== "addCity") return;
+  e.preventDefault();
+  const p = state.places[routeArg]; const name = $("#cityInput").value.trim(); if (!p || !name) return;
+  if ((p.cities || []).some(c => c.name.toLowerCase() === name.toLowerCase())) return toast(`${name} is already on the list`);
+  const rec = cityRecord(routeArg, name);
+  store.put("places", {...p, cities: [...(p.cities || []), rec], folders: [...(p.folders || []), {id: uid(), name: rec.name, city: true, items: []}]});
+  toast(`Added ${rec.name}`);
+  setTimeout(() => $("#cityInput") && $("#cityInput").focus(), 0);
+});
+$("#v-place").addEventListener("click", async e => {
+  const p = state.places[routeArg]; if (!p) return;
+  const t = e.target.closest("button, a"); if (!t) return;
+  if (t.dataset.delcity != null) { const cities = [...p.cities]; cities.splice(+t.dataset.delcity, 1); store.put("places", {...p, cities}); }
+  if (t.dataset.upload) pickFiles(t.dataset.upload);
+  if (t.dataset.photo != null) openLightbox(+t.dataset.photo);
+  if (t.dataset.fphoto != null) openLightbox(+t.dataset.fphoto, routeSub);
+  if (t.id === "newFolder" || t.dataset.newfolder != null) openFolderForm();
+  if (t.dataset.renamefolder != null) openFolderForm(routeSub);
+  if (t.dataset.delitem) { const fo = p.folders.find(f => f.id === routeSub); const gone = fo.items.find(x => x.id === t.dataset.delitem); await store.put("places", {...p, folders: p.folders.map(f => f.id === fo.id ? {...f, items: f.items.filter(x => x.id !== gone.id)} : f)}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
+  if (t.dataset.delfile != null) { const files = [...p.files]; const [gone] = files.splice(+t.dataset.delfile, 1); await store.put("places", {...p, files}); store.dropFile(gone.src); toast(`Removed ${gone.name}`); }
+  if (t.id === "flightHere" || t.dataset.flighthere != null) openFlightForm(null, routeArg);
+  if (t.id === "delPlace") { placeConfirm = true; renderAll(); }
+  if (t.id === "delPlaceNo") { placeConfirm = false; renderAll(); }
+  if (t.id === "delPlaceYes") { placeConfirm = false; for (const x of [...(p.photos || []), ...(p.files || []), ...(p.folders || []).flatMap(f => f.items || [])]) store.dropFile(x.src); await store.del("places", p.id); location.hash = "places"; toast(`Removed ${COUNTRY[p.id].name}`); }
+});
+const photosDrop = e => { const d = e.target.closest(".drop"); if (!d) return; e.preventDefault(); d.classList.toggle("over", e.type === "dragover"); if (e.type === "drop") uploadTo(d.dataset.drop || "photos", [...e.dataTransfer.files]); };
+["dragover", "dragleave", "drop"].forEach(t => $("#v-place").addEventListener(t, photosDrop));
+
+let uploadTarget = "photos";
+function pickFiles(kind){
+  uploadTarget = kind;
+  const fp = $("#filePick"); fp.accept = kind === "photos" ? "image/*" : kind === "folder" ? "" : "image/*,application/pdf,text/plain,text/csv,text/markdown,application/json,video/mp4,video/webm";
+  fp.value = ""; fp.click();
+}
+$("#filePick").addEventListener("change", e => uploadTo(uploadTarget, [...e.target.files]));
+async function uploadTo(kind, files){
+  const cc = routeArg, sub = routeSub; if (!state.places[cc] || !files.length) return;
+  if (kind === "photos") files = files.filter(f => f.type.startsWith("image/"));
+  let added = 0, failed = [];
+  toast(`Uploading ${files.length} ${files.length === 1 ? "file" : "files"}…`);
+  for (const f of files) {
+    try {
+      const src = await store.saveFile(f);
+      const p = state.places[cc];
+      const rec = {id: uid(), name: f.name, type: f.type, size: f.size, src, addedAt: new Date().toISOString()};
+      if (kind === "folder") await store.put("places", {...p, folders: p.folders.map(f => f.id === sub ? {...f, items: [...(f.items || []), rec]} : f)});
+      else await store.put("places", {...p, [kind]: [...(p[kind] || []), rec]});
+      added++;
+    } catch (err) { failed.push(f.name + (err && err.code === "unsupported_type" ? " (this file type can't be stored; try PDF, image or text)" : err && err.code === "too_large" ? " (over 20 MB)" : "")); }
+  }
+  toast(failed.length ? `Added ${added}. Couldn't add ${failed.join(", ")}` : `Added ${added} ${added === 1 ? "file" : "files"}`);
+}
+
+/* pass clicks: every boarding pass leads to its destination country page */
+document.addEventListener("click", e => {
+  const b = e.target.closest("button.pass"); if (!b) return;
+  const f = state.flights[b.dataset.flight]; if (!f) return;
+  const destCc = (AIRPORT[f.to] || {}).cc;
+  if (route === "place") { openPassView(f); return; }
+  if (destCc && state.places[destCc]) { highlightFlight = f.id; location.hash = "place-" + destCc; }
+  else openPassView(f);
+});
+
+/* ---------- modals ---------- */
+function modal(html, cls=""){
+  const root = $("#modalRoot");
+  root.innerHTML = `<div class="overlay" id="ov"><div class="modal ${cls}" role="dialog" aria-modal="true">${html}</div></div>`;
+  const ov = $("#ov");
+  ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-close]")) closeModal(); });
+  const first = ov.querySelector("input, select, textarea, button"); if (first) first.focus();
+  return ov;
+}
+function closeModal(){ $("#modalRoot").innerHTML = ""; }
+document.addEventListener("keydown", e => { if (e.key === "Escape" && $("#ov")) closeModal(); });
+
+const norm = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+function cityRecord(cc, name){
+  const hit = (CITIES[cc] || []).find(c => norm(c.name) === norm(name));
+  if (hit) return {name: hit.name, lat: hit.lat, lng: hit.lng};
+  const ap = Object.values(AIRPORT).find(a => a.cc === cc && (a.city || "").toLowerCase() === name.toLowerCase());
+  if (ap) return {name, lat: ap.lat, lng: ap.lng};
+  const [lat, lng] = COUNTRY[cc].latlng; return {name, lat, lng, approx: true};
+}
+function newPlace(cc){ return {id: cc, cities: [], photos: [], files: [], notes: "", firstVisit: "", createdAt: new Date().toISOString()}; }
+
+/* Add dropdowns (header and Places) */
+const closeAdds = except => $$(".addwrap").forEach(w => { if (w === except) return; const m = w.querySelector(".addmenu"); if (m && !m.hidden) { m.hidden = true; w.querySelector("[data-addtoggle]").setAttribute("aria-expanded", "false"); } });
+document.addEventListener("click", e => {
+  const tg = e.target.closest("[data-addtoggle]"), item = e.target.closest(".addmenu [data-add]");
+  if (tg) { const w = tg.closest(".addwrap"), m = w.querySelector(".addmenu"); closeAdds(w); m.hidden = !m.hidden; tg.setAttribute("aria-expanded", !m.hidden); if (!m.hidden) m.querySelector("button").focus(); return; }
+  closeAdds();
+  if (item) { const k = item.dataset.add; k === "flight" ? openFlightForm() : k === "city" ? openCityForm() : openPlaceForm(); }
+});
+document.addEventListener("keydown", e => { if (e.key === "Escape") { const open = $$(".addwrap").find(w => !w.querySelector(".addmenu").hidden); if (open) { closeAdds(); open.querySelector("[data-addtoggle]").focus(); } } });
+function openPlaceForm(editCc){
+  if (editCc && state.places[editCc]) {
+    const p = state.places[editCc], c = COUNTRY[editCc];
+    const ov = modal(`<h2>Edit ${esc(c.name)}</h2>
+      <form class="form" id="fEdit">
+        <label>First visited<input id="eWhen" type="month" value="${esc(p.firstVisit || "")}"></label>
+        <label class="full">Notes<textarea id="eNotes" rows="4">${esc(p.notes || "")}</textarea></label>
+      </form>
+      <div class="foot"><a class="btn ghost" href="#place-${esc(editCc)}" data-close>Open country page</a><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fEdit">Save</button></div>`);
+    $("#fEdit", ov).addEventListener("submit", e => { e.preventDefault(); store.put("places", {...state.places[editCc], firstVisit: $("#eWhen").value, notes: $("#eNotes").value}); closeModal(); toast(`Saved ${c.name}`); });
+    return;
+  }
+  if (!$("#dlCountries").options.length) $("#dlCountries").innerHTML = Object.values(COUNTRY).sort((a, b) => a.name.localeCompare(b.name)).map(c => `<option value="${esc(c.name)}">`).join("");
+  const ov = modal(`<h2>Add a country</h2>
+    <form class="form" id="fPlace">
+      <label class="full">Country<input id="pCountry" list="dlCountries" required autocomplete="off" placeholder="Start typing, e.g. Portugal"></label>
+      <label>First visited<input id="pWhen" type="month"></label>
+      <label>Cities <input id="pCities" placeholder="Lisbon, Porto"></label>
+      <label class="full">Notes<textarea id="pNotes" rows="3"></textarea></label>
+    </form>
+    <div class="foot"><span class="err" id="pErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fPlace">Add country</button></div>`);
+  $("#fPlace", ov).addEventListener("submit", e => {
+    e.preventDefault();
+    const cc = BY_NAME[$("#pCountry").value.trim().toLowerCase()];
+    if (!cc) return ($("#pErr").textContent = "Pick a country from the list.");
+    const prev = state.places[cc] || newPlace(cc);
+    const names = $("#pCities").value.split(",").map(s => s.trim()).filter(Boolean).filter(n => !(prev.cities || []).some(c => c.name.toLowerCase() === n.toLowerCase()));
+    const recs = names.map(n => cityRecord(cc, n));
+    const folders = [...(prev.folders || (prev.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}))), ...recs.map(r => ({id: uid(), name: r.name, city: true, items: []}))];
+    store.put("places", {...prev, firstVisit: $("#pWhen").value || prev.firstVisit || "", notes: [prev.notes, $("#pNotes").value].filter(Boolean).join("\n"), cities: [...(prev.cities || []), ...recs], folders});
+    closeModal(); location.hash = "place-" + cc; toast(`${COUNTRY[cc].name} is in your vault`);
+  });
+}
+
+function airportOptions(){
+  if (!$("#dlAirports").options.length) $("#dlAirports").innerHTML = Object.values(AIRPORT).map(a => `<option value="${a.iata}">${esc(`${a.city || a.name}, ${(COUNTRY[a.cc] || {}).name || a.cc} · ${a.name}`)}</option>`).join("");
+}
+function openFlightForm(existing, toCc){
+  airportOptions();
+  const f = existing || {};
+  const ov = modal(`<h2>${existing ? "Edit flight" : "Add a flight"}</h2>
+    <form class="form" id="fFlight">
+      <label>From (airport code)<input id="fFrom" list="dlAirports" required maxlength="3" autocomplete="off" placeholder="e.g. BOM" value="${esc(f.from || "")}" style="text-transform:uppercase"></label>
+      <label>To (airport code)<input id="fTo" list="dlAirports" required maxlength="3" autocomplete="off" placeholder="e.g. LHR" value="${esc(f.to || "")}" style="text-transform:uppercase"></label>
+      <div class="full note" id="fRoute">${toCc ? `Flights to ${esc(COUNTRY[toCc].name)} — pick the arrival airport.` : "Type a city or code to see airports."}</div>
+      <label>Date<input id="fDate" type="date" required value="${esc(f.date || "")}"></label>
+      <label>Airline<input id="fAirline" placeholder="e.g. Air India" value="${esc(f.airline || "")}"></label>
+      <label>Flight number<input id="fNo" placeholder="AI 131" value="${esc(f.flightNo || "")}"></label>
+      <label>Seat<input id="fSeat" placeholder="23A" value="${esc(f.seat || "")}"></label>
+      <label>Cabin<select id="fCabin">${["Economy", "Premium Economy", "Business", "First"].map(c => `<option${(f.cabin || "Economy") === c ? " selected" : ""}>${c}</option>`).join("")}</select></label>
+      <label>Booking reference<input id="fPnr" placeholder="X7K2PQ" value="${esc(f.pnr || "")}" style="text-transform:uppercase"></label>
+      <label>Boarding time<input id="fBoard" type="time" value="${esc(f.boarding || "")}"></label>
+      <label>Gate<input id="fGate" placeholder="B12" value="${esc(f.gate || "")}"></label>
+      <label class="full">Photo or PDF of the real boarding pass<input id="fScan" type="file" accept="image/*,application/pdf">${f.scan ? `<span class="note">Current: ${esc(f.scan.name)}. Choose a new file to replace it.</span>` : ""}</label>
+      ${existing ? "" : `<label class="full check"><input type="checkbox" id="fAddPlace" checked> Add the destination country and city to my places</label>`}
+    </form>
+    <div class="foot"><span class="err" id="fErr"></span><button class="btn ghost" type="button" data-close>Cancel</button><button class="btn primary" type="submit" form="fFlight" id="fSave">${existing ? "Save flight" : "Add flight"}</button></div>`);
+  const routeNote = () => { const a = AIRPORT[$("#fFrom").value.trim().toUpperCase()], b = AIRPORT[$("#fTo").value.trim().toUpperCase()];
+    if (a || b) $("#fRoute").textContent = `${a ? `${a.name}, ${a.city}` : "…"}  →  ${b ? `${b.name}, ${b.city}` : "…"}${a && b ? `  ·  ${Math.round(km(a, b)).toLocaleString()} km` : ""}`; };
+  $("#fFrom").addEventListener("input", routeNote); $("#fTo").addEventListener("input", routeNote); routeNote();
+  $("#fFlight", ov).addEventListener("submit", async e => {
+    e.preventDefault();
+    const from = $("#fFrom").value.trim().toUpperCase(), to = $("#fTo").value.trim().toUpperCase();
+    if (!AIRPORT[from] || !AIRPORT[to]) return ($("#fErr").textContent = `I don't know the airport code ${!AIRPORT[from] ? from : to}. Pick one from the list.`);
+    $("#fSave").disabled = true;
+    const rec = {...f, id: f.id || uid(), from, to, date: $("#fDate").value, airline: $("#fAirline").value.trim(), flightNo: $("#fNo").value.trim().toUpperCase(),
+      seat: $("#fSeat").value.trim().toUpperCase(), cabin: $("#fCabin").value, pnr: $("#fPnr").value.trim().toUpperCase(), boarding: $("#fBoard").value, gate: $("#fGate").value.trim().toUpperCase()};
+    const scan = $("#fScan").files[0];
+    if (scan) {
+      try { const src = await store.saveFile(scan); if (f.scan) store.dropFile(f.scan.src); rec.scan = {name: scan.name, type: scan.type, size: scan.size, src}; }
+      catch (err) { $("#fSave").disabled = false; return ($("#fErr").textContent = "Couldn't upload that file. Try a JPG, PNG or PDF under 20 MB."); }
+    }
+    await store.put("flights", rec);
+    const cc = AIRPORT[to].cc;
+    if (!existing && $("#fAddPlace") && $("#fAddPlace").checked && COUNTRY[cc]) {
+      const p = state.places[cc] || newPlace(cc);
+      const cityName = AIRPORT[to].city || AIRPORT[to].name;
+      const has = (p.cities || []).some(c => c.name.toLowerCase() === cityName.toLowerCase());
+      const ym = rec.date ? rec.date.slice(0, 7) : "";
+      const rec = has ? null : cityRecord(cc, cityName);
+      const folders = p.folders || (p.cities || []).map(ct => ({id: uid(), name: ct.name, city: true, items: []}));
+      await store.put("places", {...p, cities: has ? p.cities : [...(p.cities || []), rec], folders: has ? folders : [...folders, {id: uid(), name: rec.name, city: true, items: []}], firstVisit: !p.firstVisit || (ym && ym < p.firstVisit) ? (ym || p.firstVisit) : p.firstVisit});
+    }
+    closeModal();
+    toast(existing ? "Flight saved" : `Added ${from} → ${to}`);
+    if (!existing && state.places[cc]) { highlightFlight = rec.id; location.hash = "place-" + cc; renderAll(); }
+  });
+}
+
+let passConfirm = false;
+function openPassView(f){
+  const sUrl = f.scan ? srcUrl(f.scan.src) : "";
+  const a = AIRPORT[f.from], b = AIRPORT[f.to];
+  const ov = modal(`${passHTML(f, {static: true})}
+    <div class="note" style="margin-top:10px">${a && b ? `${esc(a.name)} → ${esc(b.name)} · ${Math.round(km(a, b)).toLocaleString()} km` : ""}</div>
+    ${f.scan ? `<div class="scan"><div class="label">Original boarding pass</div>${f.scan.type && f.scan.type.startsWith("image/") && sUrl ? `<img src="${esc(sUrl)}" alt="Scan of boarding pass">` : sUrl ? `<a class="btn small" href="${esc(sUrl)}" target="_blank" rel="noopener">Open ${esc(f.scan.name)}</a>` : ""}</div>` : ""}
+    <div class="foot" id="pvFoot"></div>`, "passview");
+  const foot = () => {
+    $("#pvFoot").innerHTML = passConfirm
+      ? `<span class="err">Delete this flight and its boarding pass?</span><button class="btn small danger" type="button" id="pvDelYes">Delete flight</button><button class="btn small ghost" type="button" id="pvDelNo">Cancel</button>`
+      : `<button class="btn small danger" type="button" id="pvDel" style="margin-right:auto">Delete</button><button class="btn small" type="button" id="pvEdit">Edit</button><button class="btn small primary" type="button" data-close>Done</button>`;
+  };
+  passConfirm = false; foot();
+  $("#pvFoot", ov).addEventListener("click", async e => {
+    const id = e.target.id;
+    if (id === "pvDel") { passConfirm = true; foot(); }
+    if (id === "pvDelNo") { passConfirm = false; foot(); }
+    if (id === "pvDelYes") { if (f.scan) store.dropFile(f.scan.src); await store.del("flights", f.id); closeModal(); toast("Flight deleted"); }
+    if (id === "pvEdit") openFlightForm(f);
+  });
+}
+
+function openLightbox(i, folderId){
+  const p = state.places[routeArg];
+  const fo = folderId ? (p.folders || []).find(f => f.id === folderId) : null;
+  const list = fo ? (fo.items || []).filter(it => (it.type || "").startsWith("image/")) : (p.photos || []);
+  if (!list[i]) return;
+  let confirmDel = false;
+  const draw = () => {
+    const ph = list[i], u = srcUrl(ph.src);
+    modal(`${u ? `<img src="${esc(u)}" alt="${esc(ph.name || "Photo")}">` : `<div class="empty">Loading photo…</div>`}
+      <div class="bar">
+        <button class="btn small" type="button" id="lbPrev" ${i === 0 ? "disabled" : ""}>← Previous</button>
+        <span class="btn small ghost" style="color:#FFFFFF;border-color:transparent">${i + 1} / ${list.length}</span>
+        <button class="btn small" type="button" id="lbNext" ${i === list.length - 1 ? "disabled" : ""}>Next →</button>
+        ${confirmDel ? `<button class="btn small danger" style="background:var(--card)" type="button" id="lbDelYes">Delete this photo</button><button class="btn small" type="button" id="lbDelNo">Keep</button>` : `<button class="btn small" type="button" id="lbDel">Delete</button>`}
+        <button class="btn small primary" type="button" data-close>Close</button>
+      </div>`, "lightbox");
+    $("#lbPrev").onclick = () => { i--; confirmDel = false; draw(); };
+    $("#lbNext").onclick = () => { i++; confirmDel = false; draw(); };
+    if ($("#lbDel")) $("#lbDel").onclick = () => { confirmDel = true; draw(); };
+    if ($("#lbDelNo")) $("#lbDelNo").onclick = () => { confirmDel = false; draw(); };
+    if ($("#lbDelYes")) $("#lbDelYes").onclick = async () => { const cur = state.places[routeArg]; const gone = list[i];
+      if (fo) await store.put("places", {...cur, folders: cur.folders.map(f => f.id === fo.id ? {...f, items: f.items.filter(x => x.id !== gone.id)} : f)});
+      else await store.put("places", {...cur, photos: cur.photos.filter(x => x !== gone && x.id !== gone.id)}); store.dropFile(gone.src); closeModal(); toast("Photo deleted"); };
+  };
+  draw();
+}
+
+let toastT;
+function toast(msg){
+  let t = $(".toast"); if (!t) { t = document.createElement("div"); t.className = "toast"; t.setAttribute("role", "status"); document.body.appendChild(t); }
+  t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 3200);
+}
+
+window.addEventListener("hashchange", () => { renderAll(); window.scrollTo(0, 0); });
+boot();
+})();
+</script>
+
+</body></html>
