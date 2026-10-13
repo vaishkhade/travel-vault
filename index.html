@@ -2688,9 +2688,8 @@ boot();
     const mw = document.querySelector("main.wrap"), mr = mw && mw.getBoundingClientRect();
     gut = Math.max(0, mr && mr.width ? Math.min(mr.left, W - mr.right) + (parseFloat(getComputedStyle(mw).paddingLeft) || 0) : (W - Math.min(COL, W - 16)) / 2); dots = [];   // up to the content edge, past the frame line
     if (gut < 24 || W < 720) { ctx.clearRect(0, 0, W, H); return; }
-    for (let y = GAP / 2; y < H; y += GAP) for (let x = GAP / 2; x < W; x += GAP) {
-      const d = x < gut ? gut - x : x > W - gut ? x - (W - gut) : -1;
-      if (d <= 0) continue;
+    for (let y = GAP / 2; y < H; y += GAP) for (let k = 0, e = GAP / 2; e < gut; k++, e = GAP / 2 + k * GAP) for (const x of [e, W - e]) {
+      const d = gut - e;                                   // both gutters mirror each other from the screen edge
       const m = Math.min(1, d / gut);                       // 0 at the content edge, 1 at the screen edge
       dots.push({ x, y, ox: 0, oy: 0, m: m * (2 - m), h: 195 + (x * 2.6 + y * 1.9) % 40 });
     }
@@ -2705,7 +2704,7 @@ boot();
       const dx = p.x - mx, dy = p.y - my, dist = Math.hypot(dx, dy);
       const f = dist < HOVER ? 1 - dist / HOVER : 0;
       if (!still.matches) {                                   // gentle push away from the cursor
-        const push = f * f * 8 * glow, tx = dist ? dx / dist * push : 0, ty = dist ? dy / dist * push : 0;
+        const push = f * f * 4 * glow, tx = dist ? dx / dist * push : 0, ty = dist ? dy / dist * push : 0;
         p.ox += (tx - p.ox) * 0.15; p.oy += (ty - p.oy) * 0.15;
         if (Math.abs(tx - p.ox) + Math.abs(ty - p.oy) > 0.05) busy = true;
       }
