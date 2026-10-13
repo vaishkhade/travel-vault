@@ -877,6 +877,13 @@ h2.hasicon{display:flex;align-items:center;gap:12px}h2.hasicon .hicon svg{width:
 .hi-blue{background:#dbe5ff;color:#2f55e4}.hi-lilac{background:#e6deff;color:#6a4fd8}.hi-mint{background:#d4f2e8;color:#1f9a76}
 :root:not([data-mode="light"]) .hicon{box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
 :root:not([data-mode="light"]) .hi-blue{background:rgba(90,120,255,.18);color:#9db2ff}:root:not([data-mode="light"]) .hi-lilac{background:rgba(150,120,255,.18);color:#c3b4ff}:root:not([data-mode="light"]) .hi-mint{background:rgba(60,190,150,.16);color:#7fe0bf}
+/* View more page titles: same size as the main headings, icon circle in front, count chip after */
+.secthead h1.hasicon{font-size:24px;line-height:32px;display:flex;align-items:center;gap:12px}
+.secthead h1.hasicon .cchip{margin-left:0}
+h1.hasicon .hicon svg{width:22px;height:22px;display:block}
+.secthead h1.hasicon>.hicon{display:inline-flex}
+.hi-peach{background:#ffe6d9;color:#d9622b}.hi-amber{background:#fff1cf;color:#b7810a}
+:root:not([data-mode="light"]) .hi-peach{background:rgba(255,140,90,.16);color:#ffb38f}:root:not([data-mode="light"]) .hi-amber{background:rgba(240,190,60,.15);color:#f3cf6e}
 </style>
 
 </head><body><div class="rails" aria-hidden="true"></div>
@@ -1994,6 +2001,13 @@ function openNote(cc, id){
     $("#nDelYes").onclick = () => { saveNotes(state.places[cc], notesOf(state.places[cc]).filter(x => x.id !== n.id)); closeModal(); toast("Note deleted"); };
   };
 }
+const HSVG = (c, d) => `<span class="hicon ${c}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor">${d}</svg></span>`;
+const HICON = {
+  pin: HSVG("hi-mint", '<path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7zm0 9.5a2.5 2.5 0 1 1 0-5 2.5 2.5 0 0 1 0 5z"/>'),
+  plane: HSVG("hi-lilac", '<path d="M21 15.5v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V8.5l-8 5v2l8-2.5V18l-2 1.5V21l3.5-1 3.5 1v-1.5L13 18v-5z"/>'),
+  camera: HSVG("hi-peach", '<path d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3zm3 14.5a5 5 0 1 1 0-10 5 5 0 0 1 0 10zm0-2.2a2.8 2.8 0 1 0 0-5.6 2.8 2.8 0 0 0 0 5.6z"/>'),
+  doc: HSVG("hi-blue", '<path d="M6 2a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm7 1.5L18.5 9H14a1 1 0 0 1-1-1zM8 13h8v1.6H8zm0 3.4h8V18H8z"/>'),
+  note: HSVG("hi-amber", '<path d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10l6-6V5a2 2 0 0 0-2-2zm2 5h10v1.6H7zm0 3.4h10V13H7zm0 3.4h6v1.6H7zM15 21v-4a2 2 0 0 1 2-2h4z"/>')};
 const cchip = n => `<span class="cchip" aria-label="${n} ${n === 1 ? "item" : "items"}">${n}</span>`;
 const SECTIONS = {cities: "Cities", flights: "Flights", photos: "Photos & videos", files: "Files & documents", notes: "Notes"};
 const viewMore = (cc, id, n) => n > 2 ? `<div class="bfoot"><a class="btn small ghost viewmore" href="#place-${esc(cc)}/${id}">View more</a></div>` : "";
@@ -2061,7 +2075,7 @@ const fileRowHTML = (fi, i) => `<div class="file"><span class="ext">${esc((fi.na
 function renderSection(cc, p, id){
   const dir = (id === "photos" || id === "files") ? routeDir : null;
   const c = COUNTRY[cc], n = dir ? (p[id] || []).filter(x => x.dir === dir).length : {cities: (p.folders || []).length, flights: flightsFor(cc).length, photos: (p.photos || []).length, files: (p.files || []).length, notes: notesOf(p).length}[id];
-  const icon = {cities: BICON.pin, flights: BICON.plane, photos: BICON.photo, files: BICON.file, notes: BICON.note}[id];
+  const icon = HICON[{cities: "pin", flights: "plane", photos: "camera", files: "doc", notes: "note"}[id]];
   const add = {cities: `<button class="btn small" type="button" id="cityHere">Add city</button>`, flights: `<button class="btn small" type="button" id="flightHere">Add flight</button>`,
     photos: dir ? `<button class="btn small" type="button" data-upload="photos" data-intodir="${esc(dir)}">Add to this folder</button>` : `${upToggle("photos")}<button class="btn small" type="button" data-upload="photos">${upMode.photos === "folder" ? "Add folder" : "Add photos or videos"}</button>`,
     files: dir ? `<button class="btn small" type="button" data-upload="files" data-intodir="${esc(dir)}">Add to this folder</button>` : `${upToggle("files")}<button class="btn small" type="button" data-upload="files">${upMode.files === "folder" ? "Add folder" : "Add files"}</button>`, notes: `<button class="btn small" type="button" id="noteHere">Add note</button>`}[id];
@@ -2070,7 +2084,7 @@ function renderSection(cc, p, id){
     : `<div class="${{cities: "vcards", flights: "passes", files: "files", notes: "ntiles"}[id]}">${sectionItems(cc, p, id, dir)}</div>`;
   $("#v-place").innerHTML = `
     <div class="crumbs"><a href="#places">Places</a> / <a href="#place-${esc(cc)}">${c.flag} ${esc(c.name)}</a> / ${dir ? `<a href="#place-${esc(cc)}/${id}">${esc(SECTIONS[id])}</a> / ${esc(dir)}` : esc(SECTIONS[id])}</div>
-    <div class="folderhead secthead"><h1>${icon}${esc(dir || SECTIONS[id])}</h1><span class="note">${plural(n, ...unit)}</span>
+    <div class="folderhead secthead"><h1 class="hasicon">${icon}${esc(dir || SECTIONS[id])}${cchip(n)}</h1>
       <div class="folderacts" style="margin-left:auto">${dir ? `<button class="btn small ghost" type="button" data-deldir="${id}">Delete folder</button>` : `<a class="btn small ghost" href="#place-${esc(cc)}">Back to ${esc(c.name)}</a>`}${add}</div></div>
     <div class="sectpage s-${id}page">${body}</div>`;
 }
