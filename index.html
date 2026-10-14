@@ -1001,6 +1001,8 @@ html body :is(.vcard,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-
 /* country page empty states: plain text, no box (the section header already has the add button) */
 html body .bcard .empty,html body .bcard .files.hrow>.fempty,html body .bcard .files.hrow>.fempty:hover{background:none!important;box-shadow:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transform:none!important;padding:4px 0!important;text-align:center!important;justify-items:center;color:var(--ink-muted);cursor:default}
 html body .bcard .files.hrow>.fempty .note{font-size:14px;line-height:1.5;color:var(--ink-muted)}
+.modal .dmsg{display:block;min-height:0;font-size:12.5px;line-height:1.35;color:var(--danger);margin-top:4px}.modal .dmsg:empty{display:none}
+.modal input.bad{border-color:var(--danger)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 14%,transparent)!important}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
@@ -2358,6 +2360,7 @@ function modal(html, cls=""){
   const ov = $("#ov");
   ov.addEventListener("click", e => { if (e.target === ov || e.target.closest("[data-close]")) closeModal(); });
   const first = ov.querySelector("input, select, textarea, button"); if (first) first.focus();
+  guardDates(ov);
   return ov;
 }
 function closeModal(){ $("#modalRoot").innerHTML = ""; }
@@ -2871,6 +2874,57 @@ function openGmailImport(){
       closeModal(); toast(`Added ${pick.length} flight${pick.length > 1 ? "s" : ""} from Gmail`);
     };
   };
+}
+
+/* ---------- date error prevention: only real, sensible dates can be saved ---------- */
+const pad2 = n => String(n).padStart(2, "0");
+function dateLimits(){
+  const t = new Date(), y = t.getFullYear(), m = pad2(t.getMonth() + 1), d = pad2(t.getDate());
+  return {today: `${y}-${m}-${d}`, month: `${y}-${m}`, flightMax: `${y + 1}-${m}-${d}`};
+}
+const fmtDay = v => new Date(v + "T00:00").toLocaleDateString(undefined, {day: "numeric", month: "short", year: "numeric"});
+function dateProblem(el){
+  const L = dateLimits(), v = el.value, lab = (el.closest("label") || {}).firstChild;
+  if (el.validity.badInput) return "That date isn't a real date. Pick one from the calendar.";
+  if (!v) return el.required ? (el.type === "month" ? "Add the month and year you first visited." : "Add the flight date.") : "";
+  if (el.type === "month") {
+    if (!/^\d{4}-\d{2}$/.test(v) || v < "1950-01") return "Pick a month from 1950 onwards.";
+    if (v > L.month) return "First visited can't be in the future.";
+    return "";
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v + "T00:00"))) return "That date isn't a real date. Pick one from the calendar.";
+  if (v < "1950-01-01") return "Pick a date from 1950 onwards.";
+  if (v > L.flightMax) return `Flights can be at most a year ahead (up to ${fmtDay(L.flightMax)}).`;
+  if (el.id === "rDate") { const out = $("#fDate"); if (out && out.value && v < out.value) return `The return can't be before the outbound flight on ${fmtDay(out.value)}.`; }
+  return "";
+}
+function guardDates(ov){
+  const ins = $$('input[type="date"], input[type="month"]', ov); if (!ins.length) return;
+  const L = dateLimits();
+  for (const el of ins) {
+    if (el.type === "month") { el.min = "1950-01"; el.max = L.month; } else { el.min = "1950-01-01"; el.max = L.flightMax; }
+    const msg = document.createElement("span"); msg.className = "dmsg"; msg.id = (el.id || "d") + "Msg"; msg.setAttribute("aria-live", "polite"); el.after(msg);
+    el.setAttribute("aria-describedby", msg.id);
+  }
+  const out = $("#fDate", ov), ret = $("#rDate", ov);
+  const syncRet = () => { if (out && ret) ret.min = out.value || "1950-01-01"; };
+  const check = (el, show) => { const p = dateProblem(el), m = $("#" + (el.id || "d") + "Msg", ov);
+    el.toggleAttribute("aria-invalid", !!p); el.classList.toggle("bad", !!p); if (m) m.textContent = show ? p : ""; return p; };
+  for (const el of ins) {
+    el.addEventListener("input", () => { syncRet(); check(el, el.classList.contains("bad") || el.value.length >= 7); if (el === out && ret && ret.value) check(ret, true); });
+    el.addEventListener("change", () => { syncRet(); check(el, true); if (el === out && ret && ret.value) check(ret, true); });
+    /* swap the browser's own bubble for the same inline message */
+    el.addEventListener("invalid", e => { e.preventDefault(); check(el, true); el.focus(); });
+  }
+  syncRet();
+  /* runs before each form's own submit handler, so a bad date never saves */
+  for (const form of $$("form", ov)) form.addEventListener("submit", e => {
+    const bad = $$('input[type="date"], input[type="month"]', form).filter(el => !el.closest("[hidden]")).map(el => [el, check(el, true)]).filter(x => x[1]);
+    if (!bad.length) return;
+    e.preventDefault(); e.stopImmediatePropagation();
+    const err = $(".foot .err", ov); if (err) err.textContent = bad[0][1];
+    bad[0][0].focus();
+  }, {capture: true});
 }
 
 window.addEventListener("hashchange", () => { renderAll(); window.scrollTo(0, 0); });
