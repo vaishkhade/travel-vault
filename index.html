@@ -1003,6 +1003,11 @@ html body .bcard .empty,html body .bcard .files.hrow>.fempty,html body .bcard .f
 html body .bcard .files.hrow>.fempty .note{font-size:14px;line-height:1.5;color:var(--ink-muted)}
 .modal .dmsg{display:block;min-height:0;font-size:12.5px;line-height:1.35;color:var(--danger);margin-top:4px}.modal .dmsg:empty{display:none}
 .modal input.bad{border-color:var(--danger)!important;box-shadow:0 0 0 3px color-mix(in srgb,var(--danger) 14%,transparent)!important}
+.modal .ympick{display:flex;gap:8px}.modal .ympick[hidden]{display:none}.modal .ympick select{flex:1;min-width:0}
+.modal .ympick.bad select{border-color:var(--danger)!important}
+.modal .dhint{display:block;font-size:12.5px;line-height:1.35;color:var(--ink-muted);margin-top:4px;font-weight:400}
+.modal .dtoggle{display:flex!important;flex-direction:row!important;align-items:center;gap:6px;font-size:12.5px;font-weight:400;color:var(--ink-muted);margin-top:6px;cursor:pointer}
+.modal .dtoggle input{width:auto;height:auto;margin:0}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
@@ -2876,42 +2881,80 @@ function openGmailImport(){
   };
 }
 
-/* ---------- date error prevention: only real, sensible dates can be saved ---------- */
+/* ---------- dates: format shown, month-only allowed, impossible dates blocked ---------- */
 const pad2 = n => String(n).padStart(2, "0");
 function dateLimits(){
   const t = new Date(), y = t.getFullYear(), m = pad2(t.getMonth() + 1), d = pad2(t.getDate());
-  return {today: `${y}-${m}-${d}`, month: `${y}-${m}`, flightMax: `${y + 1}-${m}-${d}`};
+  return {month: `${y}-${m}`, flightMax: `${y + 1}-${m}-${d}`, flightMaxM: `${y + 1}-${m}`, year: y};
 }
-const fmtDay = v => new Date(v + "T00:00").toLocaleDateString(undefined, {day: "numeric", month: "short", year: "numeric"});
+const fmtDay = v => fmtDate(v);
+/* the order the browser shows day, month and year in, e.g. DD/MM/YYYY */
+const DATE_PATTERN = (() => { try { return new Intl.DateTimeFormat(undefined, {day: "2-digit", month: "2-digit", year: "numeric"}).formatToParts(new Date(2024, 11, 31))
+  .map(p => p.type === "day" ? "DD" : p.type === "month" ? "MM" : p.type === "year" ? "YYYY" : p.value).join(""); } catch (e) { return "DD/MM/YYYY"; } })();
+const NATIVE_VALUE = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+/* month + year dropdowns that stand in for an input; works in every browser, including Safari */
+function monthPicker(el, maxYear){
+  const w = document.createElement("span"); w.className = "ympick"; w.hidden = true;
+  const yrs = []; for (let y = maxYear; y >= 1950; y--) yrs.push(y);
+  w.innerHTML = `<select aria-label="Month"><option value="">Month</option>${MONTHS_FULL.map((m, i) => `<option value="${pad2(i + 1)}">${m}</option>`).join("")}</select>`
+    + `<select aria-label="Year"><option value="">Year</option>${yrs.map(y => `<option>${y}</option>`).join("")}</select>`;
+  el.after(w); return w;
+}
+function dateField(el){
+  const L = dateLimits(), onlyMonth = el.type === "month", start = NATIVE_VALUE.get.call(el) || el.getAttribute("value") || "";
+  el.type = onlyMonth ? "hidden" : "date";
+  if (!onlyMonth) { el.min = "1950-01-01"; el.max = L.flightMax; }
+  const pick = monthPicker(el, onlyMonth ? L.year : L.year + 1), [ms, ys] = pick.querySelectorAll("select");
+  const hint = document.createElement("span"); hint.className = "dhint"; el.parentNode.insertBefore(hint, pick.nextSibling);
+  let toggle = null;
+  if (!onlyMonth) { toggle = document.createElement("span"); toggle.className = "dtoggle"; toggle.innerHTML = `<input type="checkbox" id="${el.id}Mo"><span>I only know the month</span>`; hint.after(toggle);
+    /* the toggle sits inside the field's label, so its text clicks the checkbox itself rather than the date */
+    toggle.lastChild.addEventListener("click", e => { e.preventDefault(); toggle.firstChild.click(); }); }
+  const msg = document.createElement("span"); msg.className = "dmsg"; msg.id = el.id + "Msg"; msg.setAttribute("aria-live", "polite"); (toggle || hint).after(msg);
+  el.setAttribute("aria-describedby", msg.id); ms.setAttribute("aria-describedby", msg.id); ys.setAttribute("aria-describedby", msg.id);
+  let monthMode = onlyMonth;
+  const setMode = on => { monthMode = on; if (!onlyMonth) { el.type = on ? "hidden" : "date"; toggle.firstChild.checked = on; } pick.hidden = !on;
+    hint.textContent = on ? "Format: month and year" : `Format: ${DATE_PATTERN}`; };
+  Object.defineProperty(el, "value", { configurable: true,
+    get(){ if (!monthMode) return NATIVE_VALUE.get.call(this); return ms.value && ys.value ? `${ys.value}-${ms.value}` : ms.value || ys.value ? "partial" : ""; },
+    set(v){ v = v || ""; if (/^\d{4}-\d{2}$/.test(v) || onlyMonth) { if (!onlyMonth) setMode(true); ys.value = v.slice(0, 4); ms.value = v.slice(5, 7); }
+      else { if (monthMode) setMode(false); NATIVE_VALUE.set.call(this, v); } } });
+  el.dataset.datefield = onlyMonth ? "month" : "day";
+  el.isMonthMode = () => monthMode;
+  setMode(onlyMonth || /^\d{4}-\d{2}$/.test(start)); el.value = start;
+  if (toggle) toggle.firstChild.addEventListener("change", () => { const cur = el.value; setMode(toggle.firstChild.checked);
+    if (monthMode && /^\d{4}-\d{2}-\d{2}$/.test(cur)) { ys.value = cur.slice(0, 4); ms.value = cur.slice(5, 7); }
+    else if (!monthMode && /^\d{4}-\d{2}$/.test(cur)) NATIVE_VALUE.set.call(el, ""); el.dispatchEvent(new Event("change", {bubbles: true})); });
+  for (const sel of [ms, ys]) sel.addEventListener("change", () => el.dispatchEvent(new Event("change", {bubbles: true})));
+  return {pick, msg};
+}
 function dateProblem(el){
-  const L = dateLimits(), v = el.value, lab = (el.closest("label") || {}).firstChild;
-  if (el.validity.badInput) return "That date isn't a real date. Pick one from the calendar.";
-  if (!v) return el.required ? (el.type === "month" ? "Add the month and year you first visited." : "Add the flight date.") : "";
-  if (el.type === "month") {
+  const L = dateLimits(), v = el.value, month = el.isMonthMode && el.isMonthMode(), first = el.dataset.datefield === "month";
+  if (!month && el.validity.badInput) return `That isn't a real date. Type it as ${DATE_PATTERN} or pick it from the calendar.`;
+  if (v === "partial") return "Pick both the month and the year.";
+  if (!v) return el.required ? (first ? "Add the month and year you first visited." : "Add the flight date, or tick “I only know the month”.") : "";
+  if (month) {
     if (!/^\d{4}-\d{2}$/.test(v) || v < "1950-01") return "Pick a month from 1950 onwards.";
-    if (v > L.month) return "First visited can't be in the future.";
-    return "";
+    if (first && v > L.month) return "First visited can't be in the future.";
+    if (!first && v > L.flightMaxM) return `Flights can be at most a year ahead (up to ${fmtMonth(L.flightMaxM)}).`;
+  } else {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v + "T00:00"))) return `That isn't a real date. Type it as ${DATE_PATTERN} or pick it from the calendar.`;
+    if (v < "1950-01-01") return "Pick a date from 1950 onwards.";
+    if (v > L.flightMax) return `Flights can be at most a year ahead (up to ${fmtDay(L.flightMax)}).`;
   }
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(v) || isNaN(new Date(v + "T00:00"))) return "That date isn't a real date. Pick one from the calendar.";
-  if (v < "1950-01-01") return "Pick a date from 1950 onwards.";
-  if (v > L.flightMax) return `Flights can be at most a year ahead (up to ${fmtDay(L.flightMax)}).`;
-  if (el.id === "rDate") { const out = $("#fDate"); if (out && out.value && v < out.value) return `The return can't be before the outbound flight on ${fmtDay(out.value)}.`; }
+  if (el.id === "rDate") { const out = $("#fDate"), o = out && out.value; if (o && o !== "partial") { const n = Math.min(o.length, v.length);
+    if (v.slice(0, n) < o.slice(0, n)) return `The return can't be before the outbound flight (${o.length > 7 ? fmtDay(o) : fmtMonth(o)}).`; } }
   return "";
 }
 function guardDates(ov){
   const ins = $$('input[type="date"], input[type="month"]', ov); if (!ins.length) return;
-  const L = dateLimits();
-  for (const el of ins) {
-    if (el.type === "month") { el.min = "1950-01"; el.max = L.month; } else { el.min = "1950-01-01"; el.max = L.flightMax; }
-    const msg = document.createElement("span"); msg.className = "dmsg"; msg.id = (el.id || "d") + "Msg"; msg.setAttribute("aria-live", "polite"); el.after(msg);
-    el.setAttribute("aria-describedby", msg.id);
-  }
+  const parts = new Map(ins.map(el => [el, dateField(el)]));
   const out = $("#fDate", ov), ret = $("#rDate", ov);
-  const syncRet = () => { if (out && ret) ret.min = out.value || "1950-01-01"; };
-  const check = (el, show) => { const p = dateProblem(el), m = $("#" + (el.id || "d") + "Msg", ov);
-    el.toggleAttribute("aria-invalid", !!p); el.classList.toggle("bad", !!p); if (m) m.textContent = show ? p : ""; return p; };
+  const syncRet = () => { if (out && ret) ret.min = out.value && out.value.length > 7 ? out.value : "1950-01-01"; };
+  const check = (el, show) => { const p = dateProblem(el), {pick, msg} = parts.get(el);
+    el.toggleAttribute("aria-invalid", !!p); el.classList.toggle("bad", !!p); pick.classList.toggle("bad", !!p); msg.textContent = show ? p : ""; return p; };
   for (const el of ins) {
-    el.addEventListener("input", () => { syncRet(); check(el, el.classList.contains("bad") || el.value.length >= 7); if (el === out && ret && ret.value) check(ret, true); });
+    el.addEventListener("input", () => { syncRet(); check(el, el.classList.contains("bad")); });
     el.addEventListener("change", () => { syncRet(); check(el, true); if (el === out && ret && ret.value) check(ret, true); });
     /* swap the browser's own bubble for the same inline message */
     el.addEventListener("invalid", e => { e.preventDefault(); check(el, true); el.focus(); });
@@ -2919,11 +2962,10 @@ function guardDates(ov){
   syncRet();
   /* runs before each form's own submit handler, so a bad date never saves */
   for (const form of $$("form", ov)) form.addEventListener("submit", e => {
-    const bad = $$('input[type="date"], input[type="month"]', form).filter(el => !el.closest("[hidden]")).map(el => [el, check(el, true)]).filter(x => x[1]);
+    const bad = [...parts.keys()].filter(el => form.contains(el) && !el.closest("[hidden]")).map(el => [el, check(el, true)]).filter(x => x[1]);
     if (!bad.length) return;
     e.preventDefault(); e.stopImmediatePropagation();
-    const err = $(".foot .err", ov); if (err) err.textContent = bad[0][1];
-    bad[0][0].focus();
+    const [el] = bad[0]; (el.isMonthMode() ? parts.get(el).pick.querySelector("select") : el).focus();
   }, {capture: true});
 }
 
