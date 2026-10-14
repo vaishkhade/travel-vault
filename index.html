@@ -998,6 +998,9 @@ html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.pho
 html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){transform:translateY(var(--lift))!important}
 html body :is(.vcard,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){box-shadow:var(--sh-hover)!important}
 @media (prefers-reduced-motion:reduce){html body :is(.vcard,button.pass,.ffolder,.addtile,.ntile,.drop,.file,.stat,.photo):is(:hover,:focus-visible){transform:none!important}}
+/* country page empty states: plain text, no box (the section header already has the add button) */
+html body .bcard .empty,html body .bcard .files.hrow>.fempty,html body .bcard .files.hrow>.fempty:hover{background:none!important;box-shadow:none!important;border:0!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transform:none!important;padding:4px 0!important;text-align:left;color:var(--ink-muted);cursor:default}
+html body .bcard .files.hrow>.fempty .note{font-size:14px;line-height:1.5;color:var(--ink-muted)}
 </style>
 
 </head><body><canvas id="dotgrid" aria-hidden="true"></canvas><div class="rails" aria-hidden="true"></div>
@@ -2178,7 +2181,7 @@ const upToggle = kind => `<span class="uptoggle" role="group" aria-label="Add ${
 document.addEventListener("click", e => { const b = e.target.closest("[data-upmode]"); if (!b) return; const [k, m] = b.dataset.upmode.split(":"); upMode[k] = m; renderAll(); });
 function sectionItems(cc, p, id, dir){
   if (id === "cities") return (p.folders || []).length ? p.folders.map(fo => vcardHTML(cc, fo)).join("") : `<div class="empty"><p>No cities yet. Add one you visited above.</p></div>`;
-  if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p><div class="eacts"><button class="btn primary" type="button" data-flighthere>Add flight</button></div></div>`; }
+  if (id === "flights") { const fl = flightsFor(cc); return fl.length ? fl.map(f => passHTML(f)).join("") : `<div class="empty"><p>No flights to or from ${esc(COUNTRY[cc].name)} yet.</p></div>`; }
   if (id === "notes") { const ns = notesOf(p); return ns.length ? ns.map(n => noteTileHTML(n)).join("") : `<div class="empty"><p>No notes yet. Write down favourite food, where you stayed, who you went with.</p></div>`; }
   if (id === "photos") return dirGroups(p.photos, dir).map(g => g.dir ? albumHTML(cc, "photos", g) : mediaHTML(g.item, g.i)).join("");
   if (dir) return dirGroups(p.files, dir).map(g => fileRowHTML(g.item, g.i)).join("") || `<div class="file fempty" style="grid-template-columns:1fr"><span class="note">This folder is empty.</span></div>`;
